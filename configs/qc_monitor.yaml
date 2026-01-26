@@ -1,0 +1,37 @@
+paths:
+  # QC root folder
+  qc_root: /Users/savarese/Desktop/SOXS_Workspace/sessions/base/qc
+  
+  # QC database path
+  database: data/qc.sqlite
+
+# What recipes and metrics to look for during acquisition
+acquisition:
+  recipes:
+    - soxs-mdark
+  metrics:
+    - MDARK MEDIAN
+    - RON DETECTOR
+  file_pattern: "*_SOXS_QC.csv"
+
+# This field is used to filter complete recipes during processing
+# that is: if a recipe already has all required metrics stored in the database,
+# new data for that recipe will not be ingested again.
+recipes:
+  soxs-mdark:
+    VIS:
+      required_metrics:
+        - MDARK MEDIAN
+        - RON DETECTOR
+    NIR:
+      required_metrics:
+        - MDARK MEDIAN
+        - RON DETECTOR
+
+# What metrics to plot
+plots:
+  output_dir: plots
+  metrics:
+    - MDARK MEDIAN
+    - RON DETECTOR
+

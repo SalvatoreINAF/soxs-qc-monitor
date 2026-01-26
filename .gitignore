@@ -1,0 +1,7 @@
+.vscode/
+plots/*
+data/*
+__pycache__/
+qc_monitor/__pycache__/
+*.swp
+.DS_Store
