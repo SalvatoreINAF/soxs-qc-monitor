@@ -6,9 +6,11 @@ from pathlib import Path
 import pandas as pd
 
 from qc_monitor.acquisition import (
+    find_disp_solution_fits_files,
     list_observing_dates,
     find_qc_csv_files,
     extract_qc_metrics,
+    extract_disp_solution_metrics_df,
 )
 from qc_monitor.storage import SQLiteStore
 from qc_monitor.processing import filter_complete_recipes_by_arm
@@ -114,7 +116,7 @@ def main():
     for date_dir in dates_to_scan:
         csv_files = find_qc_csv_files(
             date_dir,
-            cfg["acquisition"]["file_pattern"],
+            cfg["acquisition"]["file_pattern_csv"],
         )
 
         log.info(
@@ -132,6 +134,29 @@ def main():
             )
             if df is not None:
                 collected.append(df)
+
+        # Dispersion solution FITS products
+        fits_files = find_disp_solution_fits_files(
+            date_dir,
+            cfg["acquisition"]["file_pattern_disp_solution_fits"],
+        )
+
+        # Optional: only if recipe enabled in config
+        if "soxs-disp-solution" in cfg["acquisition"]["recipes"]:
+            log.info(
+                "Scanning %s (%d dispersion-solution FITS files)",
+                date_dir.name,
+                len(fits_files),
+            )
+
+            for fits_file in fits_files:
+                df = extract_disp_solution_metrics_df(
+                    fits_file,
+                    obs_date=date_dir.name,
+                    hdu_index=1,
+                )
+                if df is not None and not df.empty:
+                    collected.append(df)
 
     if not collected:
         log.info("No QC metrics found")

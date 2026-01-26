@@ -9,10 +9,12 @@ paths:
 acquisition:
   recipes:
     - soxs-mdark
+    - soxs-disp-solution
   metrics:
     - MDARK MEDIAN
     - RON DETECTOR
-  file_pattern: "*_SOXS_QC.csv"
+  file_pattern_csv: "*_SOXS_QC.csv"
+  file_pattern_disp_solution_fits: "*_SOXS_FITTED_LINES.fits"
 
 # This field is used to filter complete recipes during processing
 # that is: if a recipe already has all required metrics stored in the database,
@@ -27,6 +29,21 @@ recipes:
       required_metrics:
         - MDARK MEDIAN
         - RON DETECTOR
+  soxs-disp-solution:
+    VIS:
+      required_metrics:
+        - DISP_RESIDUALS_MEAN
+        - DISP_RESIDUALS_STD
+        - DISP_FWHM_MEAN_ORDER_*
+        - DISP_R_MEAN_ORDER_*
+        - DISP_WAVELENGTH_MEAN_ORDER_*
+    NIR:
+      required_metrics:
+        - DISP_RESIDUALS_MEAN
+        - DISP_RESIDUALS_STD
+        - DISP_FWHM_MEAN_ORDER_*
+        - DISP_R_MEAN_ORDER_*
+        - DISP_WAVELENGTH_MEAN_ORDER_*
 
 # What metrics to plot
 plots:
@@ -34,4 +51,6 @@ plots:
   metrics:
     - MDARK MEDIAN
     - RON DETECTOR
+    - DISP_RESIDUALS_MEAN
+    - DISP_RESIDUALS_STD
 

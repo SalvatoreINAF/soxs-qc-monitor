@@ -1,6 +1,19 @@
 import pandas as pd
 import logging
 
+def _has_required_metric(present: set[str], required: str) -> bool:
+    """
+    Check if a required metric is satisfied.
+
+    - Exact match if no wildcard
+    - Prefix match if required ends with '*'
+    """
+    if required.endswith("*"):
+        prefix = required[:-1]
+        return any(m.startswith(prefix) for m in present)
+    return required in present
+
+
 def filter_complete_recipes(
     df_all: pd.DataFrame,
     cfg: dict,
@@ -32,9 +45,12 @@ def filter_complete_recipes(
             kept_frames.append(df_grp)
             continue
 
-        required = set(arm_cfg.get("required_metrics", []))
+        required: list[str] = list(arm_cfg.get("required_metrics", []))
         present = set(df_grp["metric"].unique())
-        missing = required - present
+        missing = [
+            r for r in required
+            if not _has_required_metric(present, r)
+        ]
 
         if missing:
             log.warning(
@@ -46,8 +62,24 @@ def filter_complete_recipes(
             )
             continue
 
-        # Keep only the required metrics (optional, but usually what you want)
-        kept_frames.append(df_grp[df_grp["metric"].isin(required)])
+        def _metric_is_required(metric: str, required: list[str]) -> bool:
+            for r in required:
+                if r.endswith("*"):
+                    if metric.startswith(r[:-1]):
+                        return True
+                elif metric == r:
+                    return True
+            return False
+
+
+        kept_frames.append(
+            df_grp[
+                df_grp["metric"].apply(
+                    lambda m: _metric_is_required(m, required)
+                )
+            ]
+        )
+
 
     if not kept_frames:
         return pd.DataFrame(columns=df_all.columns)
