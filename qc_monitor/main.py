@@ -12,6 +12,7 @@ from qc_monitor.acquisition import (
     extract_qc_metrics,
     extract_disp_solution_metrics_df,
 )
+from qc_monitor.acquisition_db import load_qc_from_session_db
 from qc_monitor.storage import SQLiteStore
 from qc_monitor.processing import filter_complete_recipes_by_arm
 from qc_monitor.plotting import plot_time_series
@@ -74,12 +75,13 @@ def main():
 
     qc_root = Path(cfg["paths"]["qc_root"])
     store = SQLiteStore(Path(cfg["paths"]["database"]))
+    database_name = cfg["acquisition"]["database"]
 
     if args.rebuild_db:
         log.warning("Rebuilding QC database from scratch")
         store.drop_all()
 
-    ####################################################
+        ####################################################
     ############### Acquisition step ###################
     ####################################################
 
@@ -112,51 +114,24 @@ def main():
 
     collected = []
 
-    # Scan valid (new) dates for QC metrics in CSV files
+    # Scan valid (new) dates and read QC data from each session database
     for date_dir in dates_to_scan:
-        csv_files = find_qc_csv_files(
-            date_dir,
-            cfg["acquisition"]["file_pattern_csv"],
-        )
+        session_db = date_dir / cfg["acquisition"]["database"]
 
         log.info(
-            "Scanning %s (%d QC files)",
+            "Scanning %s (session database: %s)",
             date_dir.name,
-            len(csv_files),
+            session_db,
         )
 
-        for csv_file in csv_files:
-            df = extract_qc_metrics(
-                csv_file,
-                obs_date=date_dir.name,
-                allowed_metrics=cfg["acquisition"]["metrics"],
-                allowed_recipes=cfg["acquisition"]["recipes"],
-            )
-            if df is not None:
-                collected.append(df)
-
-        # Dispersion solution FITS products
-        fits_files = find_disp_solution_fits_files(
-            date_dir,
-            cfg["acquisition"]["file_pattern_disp_solution_fits"],
+        df = load_qc_from_session_db(
+            session_db_path=session_db,
+            obs_date=date_dir.name,
+            cfg=cfg,
         )
 
-        # Optional: only if recipe enabled in config
-        if "soxs-disp-solution" in cfg["acquisition"]["recipes"]:
-            log.info(
-                "Scanning %s (%d dispersion-solution FITS files)",
-                date_dir.name,
-                len(fits_files),
-            )
-
-            for fits_file in fits_files:
-                df = extract_disp_solution_metrics_df(
-                    fits_file,
-                    obs_date=date_dir.name,
-                    hdu_index=1,
-                )
-                if df is not None and not df.empty:
-                    collected.append(df)
+        if not df.empty:
+            collected.append(df)
 
     if not collected:
         log.info("No QC metrics found")
@@ -175,7 +150,7 @@ def main():
     if df_complete.empty:
         log.info("No complete recipes found")
         return
-    
+
     # Register COMPLETE recipes in the registry
     for (obs_date, arm, recipe), _ in (
         df_complete

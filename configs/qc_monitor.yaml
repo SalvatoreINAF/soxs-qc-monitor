@@ -1,12 +1,16 @@
 paths:
   # QC root folder
   qc_root: /Users/savarese/Desktop/SOXS_Workspace/sessions/base/qc
+
+  # SOXS Pipeline upstream database
+  upstream_database_name: soxspipe.db
   
   # QC database path
   database: data/qc.sqlite
 
 # What recipes and metrics to look for during acquisition
 acquisition:
+  database: soxspipe.db
   recipes:
     - soxs-mdark
     - soxs-disp-solution
