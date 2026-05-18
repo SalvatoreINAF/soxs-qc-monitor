@@ -3,6 +3,6 @@ plots/*
 data/*
 __pycache__/
 qc_monitor/__pycache__/
-qc_monitor/main_read_from_file.py
+qc_monitor/upstream.py
 *.swp
 .DS_Store

@@ -1,60 +1,22 @@
 paths:
-  # QC root folder
-  qc_root: /Users/savarese/Desktop/SOXS_Workspace/sessions/base/qc
+  # Root folder containing SOXS pipeline reduction data
+  qc_root: data/upstream/long_term_reduction/
 
-  # SOXS Pipeline upstream database
-  upstream_database_name: soxspipe.db
-  
-  # QC database path
-  database: data/qc.sqlite
+  # Historical QC database managed by this tool
+  qc_database: data/qc.sqlite
 
-# What recipes and metrics to look for during acquisition
 acquisition:
-  database: soxspipe.db
-  recipes:
-    - soxs-mdark
-    - soxs-disp-solution
-  metrics:
-    - MDARK MEDIAN
-    - RON DETECTOR
-  file_pattern_csv: "*_SOXS_QC.csv"
-  file_pattern_disp_solution_fits: "*_SOXS_FITTED_LINES.fits"
+  # Name of the upstream SOXS pipeline database inside each session folder
+  upstream_database_name: soxspipe.db
 
-# This field is used to filter complete recipes during processing
-# that is: if a recipe already has all required metrics stored in the database,
-# new data for that recipe will not be ingested again.
-recipes:
-  soxs-mdark:
-    VIS:
-      required_metrics:
-        - MDARK MEDIAN
-        - RON DETECTOR
-    NIR:
-      required_metrics:
-        - MDARK MEDIAN
-        - RON DETECTOR
-  soxs-disp-solution:
-    VIS:
-      required_metrics:
-        - DISP_RESIDUALS_MEAN
-        - DISP_RESIDUALS_STD
-        - DISP_FWHM_MEAN_ORDER_*
-        - DISP_R_MEAN_ORDER_*
-        - DISP_WAVELENGTH_MEAN_ORDER_*
-    NIR:
-      required_metrics:
-        - DISP_RESIDUALS_MEAN
-        - DISP_RESIDUALS_STD
-        - DISP_FWHM_MEAN_ORDER_*
-        - DISP_R_MEAN_ORDER_*
-        - DISP_WAVELENGTH_MEAN_ORDER_*
+  # Upstream table/view to read
+  upstream_table: quality_control_plus_lite
 
-# What metrics to plot
 plots:
   output_dir: plots
+
   metrics:
     - MDARK MEDIAN
-    - RON DETECTOR
+    - RAW RON
     - DISP_RESIDUALS_MEAN
     - DISP_RESIDUALS_STD
-

@@ -1,236 +1,226 @@
-import re
+import logging
+import sqlite3
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-import logging
-from astropy.io import fits
-from astropy.table import Table
-from pathlib import Path
+
+from qc_monitor.schema import TABLE_SCHEMA
 
 log = logging.getLogger(__name__)
 
-def list_observing_dates(qc_root: Path) -> list[Path]:
-    return sorted(
-        p for p in qc_root.iterdir()
-        if p.is_dir() and p.name[:4].isdigit()
+TABLE_COLUMNS = list(TABLE_SCHEMA.keys())
+
+
+def find_session_databases(qc_root: Path, database_name: str) -> list[Path]:
+    """
+    Find all upstream SOXS pipeline session databases under qc_root.
+    """
+    return sorted(qc_root.rglob(database_name))
+
+
+def _empty_qc_dataframe() -> pd.DataFrame:
+    return pd.DataFrame(columns=TABLE_COLUMNS)
+
+
+def parse_qc_value(raw_value: object) -> float | None:
+    if raw_value is None:
+        return None
+
+    try:
+        value = float(raw_value)
+    except (TypeError, ValueError):
+        return None
+
+    if not np.isfinite(value):
+        return None
+
+    return value
+
+
+def parse_optional_float(raw_value: object) -> float | None:
+    if raw_value is None:
+        return None
+
+    try:
+        value = float(raw_value)
+    except (TypeError, ValueError):
+        return None
+
+    if not np.isfinite(value):
+        return None
+
+    return value
+
+
+def normalize_arm(raw_arm: object) -> str | None:
+    if raw_arm is None:
+        return None
+
+    arm = str(raw_arm).upper().strip()
+
+    if arm in {"VIS", "NIR"}:
+        return arm
+
+    return None
+
+
+def _table_or_view_exists(conn: sqlite3.Connection, name: str) -> bool:
+    cur = conn.execute(
+        """
+        SELECT 1
+        FROM sqlite_master
+        WHERE type IN ('table', 'view')
+          AND name = ?
+        """,
+        (name,),
+    )
+    return cur.fetchone() is not None
+
+
+def _get_table_columns(conn: sqlite3.Connection, table_name: str) -> set[str]:
+    """
+    Return column names for a SQLite table or view.
+    """
+    rows = conn.execute(f'PRAGMA table_info("{table_name}")').fetchall()
+    return {row[1] for row in rows}
+
+
+def _build_select_query(upstream_table: str) -> str:
+    columns_sql = ",\n                ".join(
+        f'`{col}`'
+        for col in TABLE_COLUMNS
     )
 
-def find_qc_csv_files(date_dir: Path, pattern: str):
-    return list(date_dir.rglob(pattern))
+    return f"""
+            SELECT
+                {columns_sql}
+            FROM `{upstream_table}`
+            """
 
-def find_disp_solution_fits_files(date_dir: Path, pattern: str) -> list[Path]:
+
+def load_qc_from_session_db(
+    session_db_path: Path,
+    cfg: dict,
+) -> pd.DataFrame:
     """
-    Find dispersion-solution FITS products inside an observing-date folder.
+    Load all QC metrics from one upstream SOXS pipeline session database.
 
-    We look for files matching the configured pattern (e.g. '*_SOXS_FITTED_LINES.fits').
+    The upstream database is expected to contain the configured upstream QC view.
+    The returned DataFrame uses the original upstream column names.
     """
-    disp_dir = date_dir / "soxs-disp-solution"
+    if not session_db_path.is_file():
+        log.warning("Session database not found: %s", session_db_path)
+        return _empty_qc_dataframe()
 
-    if not disp_dir.is_dir():
-        return []
+    try:
+        upstream_table = cfg["acquisition"]["upstream_table"]
 
-    return sorted(disp_dir.rglob(pattern))
+        with sqlite3.connect(session_db_path) as conn:
+            if not _table_or_view_exists(conn, upstream_table):
+                log.error(
+                    "Required upstream view/table %s not found in %s",
+                    upstream_table,
+                    session_db_path,
+                )
+                return _empty_qc_dataframe()
 
-def infer_arm_from_filename(filename: str) -> str | None:
-        """
-        Infer instrument arm (VIS/NIR) from QC filename.
-        Returns 'VIS', 'NIR', or None if not identifiable.
-        """
-        name = filename.upper()
-        if "_NIR_" in name:
-            return "NIR"
-        if "_VIS_" in name:
-            return "VIS"
-        return None
+            available_columns = _get_table_columns(conn, upstream_table)
+            required_columns = set(TABLE_COLUMNS)
+            missing_columns = required_columns - available_columns
 
-_TS_RE = re.compile(r"^(?P<ts>\d{8}T\d{6})_")
+            if missing_columns:
+                log.error(
+                    "Missing required columns in %s (%s): %s",
+                    upstream_table,
+                    session_db_path,
+                    ", ".join(sorted(missing_columns)),
+                )
+                return _empty_qc_dataframe()
 
-def parse_timestamp_from_filename(name: str) -> str | None:
-    """
-    Extract ISO timestamp from filenames like '20251129T093102_VIS_...fits'
-    Returns a timestamp like '2025-11-29T09:31:02' or None if not parsable.
-    """
-    m = _TS_RE.match(name)
-    if not m:
-        return None
+            query = _build_select_query(upstream_table)
+            df = pd.read_sql_query(query, conn)
 
-    ts = m.group("ts")  # YYYYMMDDThhmmss
-    yyyy = ts[0:4]
-    mm = ts[4:6]
-    dd = ts[6:8]
-    hh = ts[9:11]
-    mi = ts[11:13]
-    ss = ts[13:15]
-    return f"{yyyy}-{mm}-{dd}T{hh}:{mi}:{ss}"
+    except KeyError as exc:
+        log.error("Missing configuration key: %s", exc)
+        return _empty_qc_dataframe()
 
-
-def extract_qc_metrics(
-    csv_file: Path,
-    obs_date: str,
-    allowed_metrics: list[str],
-    allowed_recipes: list[str],
-):
-    df = pd.read_csv(csv_file)
-
-    df = df[
-        df["qc_name"].isin(allowed_metrics)
-        & df["soxspipe_recipe"].isin(allowed_recipes)
-    ].copy()
+    except Exception as exc:
+        log.error("Failed to read QC data from %s: %s", session_db_path, exc)
+        return _empty_qc_dataframe()
 
     if df.empty:
-        return None
-    
-    arm = infer_arm_from_filename(csv_file.name)
+        log.info("No QC rows found in session database %s", session_db_path)
+        return _empty_qc_dataframe()
 
-    if arm is None:
+    # Normalize / validate values, keeping upstream column names
+    df["eso seq arm"] = df["eso seq arm"].apply(normalize_arm)
+    df["qc_value"] = df["qc_value"].apply(parse_qc_value)
+    df["qc_value_min"] = df["qc_value_min"].apply(parse_optional_float)
+    df["qc_value_max"] = df["qc_value_max"].apply(parse_optional_float)
+    df["qc_unit"] = df["qc_unit"].fillna("")
+    df["qc_order"] = (
+        df["qc_order"]
+        .fillna("-1")
+        .astype(str)
+        .str.strip()
+    )
+
+    invalid_obs_day = int(df["night start date"].isna().sum())
+    invalid_obs_date_utc = int(df["obs_date_utc"].isna().sum())
+    invalid_arm = int(df["eso seq arm"].isna().sum())
+    invalid_value = int(df["qc_value"].isna().sum())
+
+    if invalid_obs_day:
         log.warning(
-            "Cannot infer arm from filename %s, skipping file",
-            csv_file.name,
+            "Dropping %d rows with missing night start date in %s",
+            invalid_obs_day,
+            session_db_path.name,
         )
-        return None
 
-    df["timestamp"] = df["reduction_date_utc"].fillna(df["obs_date_utc"])
-    df["obs_date"] = obs_date # YYYY-MM-DD
-    df["metric"] = df["qc_name"]
-    df["value"] = pd.to_numeric(df["qc_value"], errors="coerce")
-    df["unit"] = df["qc_unit"]
-    df["arm"] = arm
-    df["recipe"] = df["soxspipe_recipe"]
-    df["source_file"] = csv_file.name
+    if invalid_obs_date_utc:
+        log.warning(
+            "Dropping %d rows with missing obs_date_utc in %s",
+            invalid_obs_date_utc,
+            session_db_path.name,
+        )
 
-    return df[
-        [
-            "timestamp",
-            "obs_date",
-            "metric",
-            "value",
-            "unit",
-            "arm",
-            "recipe",
-            "source_file",
+    if invalid_arm:
+        log.warning(
+            "Dropping %d rows with invalid arm in %s",
+            invalid_arm,
+            session_db_path.name,
+        )
+
+    if invalid_value:
+        log.warning(
+            "Dropping %d rows with non-numeric qc_value in %s",
+            invalid_value,
+            session_db_path.name,
+        )
+
+    df = df.dropna(
+        subset=[
+            "night start date",
+            "obs_date_utc",
+            "eso seq arm",
+            "qc_value",
         ]
-    ]
+    ).copy()
 
-def extract_disp_solution_metrics_df(
-    fits_file: Path,
-    obs_date: str,
-    hdu_index: int = 1,
-) -> pd.DataFrame | None:
-    """
-    Extract dispersion solution QC metrics from a fitted-lines FITS product.
-
-    Produces a DataFrame with the standard schema:
-    obs_date, timestamp, arm, recipe, metric, value, unit, source_file
-    """
-    arm = infer_arm_from_filename(fits_file.name)
-    if arm is None:
-        log.warning("Cannot infer arm from filename %s, skipping", fits_file.name)
-        return None
-
-    timestamp = parse_timestamp_from_filename(fits_file.name)
-    if timestamp is None:
-        log.warning("Cannot parse timestamp from filename %s, skipping", fits_file.name)
-        return None
-
-    recipe = "soxs-disp-solution"
-    source_file = fits_file.name
-
-    # Load FITS table into DataFrame
-    with fits.open(fits_file) as hdul:
-        hdu = hdul[hdu_index]
-        if not isinstance(hdu, (fits.BinTableHDU, fits.TableHDU)):
-            raise TypeError(f"HDU #{hdu_index} is not a table HDU in {fits_file}")
-        table = Table(hdu.data)
-
-    df = table.to_pandas()
-
-    # Mask
-    if "sigma_clipped" in df.columns:
-        dfp = df[~df["sigma_clipped"]]
-    else:
-        dfp = df
-
-    # Defensive checks (fail fast but readable logs)
-    required_cols = {"residuals_xy", "order", "R_pin", "fwhm_pin_px", "wavelength"}
-    missing = required_cols - set(dfp.columns)
-    if missing:
-        log.warning("Missing columns %s in %s, skipping", sorted(missing), fits_file.name)
-        return None
-
-    # Compute metrics
-    residuals_mean = float(np.mean(dfp["residuals_xy"].values))
-    residuals_std = float(np.std(dfp["residuals_xy"].values))
-
-    rows: list[dict] = []
-
-    # 1. residuals mean and std
-    rows.append(
-        {
-            "obs_date": obs_date,
-            "timestamp": timestamp,
-            "arm": arm,
-            "recipe": recipe,
-            "metric": "DISP_RESIDUALS_MEAN",
-            "value": residuals_mean,
-            "unit": "px",
-            "source_file": source_file,
-        }
-    )
-
-    rows.append(
-        {
-            "obs_date": obs_date,
-            "timestamp": timestamp,
-            "arm": arm,
-            "recipe": recipe,
-            "metric": "DISP_RESIDUALS_STD",
-            "value": residuals_std,
-            "unit": "",
-            "source_file": source_file,
-        }
-    )
-
-    # 2. per-order means
-    for order, group in dfp.groupby("order"):
-        # normalize order to int if possible
-        try:
-            order_int = int(order)
-        except Exception:
-            order_int = order  # fallback
-
-        rows.extend(
-            [
-                {
-                    "obs_date": obs_date,
-                    "timestamp": timestamp,
-                    "arm": arm,
-                    "recipe": recipe,
-                    "metric": f"DISP_R_MEAN_ORDER_{order_int}",
-                    "value": float(group["R_pin"].mean()),
-                    "unit": "",  # dimensionless
-                    "source_file": source_file,
-                },
-                {
-                    "obs_date": obs_date,
-                    "timestamp": timestamp,
-                    "arm": arm,
-                    "recipe": recipe,
-                    "metric": f"DISP_FWHM_MEAN_ORDER_{order_int}",
-                    "value": float(group["fwhm_pin_px"].mean()),
-                    "unit": "",
-                    "source_file": source_file,
-                },
-                {
-                    "obs_date": obs_date,
-                    "timestamp": timestamp,
-                    "arm": arm,
-                    "recipe": recipe,
-                    "metric": f"DISP_WAVELENGTH_MEAN_ORDER_{order_int}",
-                    "value": float(group["wavelength"].mean()),
-                    "unit": "nm",
-                    "source_file": source_file,
-                },
-            ]
+    if df.empty:
+        log.info(
+            "No valid QC datapoints left after cleaning in %s",
+            session_db_path,
         )
+        return _empty_qc_dataframe()
 
-    return pd.DataFrame(rows)
+    df = df[TABLE_COLUMNS].reset_index(drop=True)
 
+    log.info(
+        "Loaded %d QC datapoints from session database %s",
+        len(df),
+        session_db_path,
+    )
+
+    return df

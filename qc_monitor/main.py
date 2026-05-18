@@ -5,17 +5,11 @@ import argparse
 from pathlib import Path
 import pandas as pd
 
-from qc_monitor.acquisition import (
-    find_disp_solution_fits_files,
-    list_observing_dates,
-    find_qc_csv_files,
-    extract_qc_metrics,
-    extract_disp_solution_metrics_df,
-)
-from qc_monitor.acquisition_db import load_qc_from_session_db
+from qc_monitor.acquisition import find_session_databases
+from qc_monitor.acquisition import load_qc_from_session_db
 from qc_monitor.storage import SQLiteStore
-from qc_monitor.processing import filter_complete_recipes_by_arm
 from qc_monitor.plotting import plot_time_series
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -25,20 +19,13 @@ def parse_args():
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Run acquisition and processing but do not write anything to the database",
+        help="Run acquisition but do not write anything to the database",
     )
 
     parser.add_argument(
         "--no-plots",
         action="store_true",
-        help="Skip plot generation (if enabled)",
-    )
-
-    parser.add_argument(
-        "--force-date",
-        type=str,
-        metavar="YYYY-MM-DD",
-        help="Force processing of a specific observing date",
+        help="Skip plot generation",
     )
 
     parser.add_argument(
@@ -55,14 +42,99 @@ def parse_args():
 
     return parser.parse_args()
 
-def load_config():
-    cfg_path = Path("configs/qc_monitor.yaml")
-    with open(cfg_path) as f:
+
+def load_config(config_path: Path = Path("configs/qc_monitor.yaml")):
+    with open(config_path) as f:
         return yaml.safe_load(f)
+
+
+def consolidate(
+    upstream_db_path: Path,
+    config_path: Path = Path("configs/qc_monitor.yaml"),
+    force: bool = False,
+    dry_run: bool = False,
+) -> int:
+    """
+    Consolidate new QC metrics from one upstream SOXS pipeline database
+    into the independent historical QC database.
+
+    Can be called either from the main QC script or directly within the pipeline.
+
+    Parameters
+    ----------
+    upstream_db_path : Path
+        Path to the upstream SOXS pipeline SQLite database.
+    config_path : Path
+        Path to the qc_monitor YAML configuration file.
+    force : bool
+        If True, ingest all observing days contained in the upstream DB,
+        even if they were already marked as processed.
+    dry_run : bool
+        If True, load and filter data but do not write anything to the
+        historical QC database.
+
+    Returns
+    -------
+    int
+        Number of QC datapoints selected for consolidation.
+    """
+    log = logging.getLogger("qc-monitor")
+
+    cfg = load_config(config_path)
+
+    qc_database = SQLiteStore(Path(cfg["paths"]["qc_database"]))
+
+    df = load_qc_from_session_db(
+        session_db_path=upstream_db_path,
+        cfg=cfg,
+    )
+
+    if df.empty:
+        log.info("No QC datapoints found in upstream database: %s", upstream_db_path)
+        return 0
+
+    processed_obs_days = qc_database.get_processed_obs_days()
+
+    if not force:
+        df = df[~df["night start date"].isin(processed_obs_days)].copy()
+
+    if df.empty:
+        log.info(
+            "No new QC datapoints to consolidate from upstream database: %s",
+            upstream_db_path,
+        )
+        return 0
+
+    log.info(
+        "Selected %d QC datapoints from %s",
+        len(df),
+        upstream_db_path,
+    )
+
+    if dry_run:
+        log.info("Dry-run enabled, not writing to historical QC database")
+        print(df)
+        return len(df)
+
+    qc_database.write_metrics(df)
+
+    for obs_day in sorted(df["night start date"].unique()):
+        qc_database.register_processed_obs_day(str(obs_day))
+
+    log.info(
+        "Consolidated %d QC datapoints from %s",
+        len(df),
+        upstream_db_path,
+    )
+
+    return len(df)
+
 
 def main():
 
-    # Parse arguments, setup logging and load config
+    ####################################################
+    ############ Load configuration ####################
+    ####################################################
 
     args = parse_args()
 
@@ -71,126 +143,69 @@ def main():
     log = logging.getLogger("qc-monitor")
     log.info("qc-monitor version %s", qc_monitor.__version__)
 
-    cfg = load_config()
+    config_path = Path("configs/qc_monitor.yaml")
+    cfg = load_config(config_path)
 
     qc_root = Path(cfg["paths"]["qc_root"])
-    store = SQLiteStore(Path(cfg["paths"]["database"]))
-    database_name = cfg["acquisition"]["database"]
+    qc_database = SQLiteStore(Path(cfg["paths"]["qc_database"]))
+    upstream_database_name = cfg["acquisition"]["upstream_database_name"]
 
     if args.rebuild_db:
         log.warning("Rebuilding QC database from scratch")
-        store.drop_all()
+        qc_database.drop_all()
 
-        ####################################################
-    ############### Acquisition step ###################
+    ####################################################
+    ############### Scanning step ######################
     ####################################################
 
-    # First, load all dates based on qc_root subdirectories names
-    all_dates = list_observing_dates(qc_root)
-
-    # Get already processed dates from the registry
-    processed_dates = store.get_processed_dates()
-
-    # Unless forced, process only new dates
-    if args.force_date:
-        dates_to_scan = [
-            d for d in all_dates if d.name == args.force_date
-        ]
-        if not dates_to_scan:
-            log.error("Forced date %s not found in qc_root", args.force_date)
-            return
-        log.info("Forcing processing of date %s", args.force_date)
-    else:
-        dates_to_scan = [
-            d for d in all_dates if d.name not in processed_dates
-        ]
-
-    log.info(
-        "Found %d observing dates, %d already processed, %d to scan",
-        len(all_dates),
-        len(processed_dates),
-        len(dates_to_scan),
+    # assumes more than one pipeline database can be present in the path
+    session_databases = find_session_databases(
+        qc_root=qc_root,
+        database_name=upstream_database_name,
     )
 
-    collected = []
+    log.info("Found %d upstream session databases", len(session_databases))
 
-    # Scan valid (new) dates and read QC data from each session database
-    for date_dir in dates_to_scan:
-        session_db = date_dir / cfg["acquisition"]["database"]
+    total_points = 0
 
-        log.info(
-            "Scanning %s (session database: %s)",
-            date_dir.name,
-            session_db,
+    # consolidate new QC datapoints into the historical QC database
+    for upstream_db_path in session_databases:
+        total_points += consolidate(
+            upstream_db_path=upstream_db_path,
+            config_path=config_path,
+            force=args.rebuild_db,
+            dry_run=args.dry_run,
         )
 
-        df = load_qc_from_session_db(
-            session_db_path=session_db,
-            obs_date=date_dir.name,
-            cfg=cfg,
-        )
-
-        if not df.empty:
-            collected.append(df)
-
-    if not collected:
-        log.info("No QC metrics found")
-        return
-
-    df_all = pd.concat(collected, ignore_index=True)
-
-    # Check if the recipes found are complete
-    # (complete means there are all the metrics defined in the config)
-    df_complete = filter_complete_recipes_by_arm(
-        df_all,
-        cfg=cfg,
-        log=log,
-    )
-
-    if df_complete.empty:
-        log.info("No complete recipes found")
-        return
-
-    # Register COMPLETE recipes in the registry
-    for (obs_date, arm, recipe), _ in (
-        df_complete
-        .groupby(["obs_date", "arm", "recipe"])
-    ):
-        store.register_recipe_status(
-            obs_date=obs_date,
-            arm=str(arm),
-            recipe=recipe,
-            status="COMPLETE",
-        )
+    log.info("Total consolidated QC datapoints: %d", total_points)
 
     if args.dry_run:
-        log.info("Dry-run enabled, not writing to database")
-        print(df_complete)
+        log.info("Dry-run enabled, skipping plot generation")
         return
 
-    # Write data and update registry
-    store.write_metrics(df_complete)
-
-    log.info("Database updated successfully")
-
     ####################################################
-    ############### Plotting step #####################
+    ############### Plotting step ######################
     ####################################################
 
     if args.no_plots:
         log.info("Skipping plot generation (--no-plots)")
         return
 
-    # Configure plots
     plots_cfg = cfg.get("plots", {})
     metrics_to_plot = plots_cfg.get("metrics", [])
     output_dir = Path(plots_cfg.get("output_dir", "plots"))
 
-    # Load data from the (now updated) database
-    df_plot = store.load_all_metrics()
+    if not metrics_to_plot:
+        log.info("No plot metrics configured, skipping plot generation")
+        return
 
-    # Generate plots per arm/metric
-    for arm, df_arm in df_plot.groupby("arm"):
+    df_plot = qc_database.load_all_metrics()
+
+    if df_plot.empty:
+        log.info("No historical QC metrics available for plotting")
+        return
+
+    for arm, df_arm in df_plot.groupby("eso seq arm"):
         arm = str(arm)
 
         for metric in metrics_to_plot:
@@ -200,7 +215,6 @@ def main():
                 arm=arm,
                 output_dir=output_dir / arm,
             )
-
 
 
 if __name__ == "__main__":
