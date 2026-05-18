@@ -1,0 +1,67 @@
+figures:
+
+  - name: nir_dark_median
+    type: time_series
+    title: NIR Dark Median Level
+    filename: nir_dark_median.png
+    time_range: last_3_months
+    y_label: electrons
+    
+    series:
+      - label: 2 s
+        style: markers
+        filters: &nir_mdark_2s
+          soxspipe_recipe: soxs-mdark
+          qc_name: MDARK MEDIAN
+          eso seq arm: NIR
+          exptime: 2.0
+          rospeed: "3"
+          qc_order: "-1"
+
+      - label: 5 s
+        style: markers
+        filters:
+          <<: *nir_mdark_2s
+          exptime: 5.0
+
+      - label: 10 s
+        style: markers
+        filters:
+          <<: *nir_mdark_2s
+          exptime: 10.0
+
+      - label: 15 s
+        style: markers
+        filters:
+          <<: *nir_mdark_2s
+          exptime: 15.0
+
+      - label: 60 s
+        style: markers
+        filters:
+          <<: *nir_mdark_2s
+          exptime: 60.0
+
+      - label: 120 s
+        style: markers
+        filters:
+          <<: *nir_mdark_2s
+          exptime: 120.0
+
+      - label: 300 s
+        style: markers
+        filters:
+          <<: *nir_mdark_2s
+          exptime: 300.0
+
+      - label: 600 s
+        style: markers
+        filters:
+          <<: *nir_mdark_2s
+          exptime: 600.0
+
+      - label: 900 s
+        style: markers
+        filters:
+          <<: *nir_mdark_2s
+          exptime: 900.0

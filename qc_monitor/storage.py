@@ -11,7 +11,6 @@ log = logging.getLogger(__name__)
 
 TABLE_COLUMNS = list(TABLE_SCHEMA.keys())
 
-
 class SQLiteStore:
     def __init__(self, db_path: Path):
         self.db_path = db_path

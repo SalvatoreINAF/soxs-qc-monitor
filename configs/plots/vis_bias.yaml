@@ -1,0 +1,49 @@
+figures:
+
+  - name: vis_bias_level
+    type: time_series
+    title: VIS Bias Median Level
+    filename: vis_bias_level.png
+    time_range: last_3_months
+    y_label: ADU
+
+    series:
+      - label: SHG
+        style: markers
+        filters:
+          soxspipe_recipe: soxs-mbias
+          qc_name: MBIAS MEDIAN
+          eso seq arm: VIS
+          binning: 1x1
+          rospeed: "1"
+          qc_order: "-1"
+
+      - label: FLG
+        style: markers
+        filters:
+          soxspipe_recipe: soxs-mbias
+          qc_name: MBIAS MEDIAN
+          eso seq arm: VIS
+          binning: 1x1
+          rospeed: "2"
+          qc_order: "-1"
+
+      - label: SLG
+        style: markers
+        filters:
+          soxspipe_recipe: soxs-mbias
+          qc_name: MBIAS MEDIAN
+          eso seq arm: VIS
+          binning: 1x1
+          rospeed: "3"
+          qc_order: "-1"
+
+      - label: FHG
+        style: markers
+        filters:
+          soxspipe_recipe: soxs-mbias
+          qc_name: MBIAS MEDIAN
+          eso seq arm: VIS
+          binning: 1x1
+          rospeed: "4"
+          qc_order: "-1"

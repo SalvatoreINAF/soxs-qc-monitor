@@ -14,9 +14,12 @@ acquisition:
 
 plots:
   output_dir: plots
+  show: false
 
-  metrics:
-    - MDARK MEDIAN
-    - RAW RON
-    - DISP_RESIDUALS_MEAN
-    - DISP_RESIDUALS_STD
+  include:
+    - plots/vis_bias.yaml
+    - plots/vis_master_ron.yaml
+    - plots/nir_dark.yaml
+    - plots/nir_dark_ron.yaml
+    - plots/vis_flat.yaml
+    - plots/nir_flat.yaml

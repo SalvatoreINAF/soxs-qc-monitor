@@ -1,0 +1,114 @@
+figures:
+
+  - name: vis_flat_inner_order_pix_mean
+    type: time_series
+    title: VIS Flat Inner Order Pixel Mean
+    filename: vis_flat_inner_order_pix_mean.png
+    time_range: last_3_months
+    y_label: electrons
+    series:
+      - label: SLIT0.5
+        style: markers
+        filters: &vis_flat_base
+          soxspipe_recipe: soxs-mflat
+          qc_name: INNER ORDER PIX MEAN
+          eso seq arm: VIS
+          binning: 1x1
+          rospeed: "1"
+          lamp: QTH
+          qc_order: "-1"
+          slit: SLIT0.5
+
+      - label: SLIT1.0
+        style: markers
+        filters:
+          <<: *vis_flat_base
+          slit: SLIT1.0
+
+      - label: SLIT1.5
+        style: markers
+        filters:
+          <<: *vis_flat_base
+          slit: SLIT1.5
+
+      - label: SLIT5.0
+        style: markers
+        filters:
+          <<: *vis_flat_base
+          slit: SLIT5.0
+
+
+  - name: vis_flat_ordexp50
+    type: time_series
+    title: VIS Flat ORDEXP50
+    filename: vis_flat_ordexp50.png
+    time_range: last_3_months
+    y_label: electrons
+    series:
+      - label: SLIT0.5
+        style: markers
+        filters: &vis_flat_ordexp50_base
+          soxspipe_recipe: soxs-mflat
+          qc_name: ORDEXP50
+          eso seq arm: VIS
+          binning: 1x1
+          rospeed: "1"
+          lamp: QTH
+          qc_order: "-1"
+          slit: SLIT0.5
+
+      - label: SLIT1.0
+        style: markers
+        filters:
+          <<: *vis_flat_ordexp50_base
+          slit: SLIT1.0
+
+      - label: SLIT1.5
+        style: markers
+        filters:
+          <<: *vis_flat_ordexp50_base
+          slit: SLIT1.5
+
+      - label: SLIT5.0
+        style: markers
+        filters:
+          <<: *vis_flat_ordexp50_base
+          slit: SLIT5.0
+
+
+  - name: vis_flat_x_res_sd
+    type: time_series
+    title: VIS Flat X Residual SD
+    filename: vis_flat_x_res_sd.png
+    time_range: last_3_months
+    y_label: pixels
+    series:
+      - label: SLIT0.5
+        style: markers
+        filters: &vis_flat_xres_base
+          soxspipe_recipe: soxs-mflat
+          qc_name: X RES SD
+          eso seq arm: VIS
+          binning: 1x1
+          rospeed: "1"
+          lamp: QTH
+          qc_order: "-1"
+          slit: SLIT0.5
+
+      - label: SLIT1.0
+        style: markers
+        filters:
+          <<: *vis_flat_xres_base
+          slit: SLIT1.0
+
+      - label: SLIT1.5
+        style: markers
+        filters:
+          <<: *vis_flat_xres_base
+          slit: SLIT1.5
+
+      - label: SLIT5.0
+        style: markers
+        filters:
+          <<: *vis_flat_xres_base
+          slit: SLIT5.0

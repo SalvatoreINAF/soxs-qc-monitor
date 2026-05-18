@@ -1,0 +1,96 @@
+figures:
+
+  - name: nir_flat_inner_order_pix_mean
+    type: time_series
+    title: NIR Flat Inner Order Pixel Mean
+    filename: nir_flat_inner_order_pix_mean.png
+    time_range: last_3_months
+    y_label: electrons
+    series:
+      - label: SLIT0.5
+        style: markers
+        filters: &nir_flat_inner_base
+          soxspipe_recipe: soxs-mflat
+          qc_name: INNER ORDER PIX MEAN
+          eso seq arm: NIR
+          slitmask: SLIT
+          lamp: QTH
+          rospeed: "3"
+          qc_order: "-1"
+          slit: SLIT0.5
+
+      - label: SLIT1.0
+        style: markers
+        filters:
+          <<: *nir_flat_inner_base
+          slit: SLIT1.0
+
+      - label: SLIT1.5
+        style: markers
+        filters:
+          <<: *nir_flat_inner_base
+          slit: SLIT1.5
+
+
+  - name: nir_flat_ordexp50
+    type: time_series
+    title: NIR Flat ORDEXP50
+    filename: nir_flat_ordexp50.png
+    time_range: last_3_months
+    y_label: electrons
+    series:
+      - label: SLIT0.5
+        style: markers
+        filters: &nir_flat_ordexp50_base
+          soxspipe_recipe: soxs-mflat
+          qc_name: ORDEXP50
+          eso seq arm: NIR
+          slitmask: SLIT
+          lamp: QTH
+          rospeed: "3"
+          qc_order: "-1"
+          slit: SLIT0.5
+
+      - label: SLIT1.0
+        style: markers
+        filters:
+          <<: *nir_flat_ordexp50_base
+          slit: SLIT1.0
+
+      - label: SLIT1.5
+        style: markers
+        filters:
+          <<: *nir_flat_ordexp50_base
+          slit: SLIT1.5
+
+
+  - name: nir_flat_x_res_sd
+    type: time_series
+    title: NIR Flat X Residual SD
+    filename: nir_flat_x_res_sd.png
+    time_range: last_3_months
+    y_label: pixels
+    series:
+      - label: SLIT0.5
+        style: markers
+        filters: &nir_flat_xres_base
+          soxspipe_recipe: soxs-mflat
+          qc_name: X RES SD
+          eso seq arm: NIR
+          slitmask: SLIT
+          lamp: QTH
+          rospeed: "3"
+          qc_order: "-1"
+          slit: SLIT0.5
+
+      - label: SLIT1.0
+        style: markers
+        filters:
+          <<: *nir_flat_xres_base
+          slit: SLIT1.0
+
+      - label: SLIT1.5
+        style: markers
+        filters:
+          <<: *nir_flat_xres_base
+          slit: SLIT1.5

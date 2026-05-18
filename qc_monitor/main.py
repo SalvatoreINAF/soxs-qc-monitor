@@ -8,7 +8,7 @@ import pandas as pd
 from qc_monitor.acquisition import find_session_databases
 from qc_monitor.acquisition import load_qc_from_session_db
 from qc_monitor.storage import SQLiteStore
-from qc_monitor.plotting import plot_time_series
+from qc_monitor.plotting import generate_plots_from_config
 
 
 def parse_args():
@@ -43,9 +43,30 @@ def parse_args():
     return parser.parse_args()
 
 
+def load_plot_includes(cfg: dict, config_dir: Path) -> dict:
+    plots_cfg = cfg.get("plots", {})
+    include_files = plots_cfg.get("include", [])
+
+    figures = list(plots_cfg.get("figures", []))
+
+    for include_file in include_files:
+        include_path = config_dir / include_file
+
+        with open(include_path) as f:
+            included_cfg = yaml.safe_load(f) or {}
+
+        figures.extend(included_cfg.get("figures", []))
+
+    plots_cfg["figures"] = figures
+    cfg["plots"] = plots_cfg
+    return cfg
+
+
 def load_config(config_path: Path = Path("configs/qc_monitor.yaml")):
     with open(config_path) as f:
-        return yaml.safe_load(f)
+        cfg = yaml.safe_load(f)
+
+    return load_plot_includes(cfg, config_path.parent)
 
 
 def consolidate(
@@ -138,8 +159,15 @@ def main():
 
     args = parse_args()
 
-    log_level = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(level=log_level)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)s:%(name)s:%(message)s",
+    )
+
+    if args.verbose:
+        logging.getLogger("qc-monitor").setLevel(logging.DEBUG)
+        logging.getLogger("qc_monitor").setLevel(logging.DEBUG)
+        logging.getLogger("matplotlib").setLevel(logging.WARNING)
     log = logging.getLogger("qc-monitor")
     log.info("qc-monitor version %s", qc_monitor.__version__)
 
@@ -191,30 +219,20 @@ def main():
         log.info("Skipping plot generation (--no-plots)")
         return
 
+    # Plots are defined in configuration
     plots_cfg = cfg.get("plots", {})
-    metrics_to_plot = plots_cfg.get("metrics", [])
-    output_dir = Path(plots_cfg.get("output_dir", "plots"))
 
-    if not metrics_to_plot:
-        log.info("No plot metrics configured, skipping plot generation")
-        return
-
+    # Load the newly consolidated QC metrics for plotting
     df_plot = qc_database.load_all_metrics()
 
     if df_plot.empty:
         log.info("No historical QC metrics available for plotting")
         return
 
-    for arm, df_arm in df_plot.groupby("eso seq arm"):
-        arm = str(arm)
-
-        for metric in metrics_to_plot:
-            plot_time_series(
-                df_arm,
-                metric=metric,
-                arm=arm,
-                output_dir=output_dir / arm,
-            )
+    generate_plots_from_config(
+        df=df_plot,
+        plots_cfg=plots_cfg,
+    )
 
 
 if __name__ == "__main__":

@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SOXS Quality Control Monitor</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #ffffff;
+      color: #222222;
+    }
+
+    .page-title {
+      background: white;
+      text-align: center;
+      padding-top: 28px;
+      padding-bottom: 20px;
+    }
+
+    .page-title h1 {
+      margin: 0;
+      color: #003366;
+      font-size: 36px;
+      font-weight: normal;
+    }
+
+    nav {
+      background: #eeeeee;
+      padding: 10px 32px;
+      border-bottom: 1px solid #cccccc;
+      font-size: 14px;
+    }
+
+    nav a {
+      margin-right: 20px;
+      color: #003366;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    main {
+      padding: 28px 32px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    section {
+      margin-bottom: 48px;
+    }
+
+    h2 {
+      color: #003366;
+      border-bottom: 2px solid #cccccc;
+      padding-bottom: 6px;
+      margin-top: 36px;
+    }
+
+    h3 {
+      color: #333333;
+      margin-top: 24px;
+    }
+
+    .intro {
+      background: #f7f7f7;
+      border-left: 5px solid #003366;
+      padding: 14px 18px;
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    .plot-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+
+    .plot-card {
+      border: 1px solid #cccccc;
+      background: #fafafa;
+      padding: 14px;
+    }
+
+    .plot-card h3 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    .plot-card img {
+      width: 75%;
+      max-width: 850px;
+      display: block;
+      margin: 0 auto;
+      border: 1px solid #dddddd;
+      background: white;
+    }
+
+    .plot-card p {
+      font-size: 13px;
+      color: #555555;
+    }
+
+    footer {
+      border-top: 1px solid #cccccc;
+      margin-top: 40px;
+      padding: 14px 32px;
+      font-size: 12px;
+      color: #666666;
+      background: #f2f2f2;
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="page-title">
+  <h1>SOXS Quality Control Monitor</h1>
+</header>
+
+<nav>
+  <a href="#vis-bias">VIS Bias</a>
+  <a href="#vis-flat">VIS Flat</a>
+  <a href="#nir-dark">NIR Dark</a>
+  <a href="#nir-flat">NIR Flat</a>
+</nav>
+
+<main>
+
+  <div class="intro">
+    <p>
+      This page hosts selected quality-control parameters extracted from SOXS
+      pipeline reduction sessions and consolidated into a long-term QC database.
+      The plots are updated every day. They are meant
+      to show long-term trends of instrumental indicators, not real-time online
+      monitoring.
+    </p>
+  </div>
+
+  <section id="vis-bias">
+    <h2>VIS Bias Frames</h2>
+
+    <div class="plot-grid">
+
+      <div class="plot-card">
+        <h3>VIS Bias Median Level</h3>
+        <p>Median flux level of VIS master bias frames.</p>
+        <a href="plots/vis_bias_level.png">
+          <img src="plots/vis_bias_level.png" alt="VIS Bias Median Level">
+        </a>
+      </div>
+
+      <div class="plot-card">
+        <h3>VIS Master RON</h3>
+        <p>Read-out noise measured on VIS master bias frames.</p>
+        <a href="plots/vis_master_ron.png">
+          <img src="plots/vis_master_ron.png" alt="VIS Master RON">
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="vis-flat">
+    <h2>VIS Flat Fields</h2>
+
+    <div class="plot-grid">
+
+      <div class="plot-card">
+        <h3>VIS Flat Inner Order Pixel Mean</h3>
+        <a href="plots/vis_flat_inner_order_pix_mean.png">
+          <img src="plots/vis_flat_inner_order_pix_mean.png" alt="VIS Flat Inner Order Pixel Mean">
+        </a>
+      </div>
+
+      <div class="plot-card">
+        <h3>VIS Flat ORDEXP50</h3>
+        <a href="plots/vis_flat_ordexp50.png">
+          <img src="plots/vis_flat_ordexp50.png" alt="VIS Flat ORDEXP50">
+        </a>
+      </div>
+
+      <div class="plot-card">
+        <h3>VIS Flat X Residual Standard Deviation</h3>
+        <a href="plots/vis_flat_x_res_sd.png">
+          <img src="plots/vis_flat_x_res_sd.png" alt="VIS Flat X Residual Standard Deviation">
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="nir-dark">
+    <h2>NIR Dark Frames</h2>
+
+    <div class="plot-grid">
+
+      <div class="plot-card">
+        <h3>NIR Dark Median Level</h3>
+        <p>Median flux level of NIR master dark frames.</p>
+        <a href="plots/nir_dark_median.png">
+          <img src="plots/nir_dark_median.png" alt="NIR Dark Median Level">
+        </a>
+      </div>
+
+      <div class="plot-card">
+        <h3>NIR Dark RON</h3>
+        <p>Read-out noise measured on NIR dark frames.</p>
+        <a href="plots/nir_dark_ron.png">
+          <img src="plots/nir_dark_ron.png" alt="NIR Dark RON">
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="nir-flat">
+    <h2>NIR Flat Fields</h2>
+
+    <div class="plot-grid">
+
+      <div class="plot-card">
+        <h3>NIR Flat Inner Order Pixel Mean</h3>
+        <a href="plots/nir_flat_inner_order_pix_mean.png">
+          <img src="plots/nir_flat_inner_order_pix_mean.png" alt="NIR Flat Inner Order Pixel Mean">
+        </a>
+      </div>
+
+      <div class="plot-card">
+        <h3>NIR Flat ORDEXP50</h3>
+        <a href="plots/nir_flat_ordexp50.png">
+          <img src="plots/nir_flat_ordexp50.png" alt="NIR Flat ORDEXP50">
+        </a>
+      </div>
+
+      <div class="plot-card">
+        <h3>NIR Flat X Residual Standard Deviation</h3>
+        <a href="plots/nir_flat_x_res_sd.png">
+          <img src="plots/nir_flat_x_res_sd.png" alt="NIR Flat X Residual Standard Deviation">
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  SOXS QC Monitor — static page generated from the historical QC database.
+</footer>
+
+</body>
+</html>
