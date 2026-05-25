@@ -1,0 +1,421 @@
+anchors:
+
+  vis_bias_median_base: &vis_bias_median_base
+    soxspipe_recipe: soxs-mbias
+    qc_name: MBIAS MEDIAN
+    eso seq arm: VIS
+    binning: 1x1
+    qc_order: "-1"
+  
+  vis_flat_base: &vis_flat_base
+    soxspipe_recipe: soxs-mflat
+    eso seq arm: VIS
+    binning: 1x1
+    rospeed: "1"
+    lamp: QTH
+    qc_order: "-1"
+
+  vis_master_ron_base: &vis_master_ron_base
+    soxspipe_recipe: soxs-mbias
+    qc_name: MASTER RON
+    eso seq arm: VIS
+    binning: 1x1
+    qc_order: "-1"
+
+  nir_flat_base: &nir_flat_base
+    soxspipe_recipe: soxs-mflat
+    eso seq arm: NIR
+    slitmask: SLIT
+    lamp: QTH
+    rospeed: "3"
+    qc_order: "-1"
+
+  nir_dark_median_base: &nir_dark_median_base
+    soxspipe_recipe: soxs-mdark
+    qc_name: MDARK MEDIAN
+    eso seq arm: NIR
+    rospeed: "3"
+    qc_order: "-1"
+
+  nir_dark_ron_base: &nir_dark_ron_base
+    soxspipe_recipe: soxs-mdark
+    qc_name: RAW RON
+    eso seq arm: NIR
+    rospeed: "3"
+    qc_order: "-1"
+
+datapoint_queries:
+
+  #########################################
+  ############## VIS BIAS #################
+  #########################################
+  
+  vis_bias_median_shg:
+    filters:
+      <<: *vis_bias_median_base
+      rospeed: "1"
+    processing:
+      function: none
+
+  vis_bias_median_flg:
+    filters:
+      <<: *vis_bias_median_base
+      rospeed: "2"
+    processing:
+      function: none
+
+  vis_bias_median_slg:
+    filters:
+      <<: *vis_bias_median_base
+      rospeed: "3"
+    processing:
+      function: none
+
+  vis_bias_median_fhg:
+    filters:
+      <<: *vis_bias_median_base
+      rospeed: "4"
+    processing:
+      function: none
+
+  #########################################
+  ############## VIS RON ##################
+  #########################################
+
+  vis_master_ron_shg:
+    filters:
+      <<: *vis_master_ron_base
+      rospeed: "1"
+    processing:
+      function: none
+
+  vis_master_ron_flg:
+    filters:
+      <<: *vis_master_ron_base
+      rospeed: "2"
+    processing:
+      function: none
+
+  vis_master_ron_slg:
+    filters:
+      <<: *vis_master_ron_base
+      rospeed: "3"
+    processing:
+      function: none
+
+  vis_master_ron_fhg:
+    filters:
+      <<: *vis_master_ron_base
+      rospeed: "4"
+    processing:
+      function: none
+
+  #########################################
+  ############## VIS FLAT #################
+  #########################################
+
+  vis_flat_inner_order_pix_mean_slit05:
+    filters:
+      <<: *vis_flat_base
+      qc_name: INNER ORDER PIX MEAN
+      slit: SLIT0.5
+    processing:
+      function: none
+
+  vis_flat_inner_order_pix_mean_slit10:
+    filters:
+      <<: *vis_flat_base
+      qc_name: INNER ORDER PIX MEAN
+      slit: SLIT1.0
+    processing:
+      function: none
+
+  vis_flat_inner_order_pix_mean_slit15:
+    filters:
+      <<: *vis_flat_base
+      qc_name: INNER ORDER PIX MEAN
+      slit: SLIT1.5
+    processing:
+      function: none
+
+  vis_flat_inner_order_pix_mean_slit50:
+    filters:
+      <<: *vis_flat_base
+      qc_name: INNER ORDER PIX MEAN
+      slit: SLIT5.0
+    processing:
+      function: none
+
+  vis_flat_orderxp50_slit05:
+    filters:
+      <<: *vis_flat_base
+      qc_name: ORDEXP50
+      slit: SLIT0.5
+    processing:
+      function: none
+
+  vis_flat_orderxp50_slit10:
+    filters:
+      <<: *vis_flat_base
+      qc_name: ORDEXP50
+      slit: SLIT1.0
+    processing:
+      function: none
+
+  vis_flat_orderxp50_slit15:
+    filters:
+      <<: *vis_flat_base
+      qc_name: ORDEXP50
+      slit: SLIT1.5
+    processing:
+      function: none
+    
+  vis_flat_orderxp50_slit50:
+    filters:
+      <<: *vis_flat_base
+      qc_name: ORDEXP50
+      slit: SLIT5.0
+    processing:
+      function: none
+
+  vis_flat_x_res_sd_slit05:
+    filters:
+      <<: *vis_flat_base
+      qc_name: X RES SD
+      slit: SLIT0.5
+    processing:
+      function: none
+
+  vis_flat_x_res_sd_slit10:
+    filters:
+      <<: *vis_flat_base
+      qc_name: X RES SD
+      slit: SLIT1.0
+    processing:
+      function: none
+
+  vis_flat_x_res_sd_slit15:
+    filters:
+      <<: *vis_flat_base
+      qc_name: X RES SD
+      slit: SLIT1.5
+    processing:
+      function: none
+
+  vis_flat_x_res_sd_slit50:
+    filters:
+      <<: *vis_flat_base
+      qc_name: X RES SD
+      slit: SLIT5.0
+    processing:
+      function: none
+
+  #########################################
+  ############## NIR FLAT #################
+  #########################################
+
+  nir_flat_inner_order_pix_mean_slit05:
+    filters:
+      <<: *nir_flat_base
+      qc_name: INNER ORDER PIX MEAN
+      slit: SLIT0.5
+    processing:
+      function: none
+
+  nir_flat_inner_order_pix_mean_slit10:
+    filters:
+      <<: *nir_flat_base
+      qc_name: INNER ORDER PIX MEAN
+      slit: SLIT1.0
+    processing:
+      function: none
+
+  nir_flat_inner_order_pix_mean_slit15:
+    filters:
+      <<: *nir_flat_base
+      qc_name: INNER ORDER PIX MEAN
+      slit: SLIT1.5
+    processing:
+      function: none
+
+  nir_flat_orderxp50_slit05:
+    filters:
+      <<: *nir_flat_base
+      qc_name: ORDEXP50
+      slit: SLIT0.5
+    processing:
+      function: none
+
+  nir_flat_orderxp50_slit10:
+    filters:
+      <<: *nir_flat_base
+      qc_name: ORDEXP50
+      slit: SLIT1.0
+    processing:
+      function: none
+
+  nir_flat_orderxp50_slit15:
+    filters:
+      <<: *nir_flat_base
+      qc_name: ORDEXP50
+      slit: SLIT1.5
+    processing:
+      function: none
+
+  nir_flat_x_res_sd_slit05:
+    filters:
+      <<: *nir_flat_base
+      qc_name: X RES SD
+      slit: SLIT0.5
+    processing:
+      function: none
+
+  nir_flat_x_res_sd_slit10:
+    filters:
+      <<: *nir_flat_base
+      qc_name: X RES SD
+      slit: SLIT1.0
+    processing:
+      function: none
+
+  nir_flat_x_res_sd_slit15:
+    filters:
+      <<: *nir_flat_base
+      qc_name: X RES SD
+      slit: SLIT1.5
+    processing:
+      function: none
+
+  #########################################
+  ############## NIR DARK #################
+  #########################################
+
+  nir_dark_median_2s:
+    filters:
+      <<: *nir_dark_median_base
+      exptime: 2.0
+    processing:
+      function: none
+
+  nir_dark_median_5s:
+    filters:
+      <<: *nir_dark_median_base
+      exptime: 5.0
+    processing:
+      function: none
+
+  nir_dark_median_10s:
+    filters:
+      <<: *nir_dark_median_base
+      exptime: 10.0
+    processing:
+      function: none
+
+  nir_dark_median_15s:
+    filters:
+      <<: *nir_dark_median_base
+      exptime: 15.0
+    processing:
+      function: none
+
+  nir_dark_median_60s:
+    filters:
+      <<: *nir_dark_median_base
+      exptime: 60.0
+    processing:
+      function: none
+  
+  nir_dark_median_120s:
+    filters:
+      <<: *nir_dark_median_base
+      exptime: 120.0
+    processing:
+      function: none
+
+  nir_dark_median_300s:
+    filters:
+      <<: *nir_dark_median_base
+      exptime: 300.0
+    processing:
+      function: none
+
+  nir_dark_median_600s:
+    filters:
+      <<: *nir_dark_median_base
+      exptime: 600.0
+    processing:
+      function: none
+
+  nir_dark_median_900s:
+    filters:
+      <<: *nir_dark_median_base
+      exptime: 900.0
+    processing:
+      function: none
+
+  #########################################
+  ############## NIR DARK RON #############
+  #########################################
+
+  nir_dark_ron_2s:
+    filters:
+      <<: *nir_dark_ron_base
+      exptime: 2.0
+    processing:
+      function: none
+
+  nir_dark_ron_5s:
+    filters:
+      <<: *nir_dark_ron_base
+      exptime: 5.0
+    processing:
+      function: none
+
+  nir_dark_ron_10s:
+    filters:
+      <<: *nir_dark_ron_base
+      exptime: 10.0
+    processing:
+      function: none
+
+  nir_dark_ron_15s:
+    filters:
+      <<: *nir_dark_ron_base
+      exptime: 15.0
+    processing:
+      function: none
+
+  nir_dark_ron_60s:
+    filters:
+      <<: *nir_dark_ron_base
+      exptime: 60.0
+    processing:
+      function: none
+
+  nir_dark_ron_120s:
+    filters:
+      <<: *nir_dark_ron_base
+      exptime: 120.0
+    processing:
+      function: none
+
+  nir_dark_ron_300s:
+    filters:
+      <<: *nir_dark_ron_base
+      exptime: 300.0
+    processing:
+      function: none
+
+  nir_dark_ron_600s:
+    filters:
+      <<: *nir_dark_ron_base
+      exptime: 600.0
+    processing:
+      function: none
+
+  nir_dark_ron_900s:
+    filters:
+      <<: *nir_dark_ron_base
+      exptime: 900.0
+    processing:
+      function: none

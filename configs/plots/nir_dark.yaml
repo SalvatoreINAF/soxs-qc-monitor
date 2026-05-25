@@ -6,62 +6,40 @@ figures:
     filename: nir_dark_median.png
     time_range: last_3_months
     y_label: electrons
-    
+
     series:
       - label: 2 s
         style: markers
-        filters: &nir_mdark_2s
-          soxspipe_recipe: soxs-mdark
-          qc_name: MDARK MEDIAN
-          eso seq arm: NIR
-          exptime: 2.0
-          rospeed: "3"
-          qc_order: "-1"
+        datapoint_query: nir_dark_median_2s
 
       - label: 5 s
         style: markers
-        filters:
-          <<: *nir_mdark_2s
-          exptime: 5.0
+        datapoint_query: nir_dark_median_5s
 
       - label: 10 s
         style: markers
-        filters:
-          <<: *nir_mdark_2s
-          exptime: 10.0
+        datapoint_query: nir_dark_median_10s
 
       - label: 15 s
         style: markers
-        filters:
-          <<: *nir_mdark_2s
-          exptime: 15.0
+        datapoint_query: nir_dark_median_15s
 
       - label: 60 s
         style: markers
-        filters:
-          <<: *nir_mdark_2s
-          exptime: 60.0
+        datapoint_query: nir_dark_median_60s
 
       - label: 120 s
         style: markers
-        filters:
-          <<: *nir_mdark_2s
-          exptime: 120.0
+        datapoint_query: nir_dark_median_120s
 
       - label: 300 s
         style: markers
-        filters:
-          <<: *nir_mdark_2s
-          exptime: 300.0
+        datapoint_query: nir_dark_median_300s
 
       - label: 600 s
         style: markers
-        filters:
-          <<: *nir_mdark_2s
-          exptime: 600.0
+        datapoint_query: nir_dark_median_600s
 
       - label: 900 s
         style: markers
-        filters:
-          <<: *nir_mdark_2s
-          exptime: 900.0
+        datapoint_query: nir_dark_median_900s

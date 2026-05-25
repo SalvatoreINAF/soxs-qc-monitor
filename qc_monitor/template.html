@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ page_title }}</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: white;
+      color: #222;
+    }
+
+    .page-title {
+      text-align: center;
+      padding: 30px 20px 20px;
+    }
+
+    .page-title h1 {
+      margin: 0;
+      color: #003366;
+      font-size: 36px;
+      font-weight: normal;
+    }
+
+    nav {
+      background: #eeeeee;
+      padding: 10px 32px;
+      border-top: 1px solid #cccccc;
+      border-bottom: 1px solid #cccccc;
+      font-size: 14px;
+    }
+
+    nav a {
+      margin-right: 18px;
+      color: #003366;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    main {
+      padding: 28px 32px;
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .intro {
+      background: #f7f7f7;
+      border-left: 5px solid #003366;
+      padding: 14px 18px;
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+
+    section {
+      margin-bottom: 48px;
+    }
+
+    h2 {
+      color: #003366;
+      border-bottom: 2px solid #cccccc;
+      padding-bottom: 6px;
+      margin-top: 36px;
+    }
+
+    .plot-card {
+      border: 1px solid #cccccc;
+      background: #fafafa;
+      padding: 14px;
+      margin-bottom: 28px;
+    }
+
+    .plot-card h3 {
+      margin-top: 0;
+      font-size: 18px;
+      color: #333333;
+    }
+
+    .plot-card img {
+      width: 75%;
+      max-width: 850px;
+      display: block;
+      margin: 0 auto;
+      border: 1px solid #dddddd;
+      background: white;
+    }
+
+    footer {
+      border-top: 1px solid #cccccc;
+      margin-top: 40px;
+      padding: 14px 32px;
+      font-size: 12px;
+      color: #666666;
+      background: #f2f2f2;
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="page-title">
+  <h1>{{ page_title }}</h1>
+</header>
+
+<nav>
+{{ navigation }}
+</nav>
+
+<main>
+
+  <div class="intro">
+    <p>
+      This page hosts selected quality-control parameters extracted
+      from SOXS pipeline reduction sessions and consolidated into a
+      long-term QC database. The plots are updated every day. They
+      are meant to show long-term trends of instrumental indicators,
+      not real-time online monitoring.
+    </p>
+  </div>
+
+{{ sections }}
+
+</main>
+
+<footer>
+  SOXS QC Monitor — static page generated from the historical QC database.
+</footer>
+
+</body>
+</html>

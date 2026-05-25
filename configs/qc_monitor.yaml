@@ -17,6 +17,7 @@ plots:
   show: false
 
   include:
+    - plots/datapoint_queries.yaml
     - plots/vis_bias.yaml
     - plots/vis_master_ron.yaml
     - plots/nir_dark.yaml

@@ -9,6 +9,7 @@ from qc_monitor.acquisition import find_session_databases
 from qc_monitor.acquisition import load_qc_from_session_db
 from qc_monitor.storage import SQLiteStore
 from qc_monitor.plotting import generate_plots_from_config
+from qc_monitor.generate_html import generate_html_report
 
 
 def parse_args():
@@ -48,6 +49,7 @@ def load_plot_includes(cfg: dict, config_dir: Path) -> dict:
     include_files = plots_cfg.get("include", [])
 
     figures = list(plots_cfg.get("figures", []))
+    datapoint_queries = dict(plots_cfg.get("datapoint_queries", {}))
 
     for include_file in include_files:
         include_path = config_dir / include_file
@@ -57,8 +59,21 @@ def load_plot_includes(cfg: dict, config_dir: Path) -> dict:
 
         figures.extend(included_cfg.get("figures", []))
 
+        included_queries = included_cfg.get("datapoint_queries", {})
+        duplicate_queries = set(datapoint_queries) & set(included_queries)
+
+        if duplicate_queries:
+            raise ValueError(
+                f"Duplicate datapoint query names in {include_path}: "
+                f"{sorted(duplicate_queries)}"
+            )
+
+        datapoint_queries.update(included_queries)
+
     plots_cfg["figures"] = figures
+    plots_cfg["datapoint_queries"] = datapoint_queries
     cfg["plots"] = plots_cfg
+
     return cfg
 
 
@@ -232,6 +247,17 @@ def main():
     generate_plots_from_config(
         df=df_plot,
         plots_cfg=plots_cfg,
+    )
+
+    ####################################################
+    ############### HTML Report Generation #############
+    ####################################################
+
+    html_output = Path(plots_cfg.get("html_output", "index.html"))
+
+    generate_html_report(
+        plots_cfg=plots_cfg,
+        output_html=html_output,
     )
 
 

@@ -5,45 +5,21 @@ figures:
     title: VIS Master RON
     filename: vis_master_ron.png
     time_range: last_3_months
-    y_label: ADU
+    y_label: electrons
 
     series:
       - label: SHG
         style: markers
-        filters:
-          soxspipe_recipe: soxs-mbias
-          qc_name: MASTER RON
-          eso seq arm: VIS
-          binning: 1x1
-          rospeed: "1"
-          qc_order: "-1"
+        datapoint_query: vis_master_ron_shg
 
       - label: FLG
         style: markers
-        filters:
-          soxspipe_recipe: soxs-mbias
-          qc_name: MASTER RON
-          eso seq arm: VIS
-          binning: 1x1
-          rospeed: "2"
-          qc_order: "-1"
+        datapoint_query: vis_master_ron_flg
 
       - label: SLG
         style: markers
-        filters:
-          soxspipe_recipe: soxs-mbias
-          qc_name: MASTER RON
-          eso seq arm: VIS
-          binning: 1x1
-          rospeed: "3"
-          qc_order: "-1"
+        datapoint_query: vis_master_ron_slg
 
       - label: FHG
         style: markers
-        filters:
-          soxspipe_recipe: soxs-mbias
-          qc_name: MASTER RON
-          eso seq arm: VIS
-          binning: 1x1
-          rospeed: "4"
-          qc_order: "-1"
+        datapoint_query: vis_master_ron_fhg
