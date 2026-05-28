@@ -419,3 +419,21 @@ datapoint_queries:
       exptime: 900.0
     processing:
       function: none
+
+  #########################################
+  ############## EFFICIENCY ###############
+  #########################################
+
+  vis_eff_median:
+    filters:
+      qc_name: EFF MEDIAN
+      eso seq arm: VIS
+    processing:
+      function: none
+
+  nir_eff_median:
+    filters:
+      qc_name: EFF MEDIAN
+      eso seq arm: NIR
+    processing:
+      function: none

@@ -24,3 +24,6 @@ plots:
     - plots/nir_dark_ron.yaml
     - plots/vis_flat.yaml
     - plots/nir_flat.yaml
+    - plots/dispersion_solution.yaml
+    - plots/efficiency.yaml
+    - plots/order_location.yaml

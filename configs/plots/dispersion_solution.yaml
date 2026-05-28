@@ -1,0 +1,45 @@
+figures:
+
+  - name: vis_dispersion_resolution
+    type: dispersion_resolution
+    title: VIS Dispersion Solution
+    filename: vis_dispersion_resolution.png
+    selection: latest
+    arm: VIS
+
+  - name: nir_dispersion_resolution
+    type: dispersion_resolution
+    title: NIR Dispersion Solution
+    filename: nir_dispersion_resolution.png
+    selection: latest
+    arm: NIR
+
+  - name: vis_dispersion_residual_xy
+    type: dispersion_residual_xy
+    title: VIS Dispersion Solution - Residual X vs Y
+    filename: vis_dispersion_residual_xy.png
+    selection: latest
+    arm: VIS
+
+  - name: nir_dispersion_residual_xy
+    type: dispersion_residual_xy
+    title: NIR Dispersion Solution - Residual X vs Y
+    filename: nir_dispersion_residual_xy.png
+    selection: latest
+    arm: NIR
+
+  - name: vis_dispersion_residual_xy_histogram
+    type: dispersion_residual_histogram
+    title: VIS Dispersion Solution - Residual XY Histogram
+    filename: vis_dispersion_residual_xy_histogram.png
+    selection: latest
+    arm: VIS
+    bins: 40
+
+  - name: nir_dispersion_residual_xy_histogram
+    type: dispersion_residual_histogram
+    title: NIR Dispersion Solution - Residual XY Histogram
+    filename: nir_dispersion_residual_xy_histogram.png
+    selection: latest
+    arm: NIR
+    bins: 40

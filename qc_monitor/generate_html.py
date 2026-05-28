@@ -35,44 +35,67 @@ def _infer_section_name(figure: dict) -> str:
 
     if name.startswith("nir_flat") or "NIR Flat" in title:
         return "NIR Flat"
+    
+    if name.startswith("vis_dispersion") or "VIS Dispersion" in title:
+        return "VIS Dispersion Solution"
+    
+    if name.startswith("nir_dispersion") or "NIR Dispersion" in title:
+        return "NIR Dispersion Solution"
 
     return "Other QC Plots"
 
 
-def _render_navigation(section_names: list[str]) -> str:
-    return "\n".join(
-        f'  <a href="#{_slugify(section)}">{html.escape(section)}</a>'
-        for section in section_names
-    )
+def _infer_arm(figure: dict) -> str:
+    name = figure.get("name", "").lower()
+    title = figure.get("title", "")
+
+    if name.startswith("vis_") or title.startswith("VIS"):
+        return "VIS"
+
+    if name.startswith("nir_") or title.startswith("NIR"):
+        return "NIR"
+
+    return "OTHER"
 
 
 def _render_sections(figures: list[dict], plots_relative_dir: str) -> str:
-    grouped: dict[str, list[dict]] = defaultdict(list)
+    grouped_by_arm: dict[str, dict[str, list[dict]]] = {
+        "VIS": defaultdict(list),
+        "NIR": defaultdict(list),
+        "OTHER": defaultdict(list),
+    }
 
     for fig in figures:
-        grouped[_infer_section_name(fig)].append(fig)
+        arm = _infer_arm(fig)
+        section = _infer_section_name(fig)
+        grouped_by_arm[arm][section].append(fig)
 
-    html_sections = []
+    def render_arm_tab(arm: str, active: bool = False) -> str:
+        tab_id = f"{arm.lower()}-tab"
+        active_class = " active" if active else ""
 
-    for section_name, section_figures in grouped.items():
-        section_id = _slugify(section_name)
-
-        section_html = [
-            f'  <section id="{section_id}">',
-            f"    <h2>{html.escape(section_name)}</h2>",
-            "",
+        chunks = [
+            f'<div id="{tab_id}" class="tab-content{active_class}">'
         ]
 
-        for fig in section_figures:
-            title = fig.get("title", fig.get("name", "Untitled plot"))
-            filename = fig["filename"]
-            img_path = f"{plots_relative_dir}/{filename}"
+        for section_name, section_figures in grouped_by_arm[arm].items():
+            section_id = _slugify(f"{arm}-{section_name}")
 
-            safe_title = html.escape(title)
-            safe_img_path = html.escape(img_path, quote=True)
+            chunks.extend([
+                f'  <section id="{section_id}">',
+                f"    <h2>{html.escape(section_name)}</h2>",
+                "",
+            ])
 
-            section_html.extend(
-                [
+            for fig in section_figures:
+                title = fig.get("title", fig.get("name", "Untitled plot"))
+                filename = fig["filename"]
+                img_path = f"{plots_relative_dir}/{filename}"
+
+                safe_title = html.escape(title)
+                safe_img_path = html.escape(img_path, quote=True)
+
+                chunks.extend([
                     '    <div class="plot-card">',
                     f"      <h3>{safe_title}</h3>",
                     f'      <a href="{safe_img_path}">',
@@ -80,13 +103,17 @@ def _render_sections(figures: list[dict], plots_relative_dir: str) -> str:
                     "      </a>",
                     "    </div>",
                     "",
-                ]
-            )
+                ])
 
-        section_html.append("  </section>")
-        html_sections.append("\n".join(section_html))
+            chunks.append("  </section>")
 
-    return "\n\n".join(html_sections)
+        chunks.append("</div>")
+        return "\n".join(chunks)
+
+    return "\n\n".join([
+        render_arm_tab("VIS", active=True),
+        render_arm_tab("NIR", active=False),
+    ])
 
 
 def generate_html_report(
@@ -114,7 +141,6 @@ def generate_html_report(
         if section not in section_names:
             section_names.append(section)
 
-    navigation = _render_navigation(section_names)
     sections = _render_sections(
         figures=figures,
         plots_relative_dir=plots_relative_dir,
@@ -125,7 +151,6 @@ def generate_html_report(
     rendered = (
         template
         .replace("{{ page_title }}", html.escape(page_title))
-        .replace("{{ navigation }}", navigation)
         .replace("{{ sections }}", sections)
     )
 

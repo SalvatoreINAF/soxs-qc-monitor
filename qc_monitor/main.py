@@ -5,10 +5,19 @@ import argparse
 from pathlib import Path
 import pandas as pd
 
-from qc_monitor.acquisition import find_session_databases
-from qc_monitor.acquisition import load_qc_from_session_db
+from qc_monitor.acquisition import (
+    find_session_databases,
+    load_qc_from_session_db,
+    find_dispersion_solution_fits_files,
+    parse_dispersion_solution_filename,
+    load_dispersion_solution_tables,
+    find_order_location_fits_files,
+    parse_order_location_filename,
+    load_order_location_models,
+    load_order_location_meta,
+)
 from qc_monitor.storage import SQLiteStore
-from qc_monitor.plotting import generate_plots_from_config
+from qc_monitor.plotting import generate_order_location_plots_from_config, generate_plots_from_config
 from qc_monitor.generate_html import generate_html_report
 
 
@@ -166,6 +175,139 @@ def consolidate(
     return len(df)
 
 
+def consolidate_dispersion_solution(
+    qc_root: Path,
+    qc_database: SQLiteStore,
+    dry_run: bool = False,
+    force: bool = False,
+) -> int:
+    log = logging.getLogger("qc-monitor")
+
+    fits_files = find_dispersion_solution_fits_files(qc_root)
+
+    if not fits_files:
+        log.info("No dispersion-solution FITS files found")
+        return 0
+
+    processed_days = qc_database.get_processed_dispersion_obs_days()
+
+    new_files = []
+
+    for fits_file in fits_files:
+        obs_day, _, _ = parse_dispersion_solution_filename(fits_file)
+
+        if force or obs_day not in processed_days:
+            new_files.append(fits_file)
+
+    if not new_files:
+        log.info("No new dispersion-solution FITS files to consolidate")
+        return 0
+
+    log.info(
+        "Found %d new dispersion-solution FITS files",
+        len(new_files),
+    )
+
+    df = load_dispersion_solution_tables(new_files)
+
+    if df.empty:
+        log.info("No dispersion-solution rows loaded")
+        return 0
+
+    if dry_run:
+        log.info("Dry-run enabled, not writing dispersion-solution data")
+        print(df)
+        return len(df)
+
+    qc_database.write_dispersion_solution_lines(df)
+
+    for obs_day in sorted(df["obs_day"].unique()):
+        qc_database.register_processed_dispersion_obs_day(str(obs_day))
+
+    log.info(
+        "Consolidated %d dispersion-solution rows",
+        len(df),
+    )
+
+    return len(df)
+
+
+def consolidate_order_location_models(
+    qc_root: Path,
+    qc_database: SQLiteStore,
+    dry_run: bool = False,
+    force: bool = False,
+) -> int:
+    log = logging.getLogger("qc-monitor")
+
+    fits_files = find_order_location_fits_files(qc_root)
+
+    if not fits_files:
+        log.info("No order-location FITS files found")
+        return 0
+
+    processed_days = qc_database.get_processed_order_location_obs_days()
+
+    new_files = []
+
+    for fits_file in fits_files:
+        obs_day = parse_order_location_filename(fits_file)["obs_day"]
+
+        if force or obs_day not in processed_days:
+            new_files.append(fits_file)
+
+    if not new_files:
+        log.info("No new order-location FITS files to consolidate")
+        return 0
+
+    log.info(
+        "Found %d new order-location FITS files",
+        len(new_files),
+    )
+
+    df_models = load_order_location_models(new_files)
+    df_meta = load_order_location_meta(new_files)
+
+    if df_models.empty and df_meta.empty:
+        log.info("No order-location rows loaded")
+        return 0
+
+    if dry_run:
+        log.info("Dry-run enabled, not writing order-location data")
+        if not df_models.empty:
+            print("ORDER LOCATION MODELS")
+            print(df_models)
+        if not df_meta.empty:
+            print("ORDER LOCATION META")
+            print(df_meta)
+        return len(df_models) + len(df_meta)
+
+    if not df_models.empty:
+        qc_database.write_order_location_models(df_models)
+
+    if not df_meta.empty:
+        qc_database.write_order_location_meta(df_meta)
+
+    obs_days = set()
+
+    if not df_models.empty:
+        obs_days.update(str(v) for v in df_models["obs_day"].unique())
+
+    if not df_meta.empty:
+        obs_days.update(str(v) for v in df_meta["obs_day"].unique())
+
+    for obs_day in sorted(obs_days):
+        qc_database.register_processed_order_location_obs_day(obs_day)
+
+    log.info(
+        "Consolidated %d order-location model rows and %d order-location meta rows",
+        len(df_models),
+        len(df_meta),
+    )
+
+    return len(df_models) + len(df_meta)
+
+
 def main():
 
     ####################################################
@@ -222,6 +364,24 @@ def main():
 
     log.info("Total consolidated QC datapoints: %d", total_points)
 
+    dsol_points = consolidate_dispersion_solution(
+        qc_root=qc_root,
+        qc_database=qc_database,
+        dry_run=args.dry_run,
+        force=args.rebuild_db,
+    )
+
+    log.info("Total consolidated dispersion-solution rows: %d", dsol_points)
+
+    oloc_points = consolidate_order_location_models(
+        qc_root=qc_root,
+        qc_database=qc_database,
+        dry_run=args.dry_run,
+        force=args.rebuild_db,
+    )
+
+    log.info("Total consolidated order-location model rows: %d", oloc_points)
+
     if args.dry_run:
         log.info("Dry-run enabled, skipping plot generation")
         return
@@ -241,11 +401,35 @@ def main():
     df_plot = qc_database.load_all_metrics()
 
     if df_plot.empty:
-        log.info("No historical QC metrics available for plotting")
+            log.info("No historical QC metrics available for plotting")
+            return
+    
+    generate_plots_from_config(
+        df=df_plot,
+        plots_cfg=plots_cfg,
+        plot_types={"time_series", "xy_scatter", "histogram", "latest_by_order_bar"}
+    )
+
+    # Load dispersion solution lines for plotting
+    df_dsol = qc_database.load_dispersion_solution_lines()
+
+    if df_dsol.empty:
+        log.info("No historical dispersion-solution data available for plotting")
         return
 
     generate_plots_from_config(
-        df=df_plot,
+        df=df_dsol,
+        plots_cfg=plots_cfg,
+        plot_types={"dispersion_resolution", "dispersion_residual_xy", "dispersion_residual_histogram"},
+    )
+
+    # Load order location models for plotting
+    df_oloc_models = qc_database.load_order_location_models()
+    df_oloc_meta = qc_database.load_order_location_meta()
+
+    generate_order_location_plots_from_config(
+        df_models=df_oloc_models,
+        df_meta=df_oloc_meta,
         plots_cfg=plots_cfg,
     )
 

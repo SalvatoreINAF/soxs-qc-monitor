@@ -1,0 +1,19 @@
+figures:
+
+  - name: vis_efficiency_median
+    type: latest_by_order_bar
+    title: VIS Median Efficiency
+    filename: vis_efficiency_median.png
+    datapoint_query: vis_eff_median
+    x_label: Order
+    y_label: Efficiency
+    order_sequence: ["u", "g", "r", "i"]
+
+  - name: nir_efficiency_median
+    type: latest_by_order_bar
+    title: NIR Median Efficiency
+    filename: nir_efficiency_median.png
+    datapoint_query: nir_eff_median
+    x_label: Order
+    y_label: Efficiency
+    order_sequence: ["10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"]

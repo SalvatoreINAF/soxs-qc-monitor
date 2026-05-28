@@ -24,21 +24,6 @@
       font-weight: normal;
     }
 
-    nav {
-      background: #eeeeee;
-      padding: 10px 32px;
-      border-top: 1px solid #cccccc;
-      border-bottom: 1px solid #cccccc;
-      font-size: 14px;
-    }
-
-    nav a {
-      margin-right: 18px;
-      color: #003366;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
     main {
       padding: 28px 32px;
       max-width: 1200px;
@@ -94,6 +79,42 @@
       color: #666666;
       background: #f2f2f2;
     }
+
+    .tabs {
+      background: #eeeeee;
+      padding: 10px 32px;
+      border-top: 1px solid #cccccc;
+      border-bottom: 1px solid #cccccc;
+      text-align: center;
+    }
+
+    .tab-button {
+      background: #dddddd;
+      border: 1px solid #bbbbbb;
+      color: #003366;
+      padding: 10px 24px;
+      margin: 0 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    .tab-button:hover {
+      background: #cccccc;
+    }
+
+    .tab-button.active {
+      background: #003366;
+      color: white;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
   </style>
 </head>
 
@@ -103,11 +124,8 @@
   <h1>SOXS Quality Control Page</h1>
 </header>
 
-<nav>
-  <a href="#vis-bias">VIS Bias</a>
-  <a href="#nir-dark">NIR Dark</a>
-  <a href="#vis-flat">VIS Flat</a>
-  <a href="#nir-flat">NIR Flat</a>
+<!-- <nav>
+{{ navigation }}
 </nav>
 
 <main>
@@ -122,7 +140,8 @@
     </p>
   </div>
 
-  <section id="vis-bias">
+<div id="vis-tab" class="tab-content active">
+  <section id="vis-vis-bias">
     <h2>VIS Bias</h2>
 
     <div class="plot-card">
@@ -140,27 +159,7 @@
     </div>
 
   </section>
-
-  <section id="nir-dark">
-    <h2>NIR Dark</h2>
-
-    <div class="plot-card">
-      <h3>NIR Dark Median Level</h3>
-      <a href="plots/nir_dark_median.png">
-        <img src="plots/nir_dark_median.png" alt="NIR Dark Median Level">
-      </a>
-    </div>
-
-    <div class="plot-card">
-      <h3>NIR Dark RON</h3>
-      <a href="plots/nir_dark_ron.png">
-        <img src="plots/nir_dark_ron.png" alt="NIR Dark RON">
-      </a>
-    </div>
-
-  </section>
-
-  <section id="vis-flat">
+  <section id="vis-vis-flat">
     <h2>VIS Flat</h2>
 
     <div class="plot-card">
@@ -185,8 +184,71 @@
     </div>
 
   </section>
+  <section id="vis-vis-dispersion-solution">
+    <h2>VIS Dispersion Solution</h2>
 
-  <section id="nir-flat">
+    <div class="plot-card">
+      <h3>VIS Dispersion Solution</h3>
+      <a href="plots/vis_dispersion_resolution.png">
+        <img src="plots/vis_dispersion_resolution.png" alt="VIS Dispersion Solution">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>VIS Dispersion Solution - Residual X vs Y</h3>
+      <a href="plots/vis_dispersion_residual_xy.png">
+        <img src="plots/vis_dispersion_residual_xy.png" alt="VIS Dispersion Solution - Residual X vs Y">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>VIS Dispersion Solution - Residual XY Histogram</h3>
+      <a href="plots/vis_dispersion_residual_xy_histogram.png">
+        <img src="plots/vis_dispersion_residual_xy_histogram.png" alt="VIS Dispersion Solution - Residual XY Histogram">
+      </a>
+    </div>
+
+  </section>
+  <section id="vis-other-qc-plots">
+    <h2>Other QC Plots</h2>
+
+    <div class="plot-card">
+      <h3>VIS Median Efficiency</h3>
+      <a href="plots/vis_efficiency_median.png">
+        <img src="plots/vis_efficiency_median.png" alt="VIS Median Efficiency">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>VIS Order Location Fit - SLIT0.5</h3>
+      <a href="plots/vis_order_location_fit.png">
+        <img src="plots/vis_order_location_fit.png" alt="VIS Order Location Fit - SLIT0.5">
+      </a>
+    </div>
+
+  </section>
+</div>
+
+<div id="nir-tab" class="tab-content">
+  <section id="nir-nir-dark">
+    <h2>NIR Dark</h2>
+
+    <div class="plot-card">
+      <h3>NIR Dark Median Level</h3>
+      <a href="plots/nir_dark_median.png">
+        <img src="plots/nir_dark_median.png" alt="NIR Dark Median Level">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>NIR Dark RON</h3>
+      <a href="plots/nir_dark_ron.png">
+        <img src="plots/nir_dark_ron.png" alt="NIR Dark RON">
+      </a>
+    </div>
+
+  </section>
+  <section id="nir-nir-flat">
     <h2>NIR Flat</h2>
 
     <div class="plot-card">
@@ -211,11 +273,267 @@
     </div>
 
   </section>
+  <section id="nir-nir-dispersion-solution">
+    <h2>NIR Dispersion Solution</h2>
+
+    <div class="plot-card">
+      <h3>NIR Dispersion Solution</h3>
+      <a href="plots/nir_dispersion_resolution.png">
+        <img src="plots/nir_dispersion_resolution.png" alt="NIR Dispersion Solution">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>NIR Dispersion Solution - Residual X vs Y</h3>
+      <a href="plots/nir_dispersion_residual_xy.png">
+        <img src="plots/nir_dispersion_residual_xy.png" alt="NIR Dispersion Solution - Residual X vs Y">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>NIR Dispersion Solution - Residual XY Histogram</h3>
+      <a href="plots/nir_dispersion_residual_xy_histogram.png">
+        <img src="plots/nir_dispersion_residual_xy_histogram.png" alt="NIR Dispersion Solution - Residual XY Histogram">
+      </a>
+    </div>
+
+  </section>
+  <section id="nir-other-qc-plots">
+    <h2>Other QC Plots</h2>
+
+    <div class="plot-card">
+      <h3>NIR Median Efficiency</h3>
+      <a href="plots/nir_efficiency_median.png">
+        <img src="plots/nir_efficiency_median.png" alt="NIR Median Efficiency">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>NIR Order Location Fit</h3>
+      <a href="plots/nir_order_location_fit.png">
+        <img src="plots/nir_order_location_fit.png" alt="NIR Order Location Fit">
+      </a>
+    </div>
+
+  </section>
+</div>
+
+</main> -->
+
+<nav class="tabs">
+  <button class="tab-button active" onclick="openTab(event, 'vis-tab')">VIS</button>
+  <button class="tab-button" onclick="openTab(event, 'nir-tab')">NIR</button>
+</nav>
+
+<main>
+
+  <div class="intro">
+    <p>
+      This page hosts selected quality-control parameters extracted from SOXS
+      pipeline reduction sessions and consolidated into a long-term QC database.
+      The plots are updated whenever the QC monitor is executed.
+    </p>
+  </div>
+
+<div id="vis-tab" class="tab-content active">
+  <section id="vis-vis-bias">
+    <h2>VIS Bias</h2>
+
+    <div class="plot-card">
+      <h3>VIS Bias Median Level</h3>
+      <a href="plots/vis_bias_level.png">
+        <img src="plots/vis_bias_level.png" alt="VIS Bias Median Level">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>VIS Master RON</h3>
+      <a href="plots/vis_master_ron.png">
+        <img src="plots/vis_master_ron.png" alt="VIS Master RON">
+      </a>
+    </div>
+
+  </section>
+  <section id="vis-vis-flat">
+    <h2>VIS Flat</h2>
+
+    <div class="plot-card">
+      <h3>VIS Flat Inner Order Pixel Mean</h3>
+      <a href="plots/vis_flat_inner_order_pix_mean.png">
+        <img src="plots/vis_flat_inner_order_pix_mean.png" alt="VIS Flat Inner Order Pixel Mean">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>VIS Flat ORDEXP50</h3>
+      <a href="plots/vis_flat_ordexp50.png">
+        <img src="plots/vis_flat_ordexp50.png" alt="VIS Flat ORDEXP50">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>VIS Flat X Residual SD</h3>
+      <a href="plots/vis_flat_x_res_sd.png">
+        <img src="plots/vis_flat_x_res_sd.png" alt="VIS Flat X Residual SD">
+      </a>
+    </div>
+
+  </section>
+  <section id="vis-vis-dispersion-solution">
+    <h2>VIS Dispersion Solution</h2>
+
+    <div class="plot-card">
+      <h3>VIS Dispersion Solution</h3>
+      <a href="plots/vis_dispersion_resolution.png">
+        <img src="plots/vis_dispersion_resolution.png" alt="VIS Dispersion Solution">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>VIS Dispersion Solution - Residual X vs Y</h3>
+      <a href="plots/vis_dispersion_residual_xy.png">
+        <img src="plots/vis_dispersion_residual_xy.png" alt="VIS Dispersion Solution - Residual X vs Y">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>VIS Dispersion Solution - Residual XY Histogram</h3>
+      <a href="plots/vis_dispersion_residual_xy_histogram.png">
+        <img src="plots/vis_dispersion_residual_xy_histogram.png" alt="VIS Dispersion Solution - Residual XY Histogram">
+      </a>
+    </div>
+
+  </section>
+  <section id="vis-other-qc-plots">
+    <h2>Other QC Plots</h2>
+
+    <div class="plot-card">
+      <h3>VIS Median Efficiency</h3>
+      <a href="plots/vis_efficiency_median.png">
+        <img src="plots/vis_efficiency_median.png" alt="VIS Median Efficiency">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>VIS Order Location Fit - SLIT0.5</h3>
+      <a href="plots/vis_order_location_fit.png">
+        <img src="plots/vis_order_location_fit.png" alt="VIS Order Location Fit - SLIT0.5">
+      </a>
+    </div>
+
+  </section>
+</div>
+
+<div id="nir-tab" class="tab-content">
+  <section id="nir-nir-dark">
+    <h2>NIR Dark</h2>
+
+    <div class="plot-card">
+      <h3>NIR Dark Median Level</h3>
+      <a href="plots/nir_dark_median.png">
+        <img src="plots/nir_dark_median.png" alt="NIR Dark Median Level">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>NIR Dark RON</h3>
+      <a href="plots/nir_dark_ron.png">
+        <img src="plots/nir_dark_ron.png" alt="NIR Dark RON">
+      </a>
+    </div>
+
+  </section>
+  <section id="nir-nir-flat">
+    <h2>NIR Flat</h2>
+
+    <div class="plot-card">
+      <h3>NIR Flat Inner Order Pixel Mean</h3>
+      <a href="plots/nir_flat_inner_order_pix_mean.png">
+        <img src="plots/nir_flat_inner_order_pix_mean.png" alt="NIR Flat Inner Order Pixel Mean">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>NIR Flat ORDEXP50</h3>
+      <a href="plots/nir_flat_ordexp50.png">
+        <img src="plots/nir_flat_ordexp50.png" alt="NIR Flat ORDEXP50">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>NIR Flat X Residual SD</h3>
+      <a href="plots/nir_flat_x_res_sd.png">
+        <img src="plots/nir_flat_x_res_sd.png" alt="NIR Flat X Residual SD">
+      </a>
+    </div>
+
+  </section>
+  <section id="nir-nir-dispersion-solution">
+    <h2>NIR Dispersion Solution</h2>
+
+    <div class="plot-card">
+      <h3>NIR Dispersion Solution</h3>
+      <a href="plots/nir_dispersion_resolution.png">
+        <img src="plots/nir_dispersion_resolution.png" alt="NIR Dispersion Solution">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>NIR Dispersion Solution - Residual X vs Y</h3>
+      <a href="plots/nir_dispersion_residual_xy.png">
+        <img src="plots/nir_dispersion_residual_xy.png" alt="NIR Dispersion Solution - Residual X vs Y">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>NIR Dispersion Solution - Residual XY Histogram</h3>
+      <a href="plots/nir_dispersion_residual_xy_histogram.png">
+        <img src="plots/nir_dispersion_residual_xy_histogram.png" alt="NIR Dispersion Solution - Residual XY Histogram">
+      </a>
+    </div>
+
+  </section>
+  <section id="nir-other-qc-plots">
+    <h2>Other QC Plots</h2>
+
+    <div class="plot-card">
+      <h3>NIR Median Efficiency</h3>
+      <a href="plots/nir_efficiency_median.png">
+        <img src="plots/nir_efficiency_median.png" alt="NIR Median Efficiency">
+      </a>
+    </div>
+
+    <div class="plot-card">
+      <h3>NIR Order Location Fit</h3>
+      <a href="plots/nir_order_location_fit.png">
+        <img src="plots/nir_order_location_fit.png" alt="NIR Order Location Fit">
+      </a>
+    </div>
+
+  </section>
+</div>
 
 </main>
 
+<script>
+function openTab(evt, tabId) {
+  const tabContents = document.getElementsByClassName("tab-content");
+  for (let i = 0; i < tabContents.length; i++) {
+    tabContents[i].style.display = "none";
+  }
+
+  const tabButtons = document.getElementsByClassName("tab-button");
+  for (let i = 0; i < tabButtons.length; i++) {
+    tabButtons[i].className = tabButtons[i].className.replace(" active", "");
+  }
+
+  document.getElementById(tabId).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+</script>
+
 <footer>
-  SOXS QC Monitor — static page generated from the historical QC database.
+  SOXS QC Monitor — page generated from the historical QC database.
 </footer>
 
 </body>

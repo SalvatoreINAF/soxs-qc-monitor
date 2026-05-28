@@ -1,10 +1,12 @@
 import logging
+from tkinter.font import names
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
-
-import matplotlib.pyplot as plt
-import pandas as pd
 
 log = logging.getLogger(__name__)
 
@@ -26,6 +28,66 @@ def process_none(df: pd.DataFrame, params: dict | None = None) -> pd.DataFrame:
 PROCESSING_FUNCTIONS = {
     "none": process_none,
 }
+
+def _evaluate_order_xy_polynomial(
+    order_values: np.ndarray,
+    axis_b_values: np.ndarray,
+    coeff: list[float],
+    order_deg: int,
+    axis_b_deg: int,
+) -> np.ndarray:
+    out = np.zeros_like(axis_b_values, dtype=float)
+    n_coeff = 0
+
+    for i in range(order_deg + 1):
+        for j in range(axis_b_deg + 1):
+            out += coeff[n_coeff] * (order_values ** i) * (axis_b_values ** j)
+            n_coeff += 1
+
+    return out
+
+
+def _extract_poly_coefficients(
+    row: pd.Series,
+    prefix: str,
+    order_deg: int,
+    axis_b_deg: int,
+    separator: str = "_",
+) -> list[float]:
+    coeff = []
+
+    for i in range(order_deg + 1):
+        for j in range(axis_b_deg + 1):
+            key = f"{prefix}{separator}{i}{j}"
+            coeff.append(float(row[key]))
+
+    return coeff
+
+
+def _select_latest_oloc(
+    df: pd.DataFrame,
+    arm: str,
+    recipe: str | None = None,
+    slit: str | None = None,
+) -> pd.DataFrame:
+    df_s = df[df["eso seq arm"] == arm].copy()
+
+    if recipe is not None:
+        df_s = df_s[df_s["soxspipe_recipe"] == recipe].copy()
+
+    if slit is not None:
+        df_s = df_s[df_s["slit"] == slit].copy()
+
+    if df_s.empty:
+        return df_s
+
+    times = pd.to_datetime(df_s["obs_date_utc"], errors="coerce")
+    latest_time = times.max()
+
+    if pd.isna(latest_time):
+        return df_s.iloc[0:0]
+
+    return df_s[times == latest_time].copy()
 
 
 def _apply_filters(df: pd.DataFrame, filters: dict[str, object]) -> pd.DataFrame:
@@ -139,6 +201,21 @@ def _prepare_xy(
     out["_x"] = pd.to_datetime(out[x_column], errors="coerce")
     out["_y"] = pd.to_numeric(out[y_column], errors="coerce")
     return out.dropna(subset=["_x", "_y"]).sort_values("_x")
+
+
+def _normalize_order_label(value: object) -> str:
+    """
+    Normalize qc_order labels.
+
+    VIS orders are already strings: u, g, r, i.
+    NIR orders may arrive as 10.0, 11.0, etc. and should become 10, 11, etc.
+    """
+    text = str(value).strip()
+
+    if text.endswith(".0"):
+        text = text[:-2]
+
+    return text
 
 
 def plot_time_series(
@@ -435,6 +512,315 @@ def plot_time_series_from_config(
     )
 
 
+def plot_dispersion_resolution_from_config(
+    df: pd.DataFrame,
+    plot_cfg: dict,
+    output_dir: Path,
+    show: bool = False,
+):
+    title = plot_cfg.get("title", plot_cfg.get("name", ""))
+    filename = plot_cfg["filename"]
+    output_file = output_dir / filename
+
+    arm = plot_cfg["arm"]
+    selection = plot_cfg.get("selection", "latest")
+
+    df_s = df[df["eso seq arm"] == arm].copy()
+
+    if df_s.empty:
+        log.warning("No dispersion-solution data found for arm %s", arm)
+        return
+
+    if selection == "latest":
+        times = pd.to_datetime(df_s["obs_date_utc"], errors="coerce")
+        latest_time = times.max()
+
+        if pd.isna(latest_time):
+            log.warning("Cannot select latest dispersion solution: no valid obs_date_utc")
+            return
+
+        df_s = df_s[times == latest_time].copy()
+
+    elif selection == "all":
+        pass
+
+    else:
+        raise ValueError(f"Unsupported dispersion selection: {selection}")
+
+    if df_s.empty:
+        log.warning("No dispersion-solution data left after time filtering for %s", title)
+        return
+
+    df_s["wavelength"] = pd.to_numeric(df_s["wavelength"], errors="coerce")
+    df_s["R_pin"] = pd.to_numeric(df_s["R_pin"], errors="coerce")
+    df_s = df_s.dropna(subset=["wavelength", "R_pin", "order"])
+
+    if df_s.empty:
+        log.warning("No valid wavelength/R_pin data for %s", title)
+        return
+
+    fig, ax = plt.subplots(figsize=(9, 5))
+
+    for order, group in df_s.groupby("order"):
+        group = group.sort_values("wavelength")
+
+        ax.scatter(
+            group["wavelength"],
+            group["R_pin"],
+            alpha=0.5,
+            s=10,
+            label=f"Order {order}",
+        )
+
+        mean_wavelength = group["wavelength"].mean()
+        mean_resolution = group["R_pin"].mean()
+        std_resolution = group["R_pin"].std()
+
+        ax.errorbar(
+            mean_wavelength,
+            mean_resolution,
+            yerr=std_resolution,
+            fmt="o",
+            color="black",
+            alpha=0.7,
+            markersize=4,
+        )
+
+    ax.set_title(title)
+    ax.set_xlabel("Wavelength [nm]")
+    ax.set_ylabel("Resolution R")
+    ax.grid(True)
+
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+
+    fig.tight_layout()
+    fig.savefig(output_file)
+
+    log.info("Saved plot %s", output_file)
+
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
+
+
+def plot_dispersion_residual_xy_from_config(
+    df: pd.DataFrame,
+    plot_cfg: dict,
+    output_dir: Path,
+    show: bool = False,
+):
+    title = plot_cfg.get("title", plot_cfg.get("name", ""))
+    filename = plot_cfg["filename"]
+    output_file = output_dir / filename
+
+    arm = plot_cfg["arm"]
+    selection = plot_cfg.get("selection", "latest")
+
+    df_s = df[df["eso seq arm"] == arm].copy()
+
+    if df_s.empty:
+        log.warning("No dispersion-solution data found for arm %s", arm)
+        return
+
+    if selection == "latest":
+        times = pd.to_datetime(df_s["obs_date_utc"], errors="coerce")
+        latest_time = times.max()
+
+        if pd.isna(latest_time):
+            log.warning("Cannot select latest dispersion residuals: no valid obs_date_utc")
+            return
+
+        df_s = df_s[times == latest_time].copy()
+
+    elif selection == "all":
+        pass
+    else:
+        raise ValueError(f"Unsupported dispersion selection: {selection}")
+
+    df_s["residuals_x"] = pd.to_numeric(df_s["residuals_x"], errors="coerce")
+    df_s["residuals_y"] = pd.to_numeric(df_s["residuals_y"], errors="coerce")
+    df_s = df_s.dropna(subset=["residuals_x", "residuals_y"])
+
+    if df_s.empty:
+        log.warning("No valid residual_x/residual_y data for %s", title)
+        return
+
+    fig, ax = plt.subplots(figsize=(6, 6))
+
+    ax.scatter(
+        df_s["residuals_x"],
+        df_s["residuals_y"],
+        alpha=0.85,
+        s=10,
+        edgecolors="none",
+    )
+
+    ax.axhline(0, linestyle="--", linewidth=1)
+    ax.axvline(0, linestyle="--", linewidth=1)
+
+    ax.set_title(title)
+    ax.set_xlabel("Residual X [pixels]")
+    ax.set_ylabel("Residual Y [pixels]")
+    ax.grid(True)
+    ax.set_aspect("equal", adjustable="box")
+
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    fig.tight_layout()
+    fig.savefig(output_file)
+
+    log.info("Saved plot %s", output_file)
+
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
+
+    
+def plot_dispersion_residual_histogram_from_config(
+    df: pd.DataFrame,
+    plot_cfg: dict,
+    output_dir: Path,
+    show: bool = False,
+):
+    title = plot_cfg.get("title", plot_cfg.get("name", ""))
+    filename = plot_cfg["filename"]
+    output_file = output_dir / filename
+
+    arm = plot_cfg["arm"]
+    selection = plot_cfg.get("selection", "latest")
+    bins = int(plot_cfg.get("bins", 40))
+
+    df_s = df[df["eso seq arm"] == arm].copy()
+
+    if df_s.empty:
+        log.warning("No dispersion-solution data found for arm %s", arm)
+        return
+
+    if selection == "latest":
+        times = pd.to_datetime(df_s["obs_date_utc"], errors="coerce")
+        latest_time = times.max()
+
+        if pd.isna(latest_time):
+            log.warning("Cannot select latest dispersion residuals histogram: no valid obs_date_utc")
+            return
+
+        df_s = df_s[times == latest_time].copy()
+
+    elif selection == "all":
+        pass
+    else:
+        raise ValueError(f"Unsupported dispersion selection: {selection}")
+
+    values = pd.to_numeric(df_s["residuals_xy"], errors="coerce").dropna()
+
+    if values.empty:
+        log.warning("No valid residuals_xy data for %s", title)
+        return
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+
+    ax.hist(values, bins=bins)
+
+    ax.set_title(title)
+    ax.set_xlabel("Residual XY [pixels]")
+    ax.set_ylabel("Count")
+    ax.grid(True)
+
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    fig.tight_layout()
+    fig.savefig(output_file)
+
+    log.info("Saved plot %s", output_file)
+
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
+
+
+def plot_latest_by_order_from_config(
+    df: pd.DataFrame,
+    plot_cfg: dict,
+    datapoint_queries: dict,
+    output_dir: Path,
+    show: bool = False,
+):
+    title = plot_cfg.get("title", plot_cfg.get("name", ""))
+    filename = plot_cfg["filename"]
+    output_file = output_dir / filename
+
+    query_name = plot_cfg["datapoint_query"]
+
+    df_s = resolve_datapoint_query(
+        df=df,
+        query_name=query_name,
+        datapoint_queries=datapoint_queries,
+    )
+
+    if df_s.empty:
+        log.warning("No data found for plot %s", title)
+        return
+
+    times = pd.to_datetime(df_s["obs_date_utc"], errors="coerce")
+    latest_time = times.max()
+
+    if pd.isna(latest_time):
+        log.warning("Cannot select latest data for %s: no valid obs_date_utc", title)
+        return
+
+    df_s = df_s[times == latest_time].copy()
+
+    df_s["qc_value"] = pd.to_numeric(df_s["qc_value"], errors="coerce")
+    df_s = df_s.dropna(subset=["qc_order", "qc_value"]).copy()
+
+    df_s["qc_order"] = df_s["qc_order"].apply(_normalize_order_label)
+
+    # qc_order is categorical: VIS = u/g/r/i, NIR = 10..24
+    df_s["qc_order"] = df_s["qc_order"].astype(str)
+
+    order_sequence = plot_cfg.get("order_sequence")
+
+    if order_sequence:
+        order_sequence = [str(o) for o in order_sequence]
+
+        df_s["qc_order"] = pd.Categorical(
+            df_s["qc_order"],
+            categories=order_sequence,
+            ordered=True,
+        )
+
+        df_s = df_s.dropna(subset=["qc_order"]).sort_values("qc_order")
+    else:
+        df_s = df_s.sort_values("qc_order")
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+
+    x_labels = df_s["qc_order"].astype(str).tolist()
+    y_values = df_s["qc_value"].tolist()
+
+    ax.bar(
+        x_labels,
+        y_values,
+    )
+
+    ax.set_title(title)
+    ax.set_xlabel(plot_cfg.get("x_label", "Order"))
+    ax.set_ylabel(plot_cfg.get("y_label", "Value"))
+    ax.grid(True)
+
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    fig.tight_layout()
+    fig.savefig(output_file)
+
+    log.info("Saved plot %s", output_file)
+
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
+
+
 def plot_from_config(
     df: pd.DataFrame,
     plot_cfg: dict,
@@ -470,6 +856,47 @@ def plot_from_config(
             output_dir=output_dir,
             show=show,
         )
+    
+    if plot_type == "dispersion_resolution":
+        return plot_dispersion_resolution_from_config(
+            df=df,
+            plot_cfg=plot_cfg,
+            output_dir=output_dir,
+            show=show,
+    )
+
+    if plot_type == "dispersion_residual_xy":        
+        return plot_dispersion_residual_xy_from_config(
+            df=df,
+            plot_cfg=plot_cfg,
+            output_dir=output_dir,
+            show=show,
+    )
+
+    if plot_type == "dispersion_residual_histogram":
+        return plot_dispersion_residual_histogram_from_config(
+            df=df,
+            plot_cfg=plot_cfg,
+            output_dir=output_dir,
+            show=show,
+    )
+
+    if plot_type == "latest_by_order_bar":
+        return plot_latest_by_order_from_config(
+            df=df,
+            plot_cfg=plot_cfg,
+            datapoint_queries=datapoint_queries,
+            output_dir=output_dir,
+            show=show,
+    )
+
+    if plot_type == "order_location_fit":
+        return plot_order_location_fit_from_config(
+            df=df,
+            plot_cfg=plot_cfg,
+            output_dir=output_dir,
+            show=show,
+    )
 
     raise ValueError(f"Unsupported plot type: {plot_type}")
 
@@ -477,6 +904,7 @@ def plot_from_config(
 def generate_plots_from_config(
     df: pd.DataFrame,
     plots_cfg: dict,
+    plot_types: set[str] | None = None,
 ):
     output_dir = Path(plots_cfg.get("output_dir", "plots"))
     show = bool(plots_cfg.get("show", False))
@@ -492,10 +920,208 @@ def generate_plots_from_config(
         return
 
     for fig_cfg in figures:
+        if plot_types is not None and fig_cfg.get("type") not in plot_types:
+            continue
+
         plot_from_config(
             df=df,
             plot_cfg=fig_cfg,
             datapoint_queries=datapoint_queries,
+            output_dir=output_dir,
+            show=show,
+        )
+
+
+def plot_order_location_fit_from_config(
+    df_models: pd.DataFrame,
+    df_meta: pd.DataFrame,
+    plot_cfg: dict,
+    output_dir: Path,
+    show: bool = False,
+):
+    title = plot_cfg.get("title", plot_cfg.get("name", ""))
+    filename = plot_cfg["filename"]
+    output_file = output_dir / filename
+
+    arm = plot_cfg["arm"]
+    recipe = plot_cfg.get("recipe")
+    slit = plot_cfg.get("slit")
+    axis_b_step = int(plot_cfg.get("axis_b_step", 3))
+
+    df_s = _select_latest_oloc(
+        df_models,
+        arm=arm,
+        recipe=recipe,
+        slit=slit,
+    )
+
+    if df_s.empty:
+        log.warning("No order-location data found for plot %s", title)
+        return
+
+    # Each row is one OLOC model file.
+    row = df_s.iloc[0]
+
+    source_file = row["source_file"]
+
+    df_meta_s = df_meta[df_meta["source_file"] == source_file].copy()
+
+    if df_meta_s.empty:
+        log.warning(
+            "No order-location meta rows found for %s",
+            source_file,
+        )
+        return
+
+    def _get_first_valid(row: pd.Series, names: list[str]) -> float:
+        for name in names:
+            if name not in row.index:
+                continue
+
+            value = row[name]
+
+            if pd.isna(value):
+                continue
+
+            return float(value)
+
+        raise ValueError(f"None of these columns has a valid value: {names}")
+
+    try:
+        order_deg = int(_get_first_valid(row, ["degorder_cent"]))
+        axis_b_deg = int(_get_first_valid(row, ["degy_cent", "degx_cent"]))
+
+        edgelow_order_deg = int(_get_first_valid(row, ["degorder_edgelow"]))
+        edgelow_axis_b_deg = int(_get_first_valid(row, ["degy_edgelow", "degx_edgelow"]))
+
+        edgeup_order_deg = int(_get_first_valid(row, ["degorder_edgeup"]))
+        edgeup_axis_b_deg = int(_get_first_valid(row, ["degy_edgeup", "degx_edgeup"]))
+    except ValueError as exc:
+        log.warning(
+            "Skipping order-location plot %s: invalid polynomial degree in %s: %s",
+            title,
+            row.get("source_file", "<unknown>"),
+            exc,
+        )
+        return
+
+    cent_coeff = _extract_poly_coefficients(
+        row=row,
+        prefix="cent",
+        order_deg=order_deg,
+        axis_b_deg=axis_b_deg,
+        separator="_",
+    )
+
+    edgelow_coeff = _extract_poly_coefficients(
+        row=row,
+        prefix="edgelow_c",
+        order_deg=edgelow_order_deg,
+        axis_b_deg=edgelow_axis_b_deg,
+        separator="",
+    )
+
+    edgeup_coeff = _extract_poly_coefficients(
+        row=row,
+        prefix="edgeup_c",
+        order_deg=edgeup_order_deg,
+        axis_b_deg=edgeup_axis_b_deg,
+        separator="",
+    )
+
+    if pd.notna(row.get("degy_cent")):
+        axis_a = "x"
+        axis_b_name = "y"
+    else:
+        axis_a = "y"
+        axis_b_name = "x"
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+
+    for _, meta_row in df_meta_s.sort_values("order").iterrows():
+        order = float(meta_row["order"])
+
+        axis_b_min = float(meta_row[f"{axis_b_name}min"])
+        axis_b_max = float(meta_row[f"{axis_b_name}max"])
+
+        axis_b = np.arange(
+            axis_b_min,
+            axis_b_max,
+            axis_b_step,
+            dtype=float,
+        )
+
+        order_values = np.full_like(axis_b, order, dtype=float)
+
+        centre = _evaluate_order_xy_polynomial(
+            order_values=order_values,
+            axis_b_values=axis_b,
+            coeff=cent_coeff,
+            order_deg=order_deg,
+            axis_b_deg=axis_b_deg,
+        )
+
+        edge_low = _evaluate_order_xy_polynomial(
+            order_values=order_values,
+            axis_b_values=axis_b,
+            coeff=edgelow_coeff,
+            order_deg=edgelow_order_deg,
+            axis_b_deg=edgelow_axis_b_deg,
+        )
+
+        edge_up = _evaluate_order_xy_polynomial(
+            order_values=order_values,
+            axis_b_values=axis_b,
+            coeff=edgeup_coeff,
+            order_deg=edgeup_order_deg,
+            axis_b_deg=edgeup_axis_b_deg,
+        )
+
+        ax.plot(axis_b, centre, label=f"Order {order:g}")
+        ax.fill_between(axis_b, edge_low, edge_up, alpha=1)
+
+        ax.set_title(title)
+        ax.set_xlabel(plot_cfg.get("x_label", f"Detector {axis_b_name} [px]"))
+        ax.set_ylabel(plot_cfg.get("y_label", f"Detector {axis_a} [px]"))
+        ax.grid(True)
+        ax.legend(fontsize=8)
+        ax.set_aspect("equal", adjustable="box")
+        
+        if plot_cfg.get("invert_yaxis", True):
+            ax.invert_yaxis()
+
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+
+
+    fig.tight_layout()
+    fig.savefig(output_file)
+
+    log.info("Saved plot %s", output_file)
+
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
+
+
+def generate_order_location_plots_from_config(
+    df_models: pd.DataFrame,
+    df_meta: pd.DataFrame,
+    plots_cfg: dict,
+):
+    output_dir = Path(plots_cfg.get("output_dir", "plots"))
+    show = bool(plots_cfg.get("show", False))
+
+    figures = plots_cfg.get("figures", [])
+
+    for fig_cfg in figures:
+        if fig_cfg.get("type") != "order_location_fit":
+            continue
+
+        plot_order_location_fit_from_config(
+            df_models=df_models,
+            df_meta=df_meta,
+            plot_cfg=fig_cfg,
             output_dir=output_dir,
             show=show,
         )

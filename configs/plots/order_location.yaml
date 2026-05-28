@@ -1,0 +1,23 @@
+figures:
+
+  - name: vis_order_location_fit
+    type: order_location_fit
+    title: VIS Order Location Fit - SLIT0.5
+    filename: vis_order_location_fit.png
+    arm: VIS
+    recipe: soxs-mflat
+    slit: SLIT0.5
+    axis_b_step: 3
+    invert_yaxis: true
+
+  - name: nir_order_location_fit
+    type: order_location_fit
+    title: NIR Order Location Fit
+    filename: nir_order_location_fit.png
+    arm: NIR
+    recipe: soxs-mflat
+    slit: SLIT0.5
+    axis_b_step: 3
+    x_label: Detector axis B [px]
+    y_label: Detector axis A [px]
+    invert_yaxis: true
