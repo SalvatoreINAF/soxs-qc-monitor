@@ -7,6 +7,7 @@ import pandas as pd
 
 from qc_monitor.schema import TABLE_SCHEMA, UNIQUE_COLUMNS
 from qc_monitor.acquisition import DISPERSION_SOLUTION_COLUMNS
+from qc_monitor.acquisition import DISPERSION_RESOLUTION_STATS_COLUMNS
 from qc_monitor.acquisition import ORDER_LOCATION_MODEL_COLUMNS
 from qc_monitor.acquisition import ORDER_LOCATION_META_COLUMNS
 
@@ -90,6 +91,30 @@ class SQLiteStore:
             dsol_columns_sql += f"""
             {self._quote(col)} {col_type},
             """
+
+        # Dispersion resolution stats columns
+        resolution_stats_columns_sql = """
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+            """
+        
+        resolution_stats_type_map = {
+                "obs_day": "TEXT NOT NULL",
+                "obs_date_utc": "TEXT NOT NULL",
+                "eso seq arm": "TEXT NOT NULL",
+                "soxspipe_recipe": "TEXT NOT NULL",
+                "source_file": "TEXT NOT NULL",
+                "filepath": "TEXT",
+                "order": "TEXT NOT NULL",
+                "mean_R_pin": "REAL",
+                "std_R_pin": "REAL",
+                "n_points": "INTEGER",
+            }
+        
+        for col in DISPERSION_RESOLUTION_STATS_COLUMNS:
+                col_type = resolution_stats_type_map.get(col, "TEXT")
+                resolution_stats_columns_sql += f"""
+                {self._quote(col)} {col_type},
+                """
 
         # Order localization columns
         order_location_columns_sql = """
@@ -184,6 +209,17 @@ class SQLiteStore:
                 obs_day TEXT PRIMARY KEY,
                 processed_at TEXT NOT NULL,
                 status TEXT NOT NULL
+            );
+            """)
+
+            conn.execute(f"""
+            CREATE TABLE IF NOT EXISTS dispersion_resolution_stats (
+                {resolution_stats_columns_sql}
+
+                UNIQUE (
+                    "source_file",
+                    "order"
+                )
             );
             """)
 
@@ -373,6 +409,38 @@ class SQLiteStore:
             conn.executemany(query, rows)
             conn.commit()
 
+    def write_dispersion_resolution_stats(self, df: pd.DataFrame):
+        if df.empty:
+            return
+
+        missing_columns = set(DISPERSION_RESOLUTION_STATS_COLUMNS) - set(df.columns)
+        if missing_columns:
+            raise ValueError(
+                "Missing required columns in dispersion resolution stats dataframe: "
+                f"{sorted(missing_columns)}"
+            )
+
+        columns_sql = ", ".join(
+            self._quote(c) for c in DISPERSION_RESOLUTION_STATS_COLUMNS
+        )
+        placeholders = ", ".join("?" for _ in DISPERSION_RESOLUTION_STATS_COLUMNS)
+
+        query = f"""
+        INSERT OR IGNORE INTO dispersion_resolution_stats (
+            {columns_sql}
+        )
+        VALUES ({placeholders})
+        """
+
+        rows = [
+            tuple(row[col] for col in DISPERSION_RESOLUTION_STATS_COLUMNS)
+            for _, row in df.iterrows()
+        ]
+
+        with self._connect() as conn:
+            conn.executemany(query, rows)
+            conn.commit()
+
     def write_order_location_models(self, df: pd.DataFrame):
         if df.empty:
             return
@@ -477,6 +545,18 @@ class SQLiteStore:
             conn.executemany(query, rows)
             conn.commit()
 
+
+    def load_dispersion_resolution_stats(self) -> pd.DataFrame:
+        query = """
+        SELECT *
+        FROM dispersion_resolution_stats
+        ORDER BY "obs_date_utc", "eso seq arm", "order"
+        """
+
+        with self._connect() as conn:
+            return pd.read_sql(query, conn)
+
+
     def load_order_location_meta(self) -> pd.DataFrame:
         query = """
         SELECT *
@@ -496,6 +576,7 @@ class SQLiteStore:
             conn.execute("DROP TABLE IF EXISTS processed_obs_days")
             conn.execute("DROP TABLE IF EXISTS dispersion_solution_lines")
             conn.execute("DROP TABLE IF EXISTS processed_dispersion_obs_days")
+            conn.execute("DROP TABLE IF EXISTS dispersion_resolution_stats")
             conn.execute("DROP TABLE IF EXISTS order_location_models")
             conn.execute("DROP TABLE IF EXISTS processed_order_location_obs_days")
             conn.execute("DROP TABLE IF EXISTS order_location_meta")

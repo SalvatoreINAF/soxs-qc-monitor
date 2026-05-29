@@ -42,22 +42,22 @@ figures:
         datapoint_query: nir_flat_orderxp50_slit15
 
 
-  - name: nir_flat_x_res_sd
-    type: time_series
-    title: NIR Flat X Residual SD
-    filename: nir_flat_x_res_sd.png
-    time_range: last_3_months
-    y_label: pixels
+  # - name: nir_flat_x_res_sd
+  #   type: time_series
+  #   title: NIR Flat X Residual SD
+  #   filename: nir_flat_x_res_sd.png
+  #   time_range: last_3_months
+  #   y_label: pixels
 
-    series:
-      - label: SLIT0.5
-        style: markers
-        datapoint_query: nir_flat_x_res_sd_slit05
+  #   series:
+  #     - label: SLIT0.5
+  #       style: markers
+  #       datapoint_query: nir_flat_x_res_sd_slit05
 
-      - label: SLIT1.0
-        style: markers
-        datapoint_query: nir_flat_x_res_sd_slit10
+  #     - label: SLIT1.0
+  #       style: markers
+  #       datapoint_query: nir_flat_x_res_sd_slit10
 
-      - label: SLIT1.5
-        style: markers
-        datapoint_query: nir_flat_x_res_sd_slit15
+  #     - label: SLIT1.5
+  #       style: markers
+  #       datapoint_query: nir_flat_x_res_sd_slit15

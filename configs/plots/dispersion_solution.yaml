@@ -2,17 +2,45 @@ figures:
 
   - name: vis_dispersion_resolution
     type: dispersion_resolution
-    title: VIS Dispersion Solution
+    title: Last VIS Dispersion Solution
     filename: vis_dispersion_resolution.png
+    aspect: 0.01
+    wide: true
     selection: latest
     arm: VIS
 
+  - name: vis_dispersion_resolution_timeseries
+    type: dispersion_resolution_timeseries
+    title: VIS Dispersion Solution Mean Over Time
+    filename: vis_dispersion_resolution_timeseries.png
+    arm: VIS
+    wide: true
+    min_n_points: 2
+    figsize: [16, 5]
+    y_label: Mean resolution R
+    legend_fontsize: 7
+    legend_ncol: 4
+
   - name: nir_dispersion_resolution
     type: dispersion_resolution
-    title: NIR Dispersion Solution
+    title: Last NIR Dispersion Solution
     filename: nir_dispersion_resolution.png
+    aspect: 0.04
+    wide: true
     selection: latest
     arm: NIR
+
+  - name: nir_dispersion_resolution_timeseries
+    type: dispersion_resolution_timeseries
+    title: NIR Dispersion Solution Mean Over Time
+    filename: nir_dispersion_resolution_timeseries.png
+    arm: NIR
+    wide: true
+    min_n_points: 2
+    figsize: [16, 5]
+    y_label: Mean resolution R
+    legend_fontsize: 6
+    legend_ncol: 5
 
   - name: vis_dispersion_residual_xy
     type: dispersion_residual_xy
@@ -35,6 +63,7 @@ figures:
     selection: latest
     arm: VIS
     bins: 40
+    figsize: [7, 7.2]
 
   - name: nir_dispersion_residual_xy_histogram
     type: dispersion_residual_histogram
@@ -43,3 +72,4 @@ figures:
     selection: latest
     arm: NIR
     bins: 40
+    figsize: [7, 7.2]

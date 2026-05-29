@@ -2,22 +2,32 @@ figures:
 
   - name: vis_order_location_fit
     type: order_location_fit
-    title: VIS Order Location Fit - SLIT0.5
+    title: VIS Order Location
     filename: vis_order_location_fit.png
     arm: VIS
     recipe: soxs-mflat
     slit: SLIT0.5
     axis_b_step: 3
+    x_label: x-axis [px]
+    y_label: y-axis [px]
     invert_yaxis: true
+    wide: true
+    aspect: equal
 
   - name: nir_order_location_fit
     type: order_location_fit
-    title: NIR Order Location Fit
+    title: NIR Order Location
     filename: nir_order_location_fit.png
     arm: NIR
     recipe: soxs-mflat
     slit: SLIT0.5
     axis_b_step: 3
-    x_label: Detector axis B [px]
-    y_label: Detector axis A [px]
+    x_label: x-axis [px]
+    y_label: y-axis [px]
     invert_yaxis: true
+    wide: true
+    legend_fontsize: 5
+    legend_ncol: 5
+    legend_loc: upper right
+    aspect: auto
+    figsize: [12, 5]

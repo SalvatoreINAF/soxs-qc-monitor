@@ -11,6 +11,7 @@ from qc_monitor.acquisition import (
     find_dispersion_solution_fits_files,
     parse_dispersion_solution_filename,
     load_dispersion_solution_tables,
+    compute_dispersion_resolution_stats,
     find_order_location_fits_files,
     parse_order_location_filename,
     load_order_location_models,
@@ -210,26 +211,49 @@ def consolidate_dispersion_solution(
 
     df = load_dispersion_solution_tables(new_files)
 
-    if df.empty:
+    df_stats = compute_dispersion_resolution_stats(df)
+
+    if df.empty and df_stats.empty:
         log.info("No dispersion-solution rows loaded")
         return 0
 
     if dry_run:
         log.info("Dry-run enabled, not writing dispersion-solution data")
-        print(df)
-        return len(df)
 
-    qc_database.write_dispersion_solution_lines(df)
+        if not df.empty:
+            print("DISPERSION SOLUTION LINES")
+            print(df)
 
-    for obs_day in sorted(df["obs_day"].unique()):
-        qc_database.register_processed_dispersion_obs_day(str(obs_day))
+        if not df_stats.empty:
+            print("DISPERSION RESOLUTION STATS")
+            print(df_stats)
+
+        return len(df) + len(df_stats)
+
+    if not df.empty:
+        qc_database.write_dispersion_solution_lines(df)
+
+    if not df_stats.empty:
+        qc_database.write_dispersion_resolution_stats(df_stats)
+
+    obs_days = set()
+
+    if not df.empty:
+        obs_days.update(str(v) for v in df["obs_day"].unique())
+
+    if not df_stats.empty:
+        obs_days.update(str(v) for v in df_stats["obs_day"].unique())
+
+    for obs_day in sorted(obs_days):
+        qc_database.register_processed_dispersion_obs_day(obs_day)
 
     log.info(
-        "Consolidated %d dispersion-solution rows",
+        "Consolidated %d dispersion-solution rows and %d resolution-stat rows",
         len(df),
+        len(df_stats),
     )
 
-    return len(df)
+    return len(df) + len(df_stats)
 
 
 def consolidate_order_location_models(
@@ -421,6 +445,15 @@ def main():
         df=df_dsol,
         plots_cfg=plots_cfg,
         plot_types={"dispersion_resolution", "dispersion_residual_xy", "dispersion_residual_histogram"},
+    )
+
+    # Load dispersion resolution stats for plotting
+    df_resolution_stats = qc_database.load_dispersion_resolution_stats()
+
+    generate_plots_from_config(
+        df=df_resolution_stats,
+        plots_cfg=plots_cfg,
+        plot_types={"dispersion_resolution_timeseries"},
     )
 
     # Load order location models for plotting

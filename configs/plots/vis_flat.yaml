@@ -50,26 +50,26 @@ figures:
         datapoint_query: vis_flat_orderxp50_slit50
 
 
-  - name: vis_flat_x_res_sd
-    type: time_series
-    title: VIS Flat X Residual SD
-    filename: vis_flat_x_res_sd.png
-    time_range: last_3_months
-    y_label: pixels
+  # - name: vis_flat_x_res_sd
+  #   type: time_series
+  #   title: VIS Flat X Residual SD
+  #   filename: vis_flat_x_res_sd.png
+  #   time_range: last_3_months
+  #   y_label: pixels
 
-    series:
-      - label: SLIT0.5
-        style: markers
-        datapoint_query: vis_flat_x_res_sd_slit05
+  #   series:
+  #     - label: SLIT0.5
+  #       style: markers
+  #       datapoint_query: vis_flat_x_res_sd_slit05
 
-      - label: SLIT1.0
-        style: markers
-        datapoint_query: vis_flat_x_res_sd_slit10
+  #     - label: SLIT1.0
+  #       style: markers
+  #       datapoint_query: vis_flat_x_res_sd_slit10
 
-      - label: SLIT1.5
-        style: markers
-        datapoint_query: vis_flat_x_res_sd_slit15
+  #     - label: SLIT1.5
+  #       style: markers
+  #       datapoint_query: vis_flat_x_res_sd_slit15
 
-      - label: SLIT5.0
-        style: markers
-        datapoint_query: vis_flat_x_res_sd_slit50
+  #     - label: SLIT5.0
+  #       style: markers
+  #       datapoint_query: vis_flat_x_res_sd_slit50

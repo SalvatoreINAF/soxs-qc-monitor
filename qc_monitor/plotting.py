@@ -29,6 +29,19 @@ PROCESSING_FUNCTIONS = {
     "none": process_none,
 }
 
+def _save_figure(output_path, fig=None):
+
+    if fig is None:
+        fig = plt.gcf()
+
+    fig.savefig(
+        output_path,
+        dpi=250,
+        bbox_inches="tight",
+        pad_inches=0.05,
+    )
+
+
 def _evaluate_order_xy_polynomial(
     order_values: np.ndarray,
     axis_b_values: np.ndarray,
@@ -302,7 +315,7 @@ def plot_time_series(
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     plt.tight_layout()
-    plt.savefig(output_file)
+    _save_figure(output_file)
 
     log.info("Saved plot %s", output_file)
 
@@ -404,11 +417,12 @@ def plot_xy_scatter_from_config(
     plt.xlabel(x_cfg.get("label", x_cfg["datapoint_query"]))
     plt.ylabel(y_cfg.get("label", y_cfg["datapoint_query"]))
     plt.grid(True)
+    plt.axis("equal")
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     plt.tight_layout()
-    plt.savefig(output_file)
+    _save_figure(output_file)
 
     log.info("Saved plot %s", output_file)
 
@@ -469,7 +483,7 @@ def plot_histogram_from_config(
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     plt.tight_layout()
-    plt.savefig(output_file)
+    _save_figure(output_file)
 
     log.info("Saved plot %s", output_file)
 
@@ -519,6 +533,7 @@ def plot_dispersion_resolution_from_config(
     show: bool = False,
 ):
     title = plot_cfg.get("title", plot_cfg.get("name", ""))
+    aspect = plot_cfg.get("aspect", None)
     filename = plot_cfg["filename"]
     output_file = output_dir / filename
 
@@ -590,11 +605,84 @@ def plot_dispersion_resolution_from_config(
     ax.set_xlabel("Wavelength [nm]")
     ax.set_ylabel("Resolution R")
     ax.grid(True)
+    if aspect is not None:
+        ax.set_aspect(float(aspect), adjustable="box")
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     fig.tight_layout()
-    fig.savefig(output_file)
+    _save_figure(output_file, fig)
+
+    log.info("Saved plot %s", output_file)
+
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
+
+
+def plot_dispersion_resolution_timeseries_from_config(
+    df: pd.DataFrame,
+    plot_cfg: dict,
+    output_dir: Path,
+    show: bool = False,
+):
+    title = plot_cfg.get("title", plot_cfg.get("name", ""))
+    filename = plot_cfg["filename"]
+    output_file = output_dir / filename
+
+    arm = plot_cfg["arm"]
+    min_n_points = int(plot_cfg.get("min_n_points", 2))
+
+    df_s = df[df["eso seq arm"] == arm].copy()
+
+    if df_s.empty:
+        log.warning("No dispersion resolution stats found for arm %s", arm)
+        return
+
+    df_s["obs_date_utc"] = pd.to_datetime(df_s["obs_date_utc"], errors="coerce")
+    df_s["mean_R_pin"] = pd.to_numeric(df_s["mean_R_pin"], errors="coerce")
+    df_s["std_R_pin"] = pd.to_numeric(df_s["std_R_pin"], errors="coerce")
+    df_s["n_points"] = pd.to_numeric(df_s["n_points"], errors="coerce")
+
+    df_s = df_s.dropna(subset=["obs_date_utc", "order", "mean_R_pin"])
+    df_s = df_s[df_s["n_points"] >= min_n_points]
+
+    if df_s.empty:
+        log.warning("No valid resolution stats left for plot %s", title)
+        return
+
+    fig, ax = plt.subplots(figsize=tuple(plot_cfg.get("figsize", [12, 5])))
+
+    for order, group in df_s.groupby("order"):
+        group = group.sort_values("obs_date_utc")
+        order_label = _normalize_order_label(order)
+
+        ax.errorbar(
+            group["obs_date_utc"],
+            group["mean_R_pin"],
+            yerr=group["std_R_pin"],
+            marker="o",
+            linestyle="-",
+            capsize=2,
+            label=f"Order {order_label}",
+        )
+
+    ax.set_title(title)
+    ax.set_xlabel(plot_cfg.get("x_label", "Date"))
+    ax.set_ylabel(plot_cfg.get("y_label", "Mean resolution R"))
+    ax.grid(True)
+
+    ax.legend(
+        fontsize=plot_cfg.get("legend_fontsize", 7),
+        ncol=plot_cfg.get("legend_ncol", 4),
+        loc=plot_cfg.get("legend_loc", "best"),
+    )
+
+    fig.autofmt_xdate()
+
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    _save_figure(output_file, fig)
 
     log.info("Saved plot %s", output_file)
 
@@ -662,12 +750,16 @@ def plot_dispersion_residual_xy_from_config(
     ax.set_title(title)
     ax.set_xlabel("Residual X [pixels]")
     ax.set_ylabel("Residual Y [pixels]")
+    xmin = min(ax.get_xlim()[0], ax.get_ylim()[0])
+    xmax = max(ax.get_xlim()[1], ax.get_ylim()[1])
+    ax.set_xlim(xmin, xmax)
+    ax.set_ylim(xmin, xmax)
     ax.grid(True)
     ax.set_aspect("equal", adjustable="box")
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
     fig.tight_layout()
-    fig.savefig(output_file)
+    _save_figure(output_file, fig)
 
     log.info("Saved plot %s", output_file)
 
@@ -718,7 +810,8 @@ def plot_dispersion_residual_histogram_from_config(
         log.warning("No valid residuals_xy data for %s", title)
         return
 
-    fig, ax = plt.subplots(figsize=(7, 5))
+    figsize = tuple(plot_cfg.get("figsize", [7, 5]))
+    fig, ax = plt.subplots(figsize=figsize)
 
     ax.hist(values, bins=bins)
 
@@ -729,7 +822,7 @@ def plot_dispersion_residual_histogram_from_config(
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
     fig.tight_layout()
-    fig.savefig(output_file)
+    _save_figure(output_file, fig)
 
     log.info("Saved plot %s", output_file)
 
@@ -811,7 +904,7 @@ def plot_latest_by_order_from_config(
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
     fig.tight_layout()
-    fig.savefig(output_file)
+    _save_figure(output_file, fig)
 
     log.info("Saved plot %s", output_file)
 
@@ -863,7 +956,15 @@ def plot_from_config(
             plot_cfg=plot_cfg,
             output_dir=output_dir,
             show=show,
-    )
+         )
+    
+    if plot_type == "dispersion_resolution_timeseries":
+        return plot_dispersion_resolution_timeseries_from_config(
+            df=df,
+            plot_cfg=plot_cfg,
+            output_dir=output_dir,
+            show=show,
+        )
 
     if plot_type == "dispersion_residual_xy":        
         return plot_dispersion_residual_xy_from_config(
@@ -871,7 +972,7 @@ def plot_from_config(
             plot_cfg=plot_cfg,
             output_dir=output_dir,
             show=show,
-    )
+        )
 
     if plot_type == "dispersion_residual_histogram":
         return plot_dispersion_residual_histogram_from_config(
@@ -879,7 +980,7 @@ def plot_from_config(
             plot_cfg=plot_cfg,
             output_dir=output_dir,
             show=show,
-    )
+        )
 
     if plot_type == "latest_by_order_bar":
         return plot_latest_by_order_from_config(
@@ -888,15 +989,7 @@ def plot_from_config(
             datapoint_queries=datapoint_queries,
             output_dir=output_dir,
             show=show,
-    )
-
-    if plot_type == "order_location_fit":
-        return plot_order_location_fit_from_config(
-            df=df,
-            plot_cfg=plot_cfg,
-            output_dir=output_dir,
-            show=show,
-    )
+        )
 
     raise ValueError(f"Unsupported plot type: {plot_type}")
 
@@ -930,7 +1023,6 @@ def generate_plots_from_config(
             output_dir=output_dir,
             show=show,
         )
-
 
 def plot_order_location_fit_from_config(
     df_models: pd.DataFrame,
@@ -1036,7 +1128,8 @@ def plot_order_location_fit_from_config(
         axis_a = "y"
         axis_b_name = "x"
 
-    fig, ax = plt.subplots(figsize=(8, 8))
+    figsize = tuple(plot_cfg.get("figsize", [8, 8]))
+    fig, ax = plt.subplots(figsize=figsize)
 
     for _, meta_row in df_meta_s.sort_values("order").iterrows():
         order = float(meta_row["order"])
@@ -1081,11 +1174,24 @@ def plot_order_location_fit_from_config(
         ax.fill_between(axis_b, edge_low, edge_up, alpha=1)
 
         ax.set_title(title)
-        ax.set_xlabel(plot_cfg.get("x_label", f"Detector {axis_b_name} [px]"))
-        ax.set_ylabel(plot_cfg.get("y_label", f"Detector {axis_a} [px]"))
+        ax.set_xlabel(plot_cfg.get("x_label", "x-axis [px]"))
+        ax.set_ylabel(plot_cfg.get("y_label", "y-axis [px]"))
         ax.grid(True)
-        ax.legend(fontsize=8)
-        ax.set_aspect("equal", adjustable="box")
+        legend_fontsize = plot_cfg.get("legend_fontsize", 6)
+
+        if plot_cfg.get("show_legend", True):
+            ax.legend(
+                fontsize=legend_fontsize,
+                ncol=plot_cfg.get("legend_ncol", 3),
+                loc=plot_cfg.get("legend_loc", "best"),
+            )
+
+        aspect = plot_cfg.get("aspect", "equal")
+
+        if aspect == "equal":
+            ax.set_aspect("equal", adjustable="box")
+        elif aspect is not None and aspect != "auto":
+            ax.set_aspect(float(aspect), adjustable="box")
         
         if plot_cfg.get("invert_yaxis", True):
             ax.invert_yaxis()
@@ -1094,7 +1200,7 @@ def plot_order_location_fit_from_config(
 
 
     fig.tight_layout()
-    fig.savefig(output_file)
+    _save_figure(output_file, fig)
 
     log.info("Saved plot %s", output_file)
 

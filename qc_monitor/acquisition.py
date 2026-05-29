@@ -54,6 +54,19 @@ DISPERSION_SOLUTION_COLUMNS = [
     "fwhm_slit_px",
 ]
 
+DISPERSION_RESOLUTION_STATS_COLUMNS = [
+    "obs_day",
+    "obs_date_utc",
+    "eso seq arm",
+    "soxspipe_recipe",
+    "source_file",
+    "filepath",
+    "order",
+    "mean_R_pin",
+    "std_R_pin",
+    "n_points",
+]
+
 ORDER_LOCATION_META_COLUMNS = [
     "obs_day",
     "obs_date_utc",
@@ -443,6 +456,68 @@ def load_dispersion_solution_tables(
     return out
 
 
+def compute_dispersion_resolution_stats(
+    df_lines: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Compute mean and standard deviation of R_pin per order.
+
+    Input dataframe is the line-by-line dispersion solution table.
+    Output dataframe has one row per obs_date_utc / arm / order / source_file.
+    """
+    if df_lines.empty:
+        return pd.DataFrame(columns=DISPERSION_RESOLUTION_STATS_COLUMNS)
+
+    required_columns = {
+        "obs_day",
+        "obs_date_utc",
+        "eso seq arm",
+        "soxspipe_recipe",
+        "source_file",
+        "filepath",
+        "order",
+        "R_pin",
+    }
+
+    missing = required_columns - set(df_lines.columns)
+    if missing:
+        raise ValueError(
+            "Missing required columns for dispersion resolution stats: "
+            f"{sorted(missing)}"
+        )
+
+    df = df_lines.copy()
+    df["R_pin"] = pd.to_numeric(df["R_pin"], errors="coerce")
+    df = df.dropna(subset=["R_pin", "order"])
+
+    if df.empty:
+        return pd.DataFrame(columns=DISPERSION_RESOLUTION_STATS_COLUMNS)
+
+    grouped = (
+        df
+        .groupby(
+            [
+                "obs_day",
+                "obs_date_utc",
+                "eso seq arm",
+                "soxspipe_recipe",
+                "source_file",
+                "filepath",
+                "order",
+            ],
+            dropna=False,
+        )["R_pin"]
+        .agg(
+            mean_R_pin="mean",
+            std_R_pin="std",
+            n_points="count",
+        )
+        .reset_index()
+    )
+
+    return grouped[DISPERSION_RESOLUTION_STATS_COLUMNS]
+
+
 def load_order_location_meta_fits_table(fits_path: Path) -> pd.DataFrame:
     """
     Load HDU 2 of one OLOC FITS file.
@@ -463,11 +538,24 @@ def load_order_location_meta_fits_table(fits_path: Path) -> pd.DataFrame:
     for key, value in metadata.items():
         df[key] = value
 
-    for col in ORDER_LOCATION_META_COLUMNS:
-        if col not in df.columns:
-            df[col] = None
+    missing_cols = [
+        col for col in ORDER_LOCATION_META_COLUMNS
+        if col not in df.columns
+    ]
 
-    return df[ORDER_LOCATION_META_COLUMNS].reset_index(drop=True)
+    if missing_cols:
+        df = pd.concat(
+            [
+                df,
+                pd.DataFrame(
+                    {col: None for col in missing_cols},
+                    index=df.index,
+                ),
+            ],
+            axis=1,
+        )
+
+    return df[ORDER_LOCATION_META_COLUMNS].copy().reset_index(drop=True)
 
 
 def load_order_location_meta(
@@ -634,11 +722,24 @@ def load_order_location_model_fits_table(fits_path: Path) -> pd.DataFrame:
     for key, value in metadata.items():
         df[key] = value
 
-    for col in ORDER_LOCATION_MODEL_COLUMNS:
-        if col not in df.columns:
-            df[col] = None
+    missing_cols = [
+        col for col in ORDER_LOCATION_MODEL_COLUMNS
+        if col not in df.columns
+    ]
 
-    return df[ORDER_LOCATION_MODEL_COLUMNS].reset_index(drop=True)
+    if missing_cols:
+        df = pd.concat(
+            [
+                df,
+                pd.DataFrame(
+                    {col: None for col in missing_cols},
+                    index=df.index,
+                ),
+            ],
+            axis=1,
+        )
+
+    return df[ORDER_LOCATION_MODEL_COLUMNS].copy().reset_index(drop=True)
 
 def load_order_location_models(
     fits_files: list[Path],

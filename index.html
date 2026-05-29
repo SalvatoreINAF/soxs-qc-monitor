@@ -63,12 +63,33 @@
     }
 
     .plot-card img {
-      width: 75%;
-      max-width: 850px;
+      width: 100%;
+      max-width: 100%;
       display: block;
       margin: 0 auto;
       border: 1px solid #dddddd;
       background: white;
+    }
+
+    .plot-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .plot-card.wide {
+      grid-column: span 2;
+    }
+
+    @media (max-width: 900px) {
+      .plot-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .plot-card.wide {
+        grid-column: span 1;
+      }
     }
 
     footer {
@@ -141,8 +162,9 @@
   </div>
 
 <div id="vis-tab" class="tab-content active">
-  <section id="vis-vis-bias">
-    <h2>VIS Bias</h2>
+  <section id="vis-bias">
+    <h2>Bias</h2>
+    <div class="plot-grid">
 
     <div class="plot-card">
       <h3>VIS Bias Median Level</h3>
@@ -158,9 +180,11 @@
       </a>
     </div>
 
+    </div>
   </section>
-  <section id="vis-vis-flat">
-    <h2>VIS Flat</h2>
+  <section id="vis-flat">
+    <h2>Flat</h2>
+    <div class="plot-grid">
 
     <div class="plot-card">
       <h3>VIS Flat Inner Order Pixel Mean</h3>
@@ -176,21 +200,23 @@
       </a>
     </div>
 
-    <div class="plot-card">
-      <h3>VIS Flat X Residual SD</h3>
-      <a href="plots/vis_flat_x_res_sd.png">
-        <img src="plots/vis_flat_x_res_sd.png" alt="VIS Flat X Residual SD">
+    </div>
+  </section>
+  <section id="vis-dispersion-solution">
+    <h2>Dispersion Solution</h2>
+    <div class="plot-grid">
+
+    <div class="plot-card wide">
+      <h3>Last VIS Dispersion Solution</h3>
+      <a href="plots/vis_dispersion_resolution.png">
+        <img src="plots/vis_dispersion_resolution.png" alt="Last VIS Dispersion Solution">
       </a>
     </div>
 
-  </section>
-  <section id="vis-vis-dispersion-solution">
-    <h2>VIS Dispersion Solution</h2>
-
-    <div class="plot-card">
-      <h3>VIS Dispersion Solution</h3>
-      <a href="plots/vis_dispersion_resolution.png">
-        <img src="plots/vis_dispersion_resolution.png" alt="VIS Dispersion Solution">
+    <div class="plot-card wide">
+      <h3>VIS Dispersion Solution Mean Over Time</h3>
+      <a href="plots/vis_dispersion_resolution_timeseries.png">
+        <img src="plots/vis_dispersion_resolution_timeseries.png" alt="VIS Dispersion Solution Mean Over Time">
       </a>
     </div>
 
@@ -208,9 +234,18 @@
       </a>
     </div>
 
+    <div class="plot-card wide">
+      <h3>VIS Order Location</h3>
+      <a href="plots/vis_order_location_fit.png">
+        <img src="plots/vis_order_location_fit.png" alt="VIS Order Location">
+      </a>
+    </div>
+
+    </div>
   </section>
   <section id="vis-other-qc-plots">
     <h2>Other QC Plots</h2>
+    <div class="plot-grid">
 
     <div class="plot-card">
       <h3>VIS Median Efficiency</h3>
@@ -219,19 +254,14 @@
       </a>
     </div>
 
-    <div class="plot-card">
-      <h3>VIS Order Location Fit - SLIT0.5</h3>
-      <a href="plots/vis_order_location_fit.png">
-        <img src="plots/vis_order_location_fit.png" alt="VIS Order Location Fit - SLIT0.5">
-      </a>
     </div>
-
   </section>
 </div>
 
 <div id="nir-tab" class="tab-content">
-  <section id="nir-nir-dark">
-    <h2>NIR Dark</h2>
+  <section id="nir-dark">
+    <h2>Dark</h2>
+    <div class="plot-grid">
 
     <div class="plot-card">
       <h3>NIR Dark Median Level</h3>
@@ -247,9 +277,11 @@
       </a>
     </div>
 
+    </div>
   </section>
-  <section id="nir-nir-flat">
-    <h2>NIR Flat</h2>
+  <section id="nir-flat">
+    <h2>Flat</h2>
+    <div class="plot-grid">
 
     <div class="plot-card">
       <h3>NIR Flat Inner Order Pixel Mean</h3>
@@ -265,21 +297,23 @@
       </a>
     </div>
 
-    <div class="plot-card">
-      <h3>NIR Flat X Residual SD</h3>
-      <a href="plots/nir_flat_x_res_sd.png">
-        <img src="plots/nir_flat_x_res_sd.png" alt="NIR Flat X Residual SD">
+    </div>
+  </section>
+  <section id="nir-dispersion-solution">
+    <h2>Dispersion Solution</h2>
+    <div class="plot-grid">
+
+    <div class="plot-card wide">
+      <h3>Last NIR Dispersion Solution</h3>
+      <a href="plots/nir_dispersion_resolution.png">
+        <img src="plots/nir_dispersion_resolution.png" alt="Last NIR Dispersion Solution">
       </a>
     </div>
 
-  </section>
-  <section id="nir-nir-dispersion-solution">
-    <h2>NIR Dispersion Solution</h2>
-
-    <div class="plot-card">
-      <h3>NIR Dispersion Solution</h3>
-      <a href="plots/nir_dispersion_resolution.png">
-        <img src="plots/nir_dispersion_resolution.png" alt="NIR Dispersion Solution">
+    <div class="plot-card wide">
+      <h3>NIR Dispersion Solution Mean Over Time</h3>
+      <a href="plots/nir_dispersion_resolution_timeseries.png">
+        <img src="plots/nir_dispersion_resolution_timeseries.png" alt="NIR Dispersion Solution Mean Over Time">
       </a>
     </div>
 
@@ -297,9 +331,18 @@
       </a>
     </div>
 
+    <div class="plot-card wide">
+      <h3>NIR Order Location</h3>
+      <a href="plots/nir_order_location_fit.png">
+        <img src="plots/nir_order_location_fit.png" alt="NIR Order Location">
+      </a>
+    </div>
+
+    </div>
   </section>
   <section id="nir-other-qc-plots">
     <h2>Other QC Plots</h2>
+    <div class="plot-grid">
 
     <div class="plot-card">
       <h3>NIR Median Efficiency</h3>
@@ -308,13 +351,7 @@
       </a>
     </div>
 
-    <div class="plot-card">
-      <h3>NIR Order Location Fit</h3>
-      <a href="plots/nir_order_location_fit.png">
-        <img src="plots/nir_order_location_fit.png" alt="NIR Order Location Fit">
-      </a>
     </div>
-
   </section>
 </div>
 
@@ -336,8 +373,9 @@
   </div>
 
 <div id="vis-tab" class="tab-content active">
-  <section id="vis-vis-bias">
-    <h2>VIS Bias</h2>
+  <section id="vis-bias">
+    <h2>Bias</h2>
+    <div class="plot-grid">
 
     <div class="plot-card">
       <h3>VIS Bias Median Level</h3>
@@ -353,9 +391,11 @@
       </a>
     </div>
 
+    </div>
   </section>
-  <section id="vis-vis-flat">
-    <h2>VIS Flat</h2>
+  <section id="vis-flat">
+    <h2>Flat</h2>
+    <div class="plot-grid">
 
     <div class="plot-card">
       <h3>VIS Flat Inner Order Pixel Mean</h3>
@@ -371,21 +411,23 @@
       </a>
     </div>
 
-    <div class="plot-card">
-      <h3>VIS Flat X Residual SD</h3>
-      <a href="plots/vis_flat_x_res_sd.png">
-        <img src="plots/vis_flat_x_res_sd.png" alt="VIS Flat X Residual SD">
+    </div>
+  </section>
+  <section id="vis-dispersion-solution">
+    <h2>Dispersion Solution</h2>
+    <div class="plot-grid">
+
+    <div class="plot-card wide">
+      <h3>Last VIS Dispersion Solution</h3>
+      <a href="plots/vis_dispersion_resolution.png">
+        <img src="plots/vis_dispersion_resolution.png" alt="Last VIS Dispersion Solution">
       </a>
     </div>
 
-  </section>
-  <section id="vis-vis-dispersion-solution">
-    <h2>VIS Dispersion Solution</h2>
-
-    <div class="plot-card">
-      <h3>VIS Dispersion Solution</h3>
-      <a href="plots/vis_dispersion_resolution.png">
-        <img src="plots/vis_dispersion_resolution.png" alt="VIS Dispersion Solution">
+    <div class="plot-card wide">
+      <h3>VIS Dispersion Solution Mean Over Time</h3>
+      <a href="plots/vis_dispersion_resolution_timeseries.png">
+        <img src="plots/vis_dispersion_resolution_timeseries.png" alt="VIS Dispersion Solution Mean Over Time">
       </a>
     </div>
 
@@ -403,9 +445,18 @@
       </a>
     </div>
 
+    <div class="plot-card wide">
+      <h3>VIS Order Location</h3>
+      <a href="plots/vis_order_location_fit.png">
+        <img src="plots/vis_order_location_fit.png" alt="VIS Order Location">
+      </a>
+    </div>
+
+    </div>
   </section>
   <section id="vis-other-qc-plots">
     <h2>Other QC Plots</h2>
+    <div class="plot-grid">
 
     <div class="plot-card">
       <h3>VIS Median Efficiency</h3>
@@ -414,19 +465,14 @@
       </a>
     </div>
 
-    <div class="plot-card">
-      <h3>VIS Order Location Fit - SLIT0.5</h3>
-      <a href="plots/vis_order_location_fit.png">
-        <img src="plots/vis_order_location_fit.png" alt="VIS Order Location Fit - SLIT0.5">
-      </a>
     </div>
-
   </section>
 </div>
 
 <div id="nir-tab" class="tab-content">
-  <section id="nir-nir-dark">
-    <h2>NIR Dark</h2>
+  <section id="nir-dark">
+    <h2>Dark</h2>
+    <div class="plot-grid">
 
     <div class="plot-card">
       <h3>NIR Dark Median Level</h3>
@@ -442,9 +488,11 @@
       </a>
     </div>
 
+    </div>
   </section>
-  <section id="nir-nir-flat">
-    <h2>NIR Flat</h2>
+  <section id="nir-flat">
+    <h2>Flat</h2>
+    <div class="plot-grid">
 
     <div class="plot-card">
       <h3>NIR Flat Inner Order Pixel Mean</h3>
@@ -460,21 +508,23 @@
       </a>
     </div>
 
-    <div class="plot-card">
-      <h3>NIR Flat X Residual SD</h3>
-      <a href="plots/nir_flat_x_res_sd.png">
-        <img src="plots/nir_flat_x_res_sd.png" alt="NIR Flat X Residual SD">
+    </div>
+  </section>
+  <section id="nir-dispersion-solution">
+    <h2>Dispersion Solution</h2>
+    <div class="plot-grid">
+
+    <div class="plot-card wide">
+      <h3>Last NIR Dispersion Solution</h3>
+      <a href="plots/nir_dispersion_resolution.png">
+        <img src="plots/nir_dispersion_resolution.png" alt="Last NIR Dispersion Solution">
       </a>
     </div>
 
-  </section>
-  <section id="nir-nir-dispersion-solution">
-    <h2>NIR Dispersion Solution</h2>
-
-    <div class="plot-card">
-      <h3>NIR Dispersion Solution</h3>
-      <a href="plots/nir_dispersion_resolution.png">
-        <img src="plots/nir_dispersion_resolution.png" alt="NIR Dispersion Solution">
+    <div class="plot-card wide">
+      <h3>NIR Dispersion Solution Mean Over Time</h3>
+      <a href="plots/nir_dispersion_resolution_timeseries.png">
+        <img src="plots/nir_dispersion_resolution_timeseries.png" alt="NIR Dispersion Solution Mean Over Time">
       </a>
     </div>
 
@@ -492,9 +542,18 @@
       </a>
     </div>
 
+    <div class="plot-card wide">
+      <h3>NIR Order Location</h3>
+      <a href="plots/nir_order_location_fit.png">
+        <img src="plots/nir_order_location_fit.png" alt="NIR Order Location">
+      </a>
+    </div>
+
+    </div>
   </section>
   <section id="nir-other-qc-plots">
     <h2>Other QC Plots</h2>
+    <div class="plot-grid">
 
     <div class="plot-card">
       <h3>NIR Median Efficiency</h3>
@@ -503,13 +562,7 @@
       </a>
     </div>
 
-    <div class="plot-card">
-      <h3>NIR Order Location Fit</h3>
-      <a href="plots/nir_order_location_fit.png">
-        <img src="plots/nir_order_location_fit.png" alt="NIR Order Location Fit">
-      </a>
     </div>
-
   </section>
 </div>
 

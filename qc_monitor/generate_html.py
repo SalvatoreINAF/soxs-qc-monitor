@@ -24,23 +24,36 @@ def _infer_section_name(figure: dict) -> str:
     name = figure.get("name", "").lower()
     title = figure.get("title", "")
 
-    if name.startswith("vis_bias") or name.startswith("vis_master_ron") or "VIS Bias" in title or "VIS Master RON" in title:
-        return "VIS Bias"
+    if (
+        name.startswith("vis_bias")
+        or name.startswith("vis_master_ron")
+        or "VIS Bias" in title
+        or "VIS Master RON" in title
+    ):
+        return "Bias"
 
-    if name.startswith("vis_flat") or "VIS Flat" in title:
-        return "VIS Flat"
+    if (
+        name.startswith("vis_flat")
+        or name.startswith("nir_flat")
+        or "VIS Flat" in title
+        or "NIR Flat" in title
+    ):
+        return "Flat"
 
     if name.startswith("nir_dark") or "NIR Dark" in title:
-        return "NIR Dark"
-
-    if name.startswith("nir_flat") or "NIR Flat" in title:
-        return "NIR Flat"
+        return "Dark"
     
-    if name.startswith("vis_dispersion") or "VIS Dispersion" in title:
-        return "VIS Dispersion Solution"
-    
-    if name.startswith("nir_dispersion") or "NIR Dispersion" in title:
-        return "NIR Dispersion Solution"
+    if (
+        name.startswith("vis_dispersion")
+        or name.startswith("nir_dispersion")
+        or name.startswith("vis_order_location")
+        or name.startswith("nir_order_location")
+        or "VIS Dispersion" in title
+        or "NIR Dispersion" in title
+        or "Order Location" in title
+        or "Order Localization" in title
+    ):
+        return "Dispersion Solution"
 
     return "Other QC Plots"
 
@@ -84,6 +97,7 @@ def _render_sections(figures: list[dict], plots_relative_dir: str) -> str:
             chunks.extend([
                 f'  <section id="{section_id}">',
                 f"    <h2>{html.escape(section_name)}</h2>",
+                '    <div class="plot-grid">',
                 "",
             ])
 
@@ -92,11 +106,14 @@ def _render_sections(figures: list[dict], plots_relative_dir: str) -> str:
                 filename = fig["filename"]
                 img_path = f"{plots_relative_dir}/{filename}"
 
+                wide = fig.get("wide", False)
+                card_class = "plot-card wide" if wide else "plot-card"
+
                 safe_title = html.escape(title)
                 safe_img_path = html.escape(img_path, quote=True)
 
                 chunks.extend([
-                    '    <div class="plot-card">',
+                    f'    <div class="{card_class}">',
                     f"      <h3>{safe_title}</h3>",
                     f'      <a href="{safe_img_path}">',
                     f'        <img src="{safe_img_path}" alt="{safe_title}">',
@@ -105,6 +122,7 @@ def _render_sections(figures: list[dict], plots_relative_dir: str) -> str:
                     "",
                 ])
 
+            chunks.append("    </div>")
             chunks.append("  </section>")
 
         chunks.append("</div>")

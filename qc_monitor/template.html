@@ -63,12 +63,33 @@
     }
 
     .plot-card img {
-      width: 75%;
-      max-width: 850px;
+      width: 100%;
+      max-width: 100%;
       display: block;
       margin: 0 auto;
       border: 1px solid #dddddd;
       background: white;
+    }
+
+    .plot-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .plot-card.wide {
+      grid-column: span 2;
+    }
+
+    @media (max-width: 900px) {
+      .plot-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .plot-card.wide {
+        grid-column: span 1;
+      }
     }
 
     footer {
