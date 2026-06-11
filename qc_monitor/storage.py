@@ -17,7 +17,7 @@ TABLE_COLUMNS = list(TABLE_SCHEMA.keys())
 
 class SQLiteStore:
     def __init__(self, db_path: Path):
-        self.db_path = db_path
+        self.db_path = Path(db_path).expanduser().resolve()
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
@@ -471,6 +471,36 @@ class SQLiteStore:
             conn.executemany(query, rows)
             conn.commit()
 
+    def write_order_location_meta(self, df: pd.DataFrame):
+        if df.empty:
+            return
+
+        missing_columns = set(ORDER_LOCATION_META_COLUMNS) - set(df.columns)
+        if missing_columns:
+            raise ValueError(
+                "Missing required columns in order-location meta dataframe: "
+                f"{sorted(missing_columns)}"
+            )
+
+        columns_sql = ", ".join(self._quote(c) for c in ORDER_LOCATION_META_COLUMNS)
+        placeholders = ", ".join("?" for _ in ORDER_LOCATION_META_COLUMNS)
+
+        query = f"""
+        INSERT OR IGNORE INTO order_location_meta (
+            {columns_sql}
+        )
+        VALUES ({placeholders})
+        """
+
+        rows = [
+            tuple(row[col] for col in ORDER_LOCATION_META_COLUMNS)
+            for _, row in df.iterrows()
+        ]
+
+        with self._connect() as conn:
+            conn.executemany(query, rows)
+            conn.commit()
+
     # Metrics load
 
     def load_all_metrics(self) -> pd.DataFrame:
@@ -514,36 +544,6 @@ class SQLiteStore:
 
         with self._connect() as conn:
             return pd.read_sql(query, conn)
-        
-    def write_order_location_meta(self, df: pd.DataFrame):
-        if df.empty:
-            return
-
-        missing_columns = set(ORDER_LOCATION_META_COLUMNS) - set(df.columns)
-        if missing_columns:
-            raise ValueError(
-                "Missing required columns in order-location meta dataframe: "
-                f"{sorted(missing_columns)}"
-            )
-
-        columns_sql = ", ".join(self._quote(c) for c in ORDER_LOCATION_META_COLUMNS)
-        placeholders = ", ".join("?" for _ in ORDER_LOCATION_META_COLUMNS)
-
-        query = f"""
-        INSERT OR IGNORE INTO order_location_meta (
-            {columns_sql}
-        )
-        VALUES ({placeholders})
-        """
-
-        rows = [
-            tuple(row[col] for col in ORDER_LOCATION_META_COLUMNS)
-            for _, row in df.iterrows()
-        ]
-
-        with self._connect() as conn:
-            conn.executemany(query, rows)
-            conn.commit()
 
 
     def load_dispersion_resolution_stats(self) -> pd.DataFrame:

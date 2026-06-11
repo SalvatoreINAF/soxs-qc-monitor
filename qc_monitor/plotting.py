@@ -1,5 +1,4 @@
 import logging
-from tkinter.font import names
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -1173,28 +1172,28 @@ def plot_order_location_fit_from_config(
         ax.plot(axis_b, centre, label=f"Order {order:g}")
         ax.fill_between(axis_b, edge_low, edge_up, alpha=1)
 
-        ax.set_title(title)
-        ax.set_xlabel(plot_cfg.get("x_label", "x-axis [px]"))
-        ax.set_ylabel(plot_cfg.get("y_label", "y-axis [px]"))
-        ax.grid(True)
-        legend_fontsize = plot_cfg.get("legend_fontsize", 6)
+    ax.set_title(title)
+    ax.set_xlabel(plot_cfg.get("x_label", "x-axis [px]"))
+    ax.set_ylabel(plot_cfg.get("y_label", "y-axis [px]"))
+    ax.grid(True)
+    legend_fontsize = plot_cfg.get("legend_fontsize", 6)
 
-        if plot_cfg.get("show_legend", True):
-            ax.legend(
-                fontsize=legend_fontsize,
-                ncol=plot_cfg.get("legend_ncol", 3),
-                loc=plot_cfg.get("legend_loc", "best"),
-            )
+    if plot_cfg.get("show_legend", True):
+        ax.legend(
+            fontsize=legend_fontsize,
+            ncol=plot_cfg.get("legend_ncol", 3),
+            loc=plot_cfg.get("legend_loc", "best"),
+        )
 
-        aspect = plot_cfg.get("aspect", "equal")
+    aspect = plot_cfg.get("aspect", "equal")
 
-        if aspect == "equal":
-            ax.set_aspect("equal", adjustable="box")
-        elif aspect is not None and aspect != "auto":
-            ax.set_aspect(float(aspect), adjustable="box")
-        
-        if plot_cfg.get("invert_yaxis", True):
-            ax.invert_yaxis()
+    if aspect == "equal":
+        ax.set_aspect("equal", adjustable="box")
+    elif aspect is not None and aspect != "auto":
+        ax.set_aspect(float(aspect), adjustable="box")
+    
+    if plot_cfg.get("invert_yaxis", True):
+        ax.invert_yaxis()
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
 

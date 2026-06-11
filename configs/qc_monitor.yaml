@@ -1,9 +1,10 @@
 paths:
   # Root folder containing SOXS pipeline reduction data
-  qc_root: data/upstream/long_term_reduction/
+  upstream_root: /diska/home/pipeline/soxspipe_reductions/
+  reduced_root: /diska/home/pipeline/soxspipe_reductions/reduced/
 
   # Historical QC database managed by this tool
-  qc_database: data/qc.sqlite
+  qc_database: /diska/home/pipeline/soxspipe_reductions/reduced/QC/qc.sqlite
 
 acquisition:
   # Name of the upstream SOXS pipeline database inside each session folder
@@ -13,9 +14,13 @@ acquisition:
   upstream_table: quality_control_plus_lite
 
 plots:
-  output_dir: plots
+  output_dir: /diska/home/pipeline/soxspipe_reductions/reduced/QC/plots
+  html_output: /diska/home/pipeline/soxspipe_reductions/reduced/QC/index.html
   show: false
 
+  # List of plot produce.
+  # Each plot is defined in its own YAML file under the `plots/` folder
+  # and is included here by name.
   include:
     - plots/datapoint_queries.yaml
     - plots/vis_bias.yaml

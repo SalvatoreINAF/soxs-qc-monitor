@@ -1,172 +1,255 @@
 # SOXS QC Monitor
 
-SOXS QC Monitor is a Python module used to collect, consolidate, and visualize quality-control data produced by the SOXS pipeline.
+The SOXS QC Monitor is a lightweight monitoring tool that extracts Quality Control (QC) information from SOXS Pipeline products and generates a static HTML report with trend plots and diagnostic visualizations.
 
-The module reads QC information from upstream SOXS pipeline products, stores selected quantities into an independent SQLite database, generates monitoring plots, and produces a static HTML report.
+The monitor is designed to run periodically in batch mode and maintain an independent SQLite database containing historical QC information. It combines:
 
-An example HTML report is available here:
+- QC metrics extracted from the SOXS Pipeline upstream database (`soxspipe.db`)
+- Dispersion solution products
+- Order localization products
+
+and produces:
+
+- Historical trend plots
+- Diagnostic plots
+- A self-contained HTML report suitable for publication on the web
+
+## Example HTML Report
+
+An example report is available at:
 
 https://salvatoreinaf.github.io/soxs-qc-monitor/
 
-## Installation
+---
 
-Create and activate a dedicated Python environment (or use the same as the SOXS Pipeline), then install the package from the project root:
+# Installation
+
+The package is typically installed into the same Python/Conda environment used by the SOXS Pipeline.
+
+To install the package run the following command from the repository root folder (within the soxspipe environment):
+
+```bash
+pip install .
+```
+
+or for development:
 
 ```bash
 pip install -e .
 ```
 
-The required Python dependencies are listed in `pyproject.toml`.
+The installation creates the command-line executable in the environment bin folder:
 
-## Initial configuration
+```bash
+qc-monitor
+```
 
-Edit:
+This serves as the entry point to run the QC Monitor.
+
+---
+
+# Initial Configuration
+
+The monitor is configured through:
 
 ```text
 configs/qc_monitor.yaml
 ```
 
-For a basic installation, the user only needs to configure the input QC root and the output SQLite database path:
+The only mandatory configuration is the definition of the input and output paths.
+
+Example:
 
 ```yaml
 paths:
-  qc_root: data/upstream/long_term_reduction/
-  qc_database: data/qc.sqlite
+  upstream_root: /diska/home/pipeline/soxspipe_reductions/
+  reduced_root: /diska/home/pipeline/soxspipe_reductions/reduced/
+  qc_database: /diska/home/pipeline/soxspipe_reductions/reduced/QC/qc.sqlite
+
+plots:
+  output_dir: /diska/home/pipeline/soxspipe_reductions/reduced/QC/plots
+  html_output: /diska/home/pipeline/soxspipe_reductions/reduced/QC/index.html
 ```
 
-`qc_root` must point to the directory containing the upstream SOXS pipeline reduction products and databases.
+## Path Definitions
 
-`qc_database` is the independent SQLite database created and maintained by SOXS QC Monitor.
+### `upstream_root`
 
-## Running manually
+Root directory containing the SOXS Pipeline upstream database:
 
-From the project root:
+```text
+soxspipe.db
+```
+
+Example:
+
+```text
+/diska/home/pipeline/soxspipe_reductions/
+```
+
+### `reduced_root`
+
+Directory containing the reduced products organised by observing day.
+
+Example:
+
+```text
+/diska/home/pipeline/soxspipe_reductions/reduced/
+```
+
+### `qc_database`
+
+SQLite database maintained by the QC Monitor.
+
+The database is created automatically if it does not already exist.
+
+Example:
+
+```text
+/diska/home/pipeline/soxspipe_reductions/reduced/QC/qc.sqlite
+```
+
+---
+
+# Production Directory Layout
+
+The typical production installation is assumed to look like:
+
+```text
+soxspipe_reductions/
+├── soxspipe.db
+├── SOXS.2025-03-15T00:39:10.639.fits
+├── SOXS.2025-03-15T00:42:08.122.fits
+├── ...
+└── reduced/
+    ├── 2025-03-15/
+    ├── 2025-03-16/
+    ├── ...
+    └── QC/
+        ├── qc.sqlite
+        ├── index.html
+        └── plots/
+```
+
+QC information is extracted from:
+
+- the upstream SOXS Pipeline database (`soxspipe.db`)
+- selected reduced FITS products contained in the reduction directories
+
+---
+
+# Running the Monitor
+
+The monitor can be executed manually from the Command line (under the soxspipe environment):
 
 ```bash
-python -m qc_monitor.main --config configs/qc_monitor.yaml --verbose
+qc-monitor --config configs/qc_monitor.yaml --verbose
 ```
 
-This will:
-
-1. scan the upstream QC products;
-2. consolidate new QC data into the local SQLite database;
-3. generate PNG plots;
-4. update the static `index.html` report.
-
-## Batch execution
-
-The project includes a batch execution script:
-
-```text
-run_SOXS_QC_Monitor.sh
-```
-
-Before using it, check and adapt the configuration section near the top of the script:
-
-```tcsh
-set CONFIG=${ROOT}/configs/qc_monitor.yaml
-set LOG_DIR=${ROOT}/logs
-set PYTHON=python
-```
-
-`PYTHON` should point to the Python executable from the environment where the package and its dependencies are installed.
-
-The script can be executed manually:
+Common options:
 
 ```bash
-./run_SOXS_QC_Monitor.sh
+qc-monitor --help
 ```
 
-or periodically through a cron job.
+```bash
+qc-monitor --verbose
+```
 
-The script writes logs into:
+```bash
+qc-monitor --rebuild-db
+```
+
+```bash
+qc-monitor --force-date YYYY-MM-DD
+```
+
+---
+
+# Batch Execution
+
+The monitor is intended to run periodically through cron or another scheduler.
+An example tcsh wrapper is provided in the file `run_SOXS_QC_Monitor.sh`.
+
+---
+
+# Project Structure
 
 ```text
-logs/
+.
+├── configs
+│   ├── plots
+│   └── qc_monitor.yaml
+├── data
+│   ├── qc.sqlite
+│   └── upstream
+├── logs
+├── plots
+├── qc_monitor
+│   ├── acquisition.py
+│   ├── generate_html.py
+│   ├── main.py
+│   ├── plotting.py
+│   ├── processing.py
+│   ├── schema.py
+│   ├── storage.py
+│   ├── template.html
+│   └── upstream.py
+├── README.md
+├── pyproject.toml
+└── run_SOXS_QC_Monitor.sh
 ```
 
-A placeholder section for web publication is included in the script, but the actual publication mechanism must be configured by the deployment team.
+## Main Components
 
-## Project structure
+### `main.py`
 
-```text
-configs/
-```
+Application entry point.
 
-Configuration files. The main configuration is `qc_monitor.yaml`; plot-specific YAML files are stored under `configs/plots/`.
+Responsibilities:
 
-```text
-data/
-```
+- configuration loading
+- acquisition orchestration
+- database consolidation
+- plot generation
+- HTML report generation
 
-Local data area. It contains the independent QC SQLite database and, in development setups, example upstream data.
+### `acquisition.py`
 
-```text
-plots/
-```
+Acquires data from:
 
-Generated PNG monitoring plots.
+- upstream SOXS Pipeline database
+- dispersion solution FITS products
+- order localization FITS products
 
-```text
-index.html
-```
+### `processing.py`
 
-Generated static HTML QC report.
+Performs transformations and aggregation of acquired data.
 
-```text
-qc_monitor/acquisition.py
-```
+### `storage.py`
 
-Reads upstream SOXS pipeline databases and FITS products.
+Manages the QC Monitor SQLite database.
 
-```text
-qc_monitor/storage.py
-```
+### `plotting.py`
 
-Manages the independent SQLite QC database.
+Generates all PNG plots used by the report.
 
-```text
-qc_monitor/plotting.py
-```
+### `generate_html.py`
 
-Generates monitoring plots from the consolidated QC database.
+Generates the final HTML report.
 
-```text
-qc_monitor/generate_html.py
-```
+### `schema.py`
 
-Builds the static HTML report from the generated plots.
+Database schema definitions.
 
-```text
-qc_monitor/template.html
-```
+### `upstream.py`
 
-HTML template used by the report generator.
+Utilities used to access the SOXS Pipeline upstream database.
 
-```text
-qc_monitor/main.py
-```
+---
 
-Main orchestration script.
+# Notes
 
-```text
-qc_monitor/processing.py
-```
+The QC Monitor maintains its own SQLite database and does not modify any SOXS Pipeline products or databases.
 
-Optional processing hooks for datapoints before plotting.
-
-```text
-qc_monitor/schema.py
-```
-
-Shared schema definitions.
-
-```text
-qc_monitor/upstream.py
-```
-
-Utilities related to upstream SOXS pipeline inputs.
-
-## Notes
-
-SOXS QC Monitor does not modify the upstream SOXS pipeline database or products. It builds and maintains a separate SQLite database for long-term monitoring.
+The monitor is designed to be re-run safely and incrementally as new reduction sessions become available.

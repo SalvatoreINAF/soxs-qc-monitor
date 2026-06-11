@@ -20,15 +20,14 @@ set ROOT=`pwd`
 set CONFIG=${ROOT}/configs/qc_monitor.yaml
 set LOG_DIR=${ROOT}/logs
 
-# Make sure the correct python environment is activated before running this script,
-# or set the PYTHON variable below to point to the desired python executable.
+# Make sure the correct python environment is activated before running this script
+# and the qc-monitor package is installed in that environment.
+# Otherwise set the correct absolute path below to point to the desired python executable.
 
-# Optional custom python executable
-# set PYTHON=/path/to/python
+# Optional custom python executable (same as pipeline)
+# set QC_MONITOR=/path/to/conda/env/bin/qc-monitor
 
-if (! $?PYTHON) then
-    set PYTHON=python
-endif
+set QC_MONITOR=qc-monitor
 
 # ---------------------------------------------------------
 # Create log directory
@@ -48,14 +47,14 @@ echo "SOXS QC Monitor batch execution" >>& ${LOG_FILE}
 echo "UTC start time: `date -u +%Y-%m-%dT%H:%M:%SZ`" >>& ${LOG_FILE}
 echo "ROOT: ${ROOT}" >>& ${LOG_FILE}
 echo "CONFIG: ${CONFIG}" >>& ${LOG_FILE}
-echo "PYTHON: ${PYTHON}" >>& ${LOG_FILE}
+echo "QC_MONITOR: ${QC_MONITOR}" >>& ${LOG_FILE}
 echo "==================================================" >>& ${LOG_FILE}
 
 # ---------------------------------------------------------
 # Execute QC monitor
 # ---------------------------------------------------------
 
-${PYTHON} -m qc_monitor.main \
+${QC_MONITOR} \
     --config ${CONFIG} \
     --verbose \
     >>& ${LOG_FILE}

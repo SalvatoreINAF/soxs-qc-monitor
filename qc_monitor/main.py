@@ -28,6 +28,13 @@ def parse_args():
     )
 
     parser.add_argument(
+        "--config",
+        type=Path,
+        default=default_config_path(),
+        help="Path to YAML configuration file",
+    )
+
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Run acquisition but do not write anything to the database",
@@ -52,6 +59,18 @@ def parse_args():
     )
 
     return parser.parse_args()
+
+def default_config_path() -> Path:
+    package_dir = Path(__file__).resolve().parent
+    project_root = package_dir.parent
+    return project_root / "configs" / "qc_monitor.yaml"
+
+
+def resolve_project_path(path: str | Path, project_root: Path) -> Path:
+    path = Path(path)
+    if path.is_absolute():
+        return path
+    return project_root / path
 
 
 def load_plot_includes(cfg: dict, config_dir: Path) -> dict:
@@ -126,9 +145,21 @@ def consolidate(
     """
     log = logging.getLogger("qc-monitor")
 
+    # Load configuration
+
+    config_path = config_path.resolve()
     cfg = load_config(config_path)
 
-    qc_database = SQLiteStore(Path(cfg["paths"]["qc_database"]))
+    project_root = config_path.parent.parent
+
+    qc_database_path = resolve_project_path(
+        cfg["paths"]["qc_database"],
+        project_root,
+    )
+
+    qc_database = SQLiteStore(qc_database_path)
+
+    # Load QC datapoints from the upstream database
 
     df = load_qc_from_session_db(
         session_db_path=upstream_db_path,
@@ -138,6 +169,8 @@ def consolidate(
     if df.empty:
         log.info("No QC datapoints found in upstream database: %s", upstream_db_path)
         return 0
+    
+    # Filter out already processed observing days, unless --force is used
 
     processed_obs_days = qc_database.get_processed_obs_days()
 
@@ -156,6 +189,8 @@ def consolidate(
         len(df),
         upstream_db_path,
     )
+
+    # Write new QC datapoints to the historical QC database and mark observing days as processed
 
     if dry_run:
         log.info("Dry-run enabled, not writing to historical QC database")
@@ -177,14 +212,14 @@ def consolidate(
 
 
 def consolidate_dispersion_solution(
-    qc_root: Path,
+    reduced_root: Path,
     qc_database: SQLiteStore,
     dry_run: bool = False,
     force: bool = False,
 ) -> int:
     log = logging.getLogger("qc-monitor")
 
-    fits_files = find_dispersion_solution_fits_files(qc_root)
+    fits_files = find_dispersion_solution_fits_files(reduced_root)
 
     if not fits_files:
         log.info("No dispersion-solution FITS files found")
@@ -257,14 +292,14 @@ def consolidate_dispersion_solution(
 
 
 def consolidate_order_location_models(
-    qc_root: Path,
+    reduced_root: Path,
     qc_database: SQLiteStore,
     dry_run: bool = False,
     force: bool = False,
 ) -> int:
     log = logging.getLogger("qc-monitor")
 
-    fits_files = find_order_location_fits_files(qc_root)
+    fits_files = find_order_location_fits_files(reduced_root)
 
     if not fits_files:
         log.info("No order-location FITS files found")
@@ -352,16 +387,48 @@ def main():
     log = logging.getLogger("qc-monitor")
     log.info("qc-monitor version %s", qc_monitor.__version__)
 
-    config_path = Path("configs/qc_monitor.yaml")
+    config_path = args.config.resolve()
     cfg = load_config(config_path)
 
-    qc_root = Path(cfg["paths"]["qc_root"])
-    qc_database = SQLiteStore(Path(cfg["paths"]["qc_database"]))
+    config_dir = config_path.parent
+    project_root = config_dir.parent
+
+    upstream_root = resolve_project_path(cfg["paths"]["upstream_root"], project_root)
+    reduced_root = resolve_project_path(cfg["paths"]["reduced_root"], project_root)
+    qc_database_path = resolve_project_path(cfg["paths"]["qc_database"], project_root)
+
+    qc_database = SQLiteStore(qc_database_path)
     upstream_database_name = cfg["acquisition"]["upstream_database_name"]
 
     if args.rebuild_db:
         log.warning("Rebuilding QC database from scratch")
         qc_database.drop_all()
+
+    # Normalize and resolve all paths in the "plots" section of the configuration
+    plots_cfg = cfg.get("plots", {})
+
+    plots_cfg["output_dir"] = str(
+        resolve_project_path(
+            plots_cfg.get("output_dir", "plots"),
+            project_root,
+        )
+    )
+
+    plots_cfg["html_output"] = str(
+        resolve_project_path(
+            plots_cfg.get("html_output", "index.html"),
+            project_root,
+        )
+    )
+
+    plots_cfg["template"] = str(
+        resolve_project_path(
+            plots_cfg.get("template", "qc_monitor/template.html"),
+            project_root,
+        )
+    )
+
+    cfg["plots"] = plots_cfg
 
     ####################################################
     ############### Scanning step ######################
@@ -369,7 +436,7 @@ def main():
 
     # assumes more than one pipeline database can be present in the path
     session_databases = find_session_databases(
-        qc_root=qc_root,
+        upstream_root=upstream_root,
         database_name=upstream_database_name,
     )
 
@@ -389,7 +456,7 @@ def main():
     log.info("Total consolidated QC datapoints: %d", total_points)
 
     dsol_points = consolidate_dispersion_solution(
-        qc_root=qc_root,
+        reduced_root=reduced_root,
         qc_database=qc_database,
         dry_run=args.dry_run,
         force=args.rebuild_db,
@@ -398,7 +465,7 @@ def main():
     log.info("Total consolidated dispersion-solution rows: %d", dsol_points)
 
     oloc_points = consolidate_order_location_models(
-        qc_root=qc_root,
+        reduced_root=reduced_root,
         qc_database=qc_database,
         dry_run=args.dry_run,
         force=args.rebuild_db,
@@ -423,29 +490,27 @@ def main():
 
     # Load the newly consolidated QC metrics for plotting
     df_plot = qc_database.load_all_metrics()
-
-    if df_plot.empty:
-            log.info("No historical QC metrics available for plotting")
-            return
     
-    generate_plots_from_config(
-        df=df_plot,
-        plots_cfg=plots_cfg,
-        plot_types={"time_series", "xy_scatter", "histogram", "latest_by_order_bar"}
-    )
+    if df_plot.empty:
+        log.info("No historical QC metrics available for plotting")
+    else:
+        generate_plots_from_config(
+            df=df_plot,
+            plots_cfg=plots_cfg,
+            plot_types={"time_series", "xy_scatter", "histogram", "latest_by_order_bar"}
+        )
 
     # Load dispersion solution lines for plotting
     df_dsol = qc_database.load_dispersion_solution_lines()
 
     if df_dsol.empty:
         log.info("No historical dispersion-solution data available for plotting")
-        return
-
-    generate_plots_from_config(
-        df=df_dsol,
-        plots_cfg=plots_cfg,
-        plot_types={"dispersion_resolution", "dispersion_residual_xy", "dispersion_residual_histogram"},
-    )
+    else:
+        generate_plots_from_config(
+            df=df_dsol,
+            plots_cfg=plots_cfg,
+            plot_types={"dispersion_resolution", "dispersion_residual_xy", "dispersion_residual_histogram"},
+        )
 
     # Load dispersion resolution stats for plotting
     df_resolution_stats = qc_database.load_dispersion_resolution_stats()
@@ -470,7 +535,10 @@ def main():
     ############### HTML Report Generation #############
     ####################################################
 
-    html_output = Path(plots_cfg.get("html_output", "index.html"))
+    html_output = resolve_project_path(
+        plots_cfg.get("html_output", "index.html"),
+        project_root,
+    )
 
     generate_html_report(
         plots_cfg=plots_cfg,

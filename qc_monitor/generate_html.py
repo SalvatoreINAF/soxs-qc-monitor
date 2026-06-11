@@ -148,10 +148,10 @@ def generate_html_report(
     if template_path is None:
         template_path = Path(__file__).with_name("template.html")
 
-    output_dir = Path(plots_cfg.get("output_dir", "plots"))
     page_title = plots_cfg.get("page_title", "SOXS Quality Control Page")
 
-    plots_relative_dir = output_dir.as_posix()
+    # plots folder is expected to be relative to the output HTML file
+    plots_relative_dir = Path("plots").as_posix()
 
     section_names = []
     for fig in figures:

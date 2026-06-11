@@ -115,11 +115,19 @@ ORDER_LOCATION_MODEL_COLUMNS = (
     + ORDER_LOCATION_COEFF_COLUMNS
 )
 
-def find_session_databases(qc_root: Path, database_name: str) -> list[Path]:
+
+def find_session_databases(upstream_root: Path, database_name: str) -> list[Path]:
     """
-    Find all upstream SOXS pipeline session databases under qc_root.
+    Find upstream SOXS pipeline session databases.
     """
-    return sorted(qc_root.rglob(database_name))
+    upstream_root = Path(upstream_root).expanduser().resolve()
+
+    direct_path = upstream_root / database_name
+
+    if direct_path.exists():
+        return [direct_path]
+
+    return sorted(upstream_root.rglob(database_name))
 
 
 def _empty_qc_dataframe() -> pd.DataFrame:
@@ -329,14 +337,14 @@ def load_qc_from_session_db(
     return df
 
 
-def find_dispersion_solution_fits_files(qc_root: Path) -> list[Path]:
+def find_dispersion_solution_fits_files(reduced_root: Path) -> list[Path]:
     """
     Find SOXS dispersion-solution fitted-lines FITS files.
 
     Only DSOL PINHOLE products are selected.
     SSOL / spatial-solution products are intentionally ignored.
     """
-    candidates = qc_root.rglob("*DSOL_PINHOLE*SOXS_FITTED_LINES.fits")
+    candidates = reduced_root.rglob("*DSOL_PINHOLE*SOXS_FITTED_LINES.fits")
 
     files = []
     for path in candidates:
@@ -608,13 +616,14 @@ def _infer_order_location_recipe(path: Path) -> str:
 
     return "unknown"
 
-def find_order_location_fits_files(qc_root: Path) -> list[Path]:
+
+def find_order_location_fits_files(reduced_root: Path) -> list[Path]:
     """
     Find SOXS order-location FITS products.
 
     Selects OLOC products and ignores unrelated FITS files.
     """
-    candidates = qc_root.rglob("*_OLOC_*_SOXS.fits")
+    candidates = reduced_root.rglob("*_OLOC_*_SOXS.fits")
 
     files = []
     for path in candidates:
@@ -629,6 +638,7 @@ def find_order_location_fits_files(qc_root: Path) -> list[Path]:
         files.append(path)
 
     return sorted(files)
+
 
 def parse_order_location_filename(path: Path) -> dict[str, str | None]:
     """
@@ -701,6 +711,7 @@ def parse_order_location_filename(path: Path) -> dict[str, str | None]:
         "binning": binning,
         "rospeed": rospeed,
     }
+
 
 def load_order_location_model_fits_table(fits_path: Path) -> pd.DataFrame:
     """

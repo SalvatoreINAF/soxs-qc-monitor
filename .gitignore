@@ -2,7 +2,12 @@
 plots/*
 data/*
 __pycache__/
+configs/qc_monitor_SSA.yaml
 qc_monitor/__pycache__/
 qc_monitor/upstream.py
+qc_monitor.egg-info/
+qc_monitor.egg-info/*
 *.swp
 .DS_Store
+example_script.sh
+index.html
