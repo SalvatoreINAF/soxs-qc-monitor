@@ -25,17 +25,21 @@ https://salvatoreinaf.github.io/soxs-qc-monitor/
 # Installation
 
 The package is typically installed into the same Python/Conda environment used by the SOXS Pipeline.
-
-To install the package run the following command from the repository root folder (within the soxspipe environment):
+The expected environment name is `soxspipe`.
+Use the following commands to clone the repo in a suitable folder, activate the environment, and install the package:
 
 ```bash
+mkdir -p ~/git_repos
+
+cd ~/git_repos
+
+git clone https://github.com/SalvatoreINAF/soxs-qc-monitor.git
+
+cd ~/git_repos/soxs-qc-monitor/
+
+conda activate soxspipe
+
 pip install .
-```
-
-or for development:
-
-```bash
-pip install -e .
 ```
 
 The installation creates the command-line executable in the environment bin folder:
