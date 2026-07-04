@@ -22,3 +22,6 @@ qc-monitor = "qc_monitor.main:main"
 
 [tool.setuptools]
 packages = ["qc_monitor"]
+
+[tool.setuptools.package-data]
+qc_monitor = ["resources/*.html"]

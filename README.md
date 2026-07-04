@@ -50,6 +50,10 @@ qc-monitor
 
 This serves as the entry point to run the QC Monitor.
 
+The cloned repository must remain available on the pipeline machine after
+installation. Configuration files, wrapper scripts and update scripts are read
+from the clone, not from the installed Python package directory.
+
 ---
 
 # Initial Configuration
@@ -74,6 +78,46 @@ plots:
   output_dir: /diska/home/pipeline/soxspipe_reductions/reduced/QC/plots
   html_output: /diska/home/pipeline/soxspipe_reductions/reduced/QC/index.html
 ```
+
+By default the monitor uses a production-safe acquisition policy:
+
+```yaml
+acquisition:
+  upstream_database_search: direct
+  reduced_products_search: observing_day_dirs
+  allow_multiple_upstream_databases: false
+  allow_suspicious_paths: false
+```
+
+This means that the upstream database must be found directly as:
+
+```text
+upstream_root/soxspipe.db
+```
+
+and reduced products are scanned only below observing-day directories named:
+
+```text
+reduced_root/YYYY-MM-DD/
+```
+
+Legacy recursive scanning is still available by setting the corresponding
+search option to `recursive`, but it should not be used in production unless the
+directory tree has been checked carefully.
+
+## Default Configuration Resolution
+
+When `qc-monitor` is executed without `--config`, it never uses the installed
+package location under `site-packages` as the configuration root.
+
+The default configuration is resolved in this order:
+
+1. `QC_MONITOR_ROOT/configs/qc_monitor.yaml`, if `QC_MONITOR_ROOT` is set.
+2. `configs/qc_monitor.yaml` in the current directory or one of its parents,
+   only if that directory looks like the cloned QC Monitor repository.
+
+If neither rule succeeds, the program exits with an explicit configuration
+error and does not acquire data.
 
 ## Path Definitions
 
@@ -161,6 +205,10 @@ qc-monitor --verbose
 ```
 
 ```bash
+qc-monitor --preflight --config configs/qc_monitor.yaml --verbose
+```
+
+```bash
 qc-monitor --rebuild-db
 ```
 
@@ -174,6 +222,24 @@ qc-monitor --force-date YYYY-MM-DD
 
 The monitor is intended to run periodically through cron or another scheduler.
 An example tcsh wrapper is provided in the file `run_SOXS_QC_Monitor.sh`.
+
+The wrapper resolves the repository root from its own location, exports
+`QC_MONITOR_ROOT`, runs a preflight check, and only then starts the normal QC
+Monitor execution.
+
+---
+
+# Updating
+
+An update helper is provided:
+
+```bash
+./update_QC_Monitor.sh
+```
+
+The script backs up `configs/qc_monitor.yaml`, runs `git pull --ff-only`,
+reinstalls the package with `pip install .`, then runs preflight and dry-run
+checks. It does not rebuild or delete the historical QC database.
 
 ---
 
@@ -195,9 +261,10 @@ An example tcsh wrapper is provided in the file `run_SOXS_QC_Monitor.sh`.
 │   ├── main.py
 │   ├── plotting.py
 │   ├── processing.py
+│   ├── resources
+│   │   └── template.html
 │   ├── schema.py
 │   ├── storage.py
-│   ├── template.html
 │   └── upstream.py
 ├── README.md
 ├── pyproject.toml

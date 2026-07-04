@@ -14,6 +14,7 @@ from qc_monitor.schema import TABLE_SCHEMA
 log = logging.getLogger(__name__)
 
 TABLE_COLUMNS = list(TABLE_SCHEMA.keys())
+OBS_DAY_DIR_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 DISPERSION_SOLUTION_COLUMNS = [
     "obs_day",
@@ -116,7 +117,11 @@ ORDER_LOCATION_MODEL_COLUMNS = (
 )
 
 
-def find_session_databases(upstream_root: Path, database_name: str) -> list[Path]:
+def find_session_databases(
+    upstream_root: Path,
+    database_name: str,
+    search_mode: str = "direct",
+) -> list[Path]:
     """
     Find upstream SOXS pipeline session databases.
     """
@@ -124,10 +129,32 @@ def find_session_databases(upstream_root: Path, database_name: str) -> list[Path
 
     direct_path = upstream_root / database_name
 
-    if direct_path.exists():
+    if direct_path.is_file():
         return [direct_path]
 
+    if search_mode == "direct":
+        return []
+
+    if search_mode != "recursive":
+        raise ValueError(f"Unsupported upstream database search mode: {search_mode}")
+
     return sorted(upstream_root.rglob(database_name))
+
+
+def find_observing_day_directories(reduced_root: Path) -> list[Path]:
+    """
+    Return direct children of reduced_root named as observing days.
+    """
+    reduced_root = Path(reduced_root).expanduser().resolve()
+
+    if not reduced_root.is_dir():
+        return []
+
+    return sorted(
+        path
+        for path in reduced_root.iterdir()
+        if path.is_dir() and OBS_DAY_DIR_RE.match(path.name)
+    )
 
 
 def _empty_qc_dataframe() -> pd.DataFrame:
@@ -337,14 +364,27 @@ def load_qc_from_session_db(
     return df
 
 
-def find_dispersion_solution_fits_files(reduced_root: Path) -> list[Path]:
+def find_dispersion_solution_fits_files(
+    reduced_root: Path,
+    search_mode: str = "observing_day_dirs",
+) -> list[Path]:
     """
     Find SOXS dispersion-solution fitted-lines FITS files.
 
     Only DSOL PINHOLE products are selected.
     SSOL / spatial-solution products are intentionally ignored.
     """
-    candidates = reduced_root.rglob("*DSOL_PINHOLE*SOXS_FITTED_LINES.fits")
+    if search_mode == "observing_day_dirs":
+        roots = find_observing_day_directories(reduced_root)
+        candidates = (
+            path
+            for root in roots
+            for path in root.rglob("*DSOL_PINHOLE*SOXS_FITTED_LINES.fits")
+        )
+    elif search_mode == "recursive":
+        candidates = reduced_root.rglob("*DSOL_PINHOLE*SOXS_FITTED_LINES.fits")
+    else:
+        raise ValueError(f"Unsupported reduced products search mode: {search_mode}")
 
     files = []
     for path in candidates:
@@ -526,6 +566,24 @@ def compute_dispersion_resolution_stats(
     return grouped[DISPERSION_RESOLUTION_STATS_COLUMNS]
 
 
+def _concat_preserving_schema(
+    frames: list[pd.DataFrame],
+    columns: list[str],
+) -> pd.DataFrame:
+    """
+    Concatenate frames without feeding pandas all-NA columns.
+    """
+    compact_frames = [
+        frame.dropna(axis=1, how="all")
+        for frame in frames
+    ]
+
+    return (
+        pd.concat(compact_frames, ignore_index=True)
+        .reindex(columns=columns)
+    )
+
+
 def load_order_location_meta_fits_table(fits_path: Path) -> pd.DataFrame:
     """
     Load HDU 2 of one OLOC FITS file.
@@ -546,24 +604,12 @@ def load_order_location_meta_fits_table(fits_path: Path) -> pd.DataFrame:
     for key, value in metadata.items():
         df[key] = value
 
-    missing_cols = [
-        col for col in ORDER_LOCATION_META_COLUMNS
-        if col not in df.columns
-    ]
-
-    if missing_cols:
-        df = pd.concat(
-            [
-                df,
-                pd.DataFrame(
-                    {col: None for col in missing_cols},
-                    index=df.index,
-                ),
-            ],
-            axis=1,
-        )
-
-    return df[ORDER_LOCATION_META_COLUMNS].copy().reset_index(drop=True)
+    return (
+        df
+        .reindex(columns=ORDER_LOCATION_META_COLUMNS)
+        .copy()
+        .reset_index(drop=True)
+    )
 
 
 def load_order_location_meta(
@@ -591,7 +637,10 @@ def load_order_location_meta(
     if not frames:
         return pd.DataFrame(columns=ORDER_LOCATION_META_COLUMNS)
 
-    out = pd.concat(frames, ignore_index=True, sort=False)
+    out = _concat_preserving_schema(
+        frames=frames,
+        columns=ORDER_LOCATION_META_COLUMNS,
+    )
 
     log.info(
         "Loaded %d order-location meta rows from %d FITS files",
@@ -617,13 +666,26 @@ def _infer_order_location_recipe(path: Path) -> str:
     return "unknown"
 
 
-def find_order_location_fits_files(reduced_root: Path) -> list[Path]:
+def find_order_location_fits_files(
+    reduced_root: Path,
+    search_mode: str = "observing_day_dirs",
+) -> list[Path]:
     """
     Find SOXS order-location FITS products.
 
     Selects OLOC products and ignores unrelated FITS files.
     """
-    candidates = reduced_root.rglob("*_OLOC_*_SOXS.fits")
+    if search_mode == "observing_day_dirs":
+        roots = find_observing_day_directories(reduced_root)
+        candidates = (
+            path
+            for root in roots
+            for path in root.rglob("*_OLOC_*_SOXS.fits")
+        )
+    elif search_mode == "recursive":
+        candidates = reduced_root.rglob("*_OLOC_*_SOXS.fits")
+    else:
+        raise ValueError(f"Unsupported reduced products search mode: {search_mode}")
 
     files = []
     for path in candidates:
@@ -733,24 +795,12 @@ def load_order_location_model_fits_table(fits_path: Path) -> pd.DataFrame:
     for key, value in metadata.items():
         df[key] = value
 
-    missing_cols = [
-        col for col in ORDER_LOCATION_MODEL_COLUMNS
-        if col not in df.columns
-    ]
-
-    if missing_cols:
-        df = pd.concat(
-            [
-                df,
-                pd.DataFrame(
-                    {col: None for col in missing_cols},
-                    index=df.index,
-                ),
-            ],
-            axis=1,
-        )
-
-    return df[ORDER_LOCATION_MODEL_COLUMNS].copy().reset_index(drop=True)
+    return (
+        df
+        .reindex(columns=ORDER_LOCATION_MODEL_COLUMNS)
+        .copy()
+        .reset_index(drop=True)
+    )
 
 def load_order_location_models(
     fits_files: list[Path],
@@ -777,7 +827,10 @@ def load_order_location_models(
     if not frames:
         return pd.DataFrame(columns=ORDER_LOCATION_MODEL_COLUMNS)
 
-    out = pd.concat(frames, ignore_index=True, sort=False)
+    out = _concat_preserving_schema(
+        frames=frames,
+        columns=ORDER_LOCATION_MODEL_COLUMNS,
+    )
 
     log.info(
         "Loaded %d order-location model rows from %d FITS files",

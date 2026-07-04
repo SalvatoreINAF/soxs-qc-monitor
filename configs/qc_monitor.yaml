@@ -13,6 +13,24 @@ acquisition:
   # Upstream table/view to read
   upstream_table: quality_control_plus_lite
 
+  # Production-safe scanning policy.
+  # direct: require upstream_root/soxspipe.db and ignore nested databases.
+  # recursive: legacy mode; only use when multiple session DBs are intentional.
+  upstream_database_search: direct
+  allow_multiple_upstream_databases: false
+
+  # observing_day_dirs: scan reduced_root/YYYY-MM-DD/ only.
+  # recursive: legacy mode; scans everything below reduced_root.
+  reduced_products_search: observing_day_dirs
+
+  # Refuse likely test/scratch paths unless explicitly allowed.
+  allow_suspicious_paths: false
+  suspicious_path_tokens:
+    - test
+    - tmp
+    - temporary
+    - sandbox
+
 plots:
   output_dir: /diska/home/pipeline/soxspipe_reductions/reduced/QC/plots
   html_output: /diska/home/pipeline/soxspipe_reductions/reduced/QC/index.html

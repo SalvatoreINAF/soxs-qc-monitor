@@ -2,7 +2,10 @@
 plots/*
 data/*
 __pycache__/
+build/
 configs/qc_monitor_SSA.yaml
+configs/qc_monitor.yaml.*
+logs/
 qc_monitor/__pycache__/
 qc_monitor/upstream.py
 qc_monitor.egg-info/

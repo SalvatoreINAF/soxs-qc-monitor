@@ -1,9 +1,32 @@
 import html
 import logging
+from importlib import resources
 from collections import defaultdict
 from pathlib import Path
 
 log = logging.getLogger(__name__)
+
+
+def _load_template(template_path: Path | None) -> str:
+    if template_path is not None:
+        try:
+            return Path(template_path).read_text()
+        except FileNotFoundError as exc:
+            raise FileNotFoundError(
+                f"Configured HTML template not found: {template_path}"
+            ) from exc
+
+    try:
+        return (
+            resources.files("qc_monitor")
+            .joinpath("resources", "template.html")
+            .read_text()
+        )
+    except FileNotFoundError as exc:
+        raise FileNotFoundError(
+            "Bundled HTML template not found. Reinstall qc-monitor with "
+            "`pip install .` from the repository root."
+        ) from exc
 
 
 def _slugify(text: str) -> str:
@@ -145,9 +168,6 @@ def generate_html_report(
         log.info("No figures configured, skipping HTML report generation")
         return
 
-    if template_path is None:
-        template_path = Path(__file__).with_name("template.html")
-
     page_title = plots_cfg.get("page_title", "SOXS Quality Control Page")
 
     # plots folder is expected to be relative to the output HTML file
@@ -164,7 +184,7 @@ def generate_html_report(
         plots_relative_dir=plots_relative_dir,
     )
 
-    template = template_path.read_text()
+    template = _load_template(template_path)
 
     rendered = (
         template
