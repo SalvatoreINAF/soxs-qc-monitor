@@ -1,7 +1,11 @@
 paths:
   # Root folder containing SOXS pipeline reduction data
-  upstream_root: /diska/home/pipeline/soxspipe_reductions/
-  reduced_root: /diska/home/pipeline/soxspipe_reductions/reduced/
+  #upstream_root: /diska/home/pipeline/soxspipe_reductions/
+  #reduced_root: /diska/home/pipeline/soxspipe_reductions/reduced/
+
+  # THIS MUST BE UPDATED TO THE FINAL FOLDER
+  upstream_root: /diska/home/pipeline/soxspipe_reductions/andrea/
+  reduced_root: /diska/home/pipeline/soxspipe_reductions/andrea/sessions/base/reduced/
 
   # Historical QC database managed by this tool
   qc_database: /diska/home/pipeline/soxspipe_reductions/reduced/QC/qc.sqlite
