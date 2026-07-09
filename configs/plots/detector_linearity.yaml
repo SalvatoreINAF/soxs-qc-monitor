@@ -1,0 +1,28 @@
+figures:
+  - name: vis_detector_linearity
+    type: detector_linearity
+    arm: VIS
+    title: VIS Detector Linearity
+    filename: vis_detector_linearity.png
+    section: Detector Linearity
+    selection: latest
+    mode_order: [SHG, FLG, SLG, FHG]
+    x_label: Exposure time [s]
+    y_label: Signal [ADU]
+    figsize: [11, 8]
+    legend_loc: lower center
+    wide: true
+  - name: nir_detector_linearity
+    type: detector_linearity
+    arm: NIR
+    title: NIR Detector Linearity
+    filename: nir_detector_linearity.png
+    section: Detector Linearity
+    selection: latest
+    mode_order: [NIR]
+    x_label: Exposure time [s]
+    y_label: Signal [ADU]
+    figsize: [8, 5]
+    legend_loc: lower center
+    legend_ncol: 4
+    wide: true

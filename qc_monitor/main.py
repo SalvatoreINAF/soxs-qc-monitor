@@ -23,6 +23,11 @@ from qc_monitor.acquisition import (
 from qc_monitor.storage import SQLiteStore
 from qc_monitor.plotting import generate_order_location_plots_from_config, generate_plots_from_config
 from qc_monitor.generate_html import generate_html_report
+from qc_monitor.detector_linearity import (
+    VIS_MODE_ORDER,
+    detector_linearity_enabled,
+    load_detector_linearity_data,
+)
 
 
 class ConfigurationError(RuntimeError):
@@ -223,6 +228,19 @@ def normalize_runtime_config(cfg: dict, project_root: Path) -> dict:
         )
 
     cfg["plots"] = plots_cfg
+
+    detlin_cfg = dict(cfg.get("detector_linearity", {}))
+    arms_cfg = dict(detlin_cfg.get("arms", {}))
+
+    for arm, arm_cfg in arms_cfg.items():
+        arm_cfg = dict(arm_cfg)
+        if arm_cfg.get("root"):
+            arm_cfg["root"] = str(resolve_project_path(arm_cfg["root"], project_root))
+        arms_cfg[arm] = arm_cfg
+
+    detlin_cfg["arms"] = arms_cfg
+    cfg["detector_linearity"] = detlin_cfg
+
     return cfg
 
 
@@ -241,6 +259,7 @@ def run_preflight(cfg: dict, project_root: Path) -> bool:
     output_dir = Path(plots_cfg.get("output_dir", "")).expanduser()
     html_output = Path(plots_cfg.get("html_output", "")).expanduser()
     template_path = plots_cfg.get("template")
+    detlin_cfg = cfg.get("detector_linearity", {})
 
     upstream_database_name = acquisition_cfg.get("upstream_database_name", "soxspipe.db")
     upstream_search_mode = acquisition_cfg.get("upstream_database_search", "direct")
@@ -290,6 +309,22 @@ def run_preflight(cfg: dict, project_root: Path) -> bool:
         template_path = Path(template_path).expanduser()
         if not template_path.is_file():
             errors.append(f"plots.template is not an existing file: {template_path}")
+
+    if bool(detlin_cfg.get("enabled", False)):
+        arms_cfg = detlin_cfg.get("arms", {})
+        if not arms_cfg:
+            errors.append("detector_linearity.enabled is true but no arms are configured")
+
+        for arm, arm_cfg in arms_cfg.items():
+            if not arm_cfg or not arm_cfg.get("root"):
+                errors.append(f"detector_linearity.enabled is true but arms.{arm}.root is not configured")
+                continue
+
+            arm_root = Path(arm_cfg["root"]).expanduser()
+            if not arm_root.is_dir():
+                errors.append(f"detector_linearity.arms.{arm}.root is not an existing directory: {arm_root}")
+            elif not os.access(arm_root, os.R_OK | os.X_OK):
+                errors.append(f"detector_linearity.arms.{arm}.root is not readable/searchable: {arm_root}")
 
     if upstream_search_mode not in {"direct", "recursive"}:
         errors.append(
@@ -627,6 +662,99 @@ def consolidate_order_location_models(
     return len(df_models) + len(df_meta)
 
 
+def consolidate_detector_linearity(
+    cfg: dict,
+    qc_database: SQLiteStore,
+    dry_run: bool = False,
+    force: bool = False,
+) -> int:
+    log = logging.getLogger("qc-monitor")
+
+    if not detector_linearity_enabled(cfg):
+        log.info("Detector-linearity acquisition disabled")
+        return 0
+
+    processed_days = qc_database.get_processed_detector_linearity_obs_days()
+
+    df_measurements, df_results = load_detector_linearity_data(
+        cfg=cfg,
+        processed_obs_days=processed_days,
+        force=force,
+    )
+
+    if df_measurements.empty and df_results.empty:
+        log.info("No new detector-linearity rows to consolidate")
+        return 0
+
+    if dry_run:
+        log.info("Dry-run enabled, not writing detector-linearity data")
+
+        if not df_measurements.empty:
+            print("DETECTOR LINEARITY MEASUREMENTS")
+            print(df_measurements)
+
+        if not df_results.empty:
+            print("DETECTOR LINEARITY RESULTS")
+            print(df_results)
+
+        return len(df_measurements) + len(df_results)
+
+    if not df_measurements.empty:
+        qc_database.write_detector_linearity_measurements(df_measurements)
+
+    if not df_results.empty:
+        qc_database.write_detector_linearity_results(df_results)
+
+    processed_arm_days = set()
+
+    if not df_results.empty:
+        expected_modes_by_arm = {}
+        for arm in cfg.get("detector_linearity", {}).get("arms", {}):
+            arm = str(arm).upper()
+            if arm == "VIS":
+                expected_modes_by_arm[arm] = set(VIS_MODE_ORDER)
+            elif arm == "NIR":
+                expected_modes_by_arm[arm] = {"NIR"}
+
+        for (obs_day, arm), group in df_results.groupby(["obs_day", "eso seq arm"]):
+            arm = str(arm).upper()
+            expected_modes = expected_modes_by_arm.get(arm)
+
+            if expected_modes is None:
+                log.warning(
+                    "Detector-linearity day %s arm %s is not configured; "
+                    "not marking it as processed",
+                    obs_day,
+                    arm,
+                )
+                continue
+
+            modes = {str(v) for v in group["detector_mode"].unique()}
+            missing_modes = expected_modes - modes
+
+            if not missing_modes:
+                processed_arm_days.add((str(obs_day), arm))
+            else:
+                log.warning(
+                    "Detector-linearity day %s arm %s has partial results; missing modes %s; "
+                    "not marking it as processed",
+                    obs_day,
+                    arm,
+                    sorted(missing_modes),
+                )
+
+    for obs_day, arm in sorted(processed_arm_days):
+        qc_database.register_processed_detector_linearity_obs_day(obs_day, arm)
+
+    log.info(
+        "Consolidated %d detector-linearity measurements and %d result rows",
+        len(df_measurements),
+        len(df_results),
+    )
+
+    return len(df_measurements) + len(df_results)
+
+
 def main():
 
     ####################################################
@@ -727,6 +855,15 @@ def main():
 
     log.info("Total consolidated order-location model rows: %d", oloc_points)
 
+    detlin_points = consolidate_detector_linearity(
+        cfg=cfg,
+        qc_database=qc_database,
+        dry_run=args.dry_run,
+        force=args.rebuild_db,
+    )
+
+    log.info("Total consolidated detector-linearity rows: %d", detlin_points)
+
     if args.dry_run:
         log.info("Dry-run enabled, skipping plot generation")
         return
@@ -783,6 +920,15 @@ def main():
         df_models=df_oloc_models,
         df_meta=df_oloc_meta,
         plots_cfg=plots_cfg,
+    )
+
+    # Load detector linearity results for plotting
+    df_detlin = qc_database.load_detector_linearity_results()
+
+    generate_plots_from_config(
+        df=df_detlin,
+        plots_cfg=plots_cfg,
+        plot_types={"detector_linearity"},
     )
 
     ####################################################

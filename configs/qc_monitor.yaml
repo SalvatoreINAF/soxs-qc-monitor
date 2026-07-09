@@ -35,6 +35,22 @@ acquisition:
     - temporary
     - sandbox
 
+detector_linearity:
+  enabled: false
+  filename_token: DETLIN
+  statistic: mean
+  saturation_level: 65536
+  saturation_fraction: 0.80
+  arms:
+    VIS:
+      root: /diska/home/pipeline/soxspipe_reductions/raw/
+      roi_name: G
+      roi: [512, 537, 2000, 2100]
+    NIR:
+      root: /diska/home/pipeline/soxspipe_reductions/raw/
+      roi_name: D
+      roi: [1240, 1360, 1208, 1232]
+
 plots:
   output_dir: /diska/home/pipeline/soxspipe_reductions/reduced/QC/plots
   html_output: /diska/home/pipeline/soxspipe_reductions/reduced/QC/index.html
