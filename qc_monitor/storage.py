@@ -189,6 +189,7 @@ class SQLiteStore:
             "frame_type": "TEXT NOT NULL",
             "exptime": "REAL NOT NULL",
             "source_file": "TEXT NOT NULL",
+            "sequence_image_name": "TEXT",
             "filepath": "TEXT",
             "roi_name": "TEXT",
             "roi_y1": "INTEGER",
@@ -358,6 +359,12 @@ class SQLiteStore:
                 table="detector_linearity_results",
                 columns=DETECTOR_LINEARITY_RESULT_COLUMNS,
                 type_map=detlin_result_type_map,
+            )
+            self._ensure_columns(
+                conn=conn,
+                table="detector_linearity_measurements",
+                columns=DETECTOR_LINEARITY_MEASUREMENT_COLUMNS,
+                type_map=detlin_measurement_type_map,
             )
             self._ensure_detector_linearity_registry_schema(conn)
 

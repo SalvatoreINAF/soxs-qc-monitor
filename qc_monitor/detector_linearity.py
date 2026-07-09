@@ -20,6 +20,7 @@ DETECTOR_LINEARITY_MEASUREMENT_COLUMNS = [
     "frame_type",
     "exptime",
     "source_file",
+    "sequence_image_name",
     "filepath",
     "roi_name",
     "roi_y1",
@@ -80,10 +81,10 @@ def _header_value(header, *names: str):
     return None
 
 
-def _parse_vis_detlin_filename(path: Path) -> dict[str, object] | None:
+def _parse_vis_detlin_name(name: str) -> dict[str, object] | None:
     match = re.search(
         r"_VIS_DETLIN_(?P<mode>SHG|FLG|SLG|FHG)_(?P<kind>BIAS|UIT(?P<uit>\d+))_",
-        path.name,
+        name,
         re.IGNORECASE,
     )
 
@@ -100,10 +101,10 @@ def _parse_vis_detlin_filename(path: Path) -> dict[str, object] | None:
     }
 
 
-def _parse_nir_detlin_filename(path: Path) -> dict[str, object] | None:
+def _parse_nir_detlin_name(name: str) -> dict[str, object] | None:
     match = re.search(
         r"_NIR_DETLIN_(?:(?P<dark>DARK)_)?DIT(?P<dit>\d+(?:_\d+)?)_",
-        path.name,
+        name,
         re.IGNORECASE,
     )
 
@@ -120,8 +121,8 @@ def _parse_nir_detlin_filename(path: Path) -> dict[str, object] | None:
     }
 
 
-def _parse_detlin_filename(path: Path) -> dict[str, object] | None:
-    return _parse_vis_detlin_filename(path) or _parse_nir_detlin_filename(path)
+def _parse_detlin_name(name: str) -> dict[str, object] | None:
+    return _parse_vis_detlin_name(name) or _parse_nir_detlin_name(name)
 
 
 def _validate_roi(roi: list[int] | tuple[int, int, int, int], shape: tuple[int, int]):
@@ -134,21 +135,98 @@ def _validate_roi(roi: list[int] | tuple[int, int, int, int], shape: tuple[int, 
     return x1, x2, y1, y2
 
 
-def find_detector_linearity_fits_files(root: Path, token: str = DEFAULT_DETLIN_TOKEN) -> list[Path]:
+def _sequence_image_name_from_header(header, arm: str) -> str:
+    arm = str(arm).upper()
+
+    if arm == "NIR":
+        value = _header_value(
+            header,
+            "ESO OCS DET1 IMGNAME",
+            "HIERARCH ESO OCS DET1 IMGNAME",
+        )
+    elif arm == "VIS":
+        value = _header_value(
+            header,
+            "ESO OCS DET2 IMGNAME",
+            "HIERARCH ESO OCS DET2 IMGNAME",
+        )
+    else:
+        value = None
+
+    return "" if value is None else str(value).strip()
+
+
+def _scan_detector_linearity_candidates(
+    root: Path,
+    arm: str,
+    token: str = DEFAULT_DETLIN_TOKEN,
+    allow_filename_fallback: bool = False,
+) -> list[tuple[Path, dict, str]]:
     root = Path(root).expanduser().resolve()
 
     if not root.is_dir():
         return []
 
     token = token.upper()
-    files = [
+    files = sorted(
         path
         for path in root.rglob("*.fits")
-        if token in path.name.upper()
-        and "ignored" not in {part.lower() for part in path.parts}
-    ]
+        if "ignored" not in {part.lower() for part in path.parts}
+    )
+    candidates = []
+    scanned = 0
+    header_matches = 0
+    fallback_matches = 0
 
-    return sorted(files)
+    for path in files:
+        scanned += 1
+
+        try:
+            header = fits.getheader(path, 0)
+        except Exception as exc:
+            log.warning("Cannot read FITS header for detector-linearity candidate %s: %s", path, exc)
+            continue
+
+        sequence_image_name = _sequence_image_name_from_header(header, arm)
+        parsed = None
+
+        if token in sequence_image_name.upper():
+            parsed = _parse_detlin_name(sequence_image_name)
+            if parsed is not None:
+                header_matches += 1
+
+        if parsed is None and allow_filename_fallback and token in path.name.upper():
+            sequence_image_name = path.name
+            parsed = _parse_detlin_name(path.name)
+            if parsed is not None:
+                fallback_matches += 1
+
+        if parsed is None:
+            continue
+
+        if str(parsed["arm"]).upper() != str(arm).upper():
+            continue
+
+        candidates.append((path, parsed, sequence_image_name))
+
+    log.info(
+        "Scanned %d FITS headers under %s for %s detector-linearity; "
+        "matched %d via header and %d via filename fallback",
+        scanned,
+        root,
+        arm,
+        header_matches,
+        fallback_matches,
+    )
+
+    if scanned and not candidates:
+        log.warning(
+            "No %s detector-linearity FITS recognized under %s from sequence IMGNAME headers",
+            arm,
+            root,
+        )
+
+    return candidates
 
 
 def _read_roi(path: Path, roi: tuple[int, int, int, int]) -> tuple[np.ndarray, dict]:
@@ -168,16 +246,12 @@ def _obs_day_from_date(obs_date_utc: str) -> str:
 
 def _measure_frame(
     path: Path,
+    parsed: dict[str, object],
+    sequence_image_name: str,
     roi_name: str,
     roi: tuple[int, int, int, int],
     statistic: str,
 ) -> tuple[dict, np.ndarray] | None:
-    parsed = _parse_detlin_filename(path)
-
-    if parsed is None:
-        log.debug("Skipping DETLIN candidate with unsupported filename: %s", path)
-        return None
-
     roi_data, header = _read_roi(path, roi)
 
     obs_date_utc = _header_value(header, "DATE-OBS")
@@ -222,6 +296,7 @@ def _measure_frame(
         "frame_type": frame_type,
         "exptime": exptime,
         "source_file": path.name,
+        "sequence_image_name": sequence_image_name,
         "filepath": str(path),
         "roi_name": roi_name,
         "roi_x1": x1,
@@ -277,16 +352,24 @@ def load_detector_linearity_data(
         roi_name = str(arm_cfg.get("roi_name", configured_arm))
         roi_default = [512, 537, 2000, 2100] if configured_arm == "VIS" else [0, 0, 0, 0]
         roi = tuple(int(v) for v in arm_cfg.get("roi", roi_default))
-        files = find_detector_linearity_fits_files(root, token=token)
+        allow_filename_fallback = bool(arm_cfg.get("allow_filename_fallback", False))
+        candidates = _scan_detector_linearity_candidates(
+            root=root,
+            arm=configured_arm,
+            token=token,
+            allow_filename_fallback=allow_filename_fallback,
+        )
 
-        if not files:
+        if not candidates:
             log.info("No detector-linearity FITS files found under %s", root)
             continue
 
-        for path in files:
+        for path, parsed, sequence_image_name in candidates:
             try:
                 measured = _measure_frame(
                     path=path,
+                    parsed=parsed,
+                    sequence_image_name=sequence_image_name,
                     roi_name=roi_name,
                     roi=roi,
                     statistic=statistic,
