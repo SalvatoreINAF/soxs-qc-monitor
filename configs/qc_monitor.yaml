@@ -36,7 +36,7 @@ acquisition:
     - sandbox
 
 detector_linearity:
-  enabled: false
+  enabled: true
   filename_token: DETLIN
   statistic: mean
   saturation_level: 65536
