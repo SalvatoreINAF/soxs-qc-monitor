@@ -70,3 +70,4 @@ plots:
     - plots/dispersion_solution.yaml
     - plots/efficiency.yaml
     - plots/order_location.yaml
+    - plots/detector_linearity.yaml

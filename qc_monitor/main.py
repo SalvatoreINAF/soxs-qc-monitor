@@ -315,6 +315,16 @@ def run_preflight(cfg: dict, project_root: Path) -> bool:
         if not arms_cfg:
             errors.append("detector_linearity.enabled is true but no arms are configured")
 
+        detlin_figures = [
+            fig
+            for fig in plots_cfg.get("figures", [])
+            if fig.get("type") == "detector_linearity"
+        ]
+        if not detlin_figures:
+            warnings.append(
+                "detector_linearity enabled but no detector_linearity plots configured"
+            )
+
         for arm, arm_cfg in arms_cfg.items():
             if not arm_cfg or not arm_cfg.get("root"):
                 errors.append(f"detector_linearity.enabled is true but arms.{arm}.root is not configured")
