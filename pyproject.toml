@@ -20,6 +20,13 @@ dependencies = [
 [project.scripts]
 qc-monitor = "qc_monitor.main:main"
 
+[project.optional-dependencies]
+test = ["pytest>=8,<9"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-p no:cacheprovider"
+
 [tool.setuptools]
 packages = ["qc_monitor"]
 
