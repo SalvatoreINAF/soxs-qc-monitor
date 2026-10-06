@@ -1,8 +1,8 @@
-# H0/H1 — Regressioni delle P0 e dry-run in sola lettura
+# H0–H2 — Regressioni, dry-run e completezza delle acquisizioni
 
 Suite su `main`: H0 (`314441f`) introduce le fixture e le regressioni sulla
 baseline applicativa `96f18e3`; H1 corregge P0-A e aggiunge i casi read-only.
-P0-B rimane aperta per H2; CI e suite estesa appartengono a D1.
+H2 corregge P0-B con unità complete e transazioni; CI e suite estesa appartengono a D1.
 
 ## Esecuzione
 
@@ -15,18 +15,16 @@ python -m pytest -ra
 python -m pytest --runxfail
 ```
 
-Dopo H1 la prima esecuzione deve avere **52 PASS e 11 XFAIL P0-B**, senza
-FAIL o XPASS. La seconda deve mostrare **11 FAIL P0-B e 52 PASS**, con uscita
-pytest `1`. I 32 casi originali H0 diventano 21 PASS e 11 XFAIL; H1 aggiunge
-31 casi verdi. Soltanto la prova dei permessi può essere saltata quando i
-privilegi del processo rendono non significativo il controllo.
+Dopo H2 entrambi i comandi devono avere **113 PASS**, senza FAIL, XFAIL o
+XPASS. I 63 casi H0/H1 rimangono verdi; H2 aggiunge 50 casi di completezza e
+recupero. Soltanto la prova H1 dei permessi può essere saltata quando i privilegi
+del processo rendono non significativo il controllo.
 
-La baseline H0 aveva 15 PASS e 17 XFAIL (17 FAIL e 15 PASS con `--runxfail`).
-I sei casi P0-A ora passano e non hanno più marker. Tutti i marker rimanenti
-sono `xfail(strict=True, raises=AssertionError)` e indicano l'invariante P0-B
-violata: un successo inatteso è un errore della suite. In H2 rimuovere soltanto
-i marker dei casi risolti e verificare nuovamente entrambe le famiglie; non
-cambiare le aspettative per accettare un difetto.
+La baseline H0 aveva 15 PASS e 17 XFAIL; H1 aveva 52 PASS e 11 XFAIL P0-B.
+La verifica mirata delle 17 prove di completezza con `--runxfail` ha dato 17
+PASS prima della rimozione dei nove marker che coprivano gli 11 casi P0-B.
+La suite corrente non ha marker XFAIL: non cambiare le aspettative per accettare
+un difetto.
 
 ## Isolamento e contratti delle fixture
 
@@ -73,9 +71,9 @@ riduzione: ordine operativo «riduzione completata → monitor» e indicatore di
 fine pipeline restano da verificare in H2. Non si testa l'arrivo di dati nuovi
 dopo una chiusura valida.
 
-## Matrice dei casi H0 dopo H1
+## Matrice dei casi H0 dopo H2
 
-| Gruppo | Casi parametrizzati | Attesa dopo H1 |
+| Gruppo | Casi parametrizzati | Attesa dopo H2 |
 |---|---:|---|
 | Dry-run CLI/API, DB e directory assenti | 2 | PASS: DB e directory non creati |
 | Dry-run CLI/API, DB esistente con sentinelle e schema attuale | 2 | PASS: dati, schema e file invariati |
@@ -84,21 +82,21 @@ dopo una chiusura valida.
 | Dry-run CLI/API, output assente/presente e figura configurata | 4 | PASS: input e artefatti invariati |
 | Consolidamento ordinario CLI/API | 2 | PASS: metrica e registro persistiti |
 | Rebuild ordinario CLI | 1 | PASS: sentinelle sostituite dagli input |
-| DSOL valido + selezionato corrotto | 1 | XFAIL: chiusura anticipata |
-| DSOL retry dopo riparazione | 1 | XFAIL: file riparato saltato |
-| DSOL leggibile con R_pin non utilizzabile | 1 | XFAIL: chiusura senza statistiche richieste |
-| OLOC senza HDU dei metadati | 1 | XFAIL: chiusura anticipata |
-| OLOC retry dopo riparazione HDU | 1 | XFAIL: metadati riparati saltati |
-| DETLIN VIS, tutte le modalità ma coppia mancante/illeggibile | 2 | XFAIL: chiusura per sola presenza modalità |
-| DETLIN VIS/NIR con fit indisponibile | 2 | XFAIL: chiusura senza fit |
-| DETLIN retry con fit diverso | 1 | XFAIL: coefficienti precedenti; anche controllo righe e duplicati |
-| QC con due sorgenti dello stesso giorno, discovery ricorsiva senza DB diretto | 1 | XFAIL: seconda sorgente saltata |
+| DSOL valido + selezionato corrotto | 1 | PASS: unità aperta senza salvataggio parziale |
+| DSOL retry dopo riparazione | 1 | PASS: file riparato acquisito, nessun duplicato |
+| DSOL leggibile con R_pin non utilizzabile | 1 | PASS: ordine senza statistiche mantiene aperta l’unità |
+| OLOC senza HDU dei metadati | 1 | PASS: unità aperta senza salvataggio parziale |
+| OLOC retry dopo riparazione HDU | 1 | PASS: modello e metadati salvati insieme al retry |
+| DETLIN VIS, tutte le modalità ma coppia mancante/illeggibile | 2 | PASS: coppia incompleta impedisce la chiusura |
+| DETLIN VIS/NIR con fit indisponibile | 2 | PASS: fit indisponibile impedisce la chiusura |
+| DETLIN retry con fit diverso | 1 | PASS: intero fit sostituito, righe coerenti e nessun duplicato |
+| QC con due sorgenti dello stesso giorno, discovery ricorsiva senza DB diretto | 1 | PASS: sorgenti aggregate prima della chiusura |
 | Errore upstream: vista assente e DSOL indipendente valido | 1 | PASS: DataFrame vuoto con schema, QC aperto e DSOL acquisito |
 | Nominali QC/DSOL/OLOC/VIS/NIR, secondo avvio e prodotto estraneo | 5 | PASS: solo registro pertinente chiuso, secondo avvio invariato |
 
 Mancata chiusura e recupero sono test separati. Le precondizioni delle fixture
-e gli errori CLI inattesi sollevano `RuntimeError`, quindi non possono essere
-assorbiti dai marker che ammettono soltanto `AssertionError`. Il caso dei flag
+e gli errori CLI inattesi sollevano `RuntimeError`; nella baseline non potevano
+essere assorbiti dai marker che ammettevano soltanto `AssertionError`. Il caso dei flag
 incompatibili ammette come risultato intermedio soltanto 0 (difetto della baseline H0) o
 2 (rifiuto richiesto); qualunque altra uscita è un errore dell'harness.
 
@@ -128,7 +126,44 @@ eseguono checkpoint o conversioni e non si aprono copie temporanee. Nei test
 WAL con sidecar un writer controllato resta aperto durante il confronto;
 quando i sidecar sono assenti, il writer viene chiuso prima della prova.
 
-## Evidenze locali del 6 ottobre 2026
+## Casi aggiuntivi H2
+
+| Contratto | Casi | Attesa |
+|---|---:|---|
+| QC invalido: valore non numerico/non finito, braccio o identificativi vuoti | 5 | Nessuna chiusura; dopo riparazione una riga e registro corretto |
+| Duplicati QC con identità nullable, equivalenti o conflittuali | 2 | Una riga deduplicata oppure unità aperta |
+| Sorgente QC vuota valida versus vista fallita, DSOL indipendente | 2 | Esiti interni distinti; solo il fallimento blocca QC |
+| API multisorgente: membership, aggregazione e secondo avvio | 1 | Percorso estraneo respinto prima delle scritture; entrambe le sorgenti salvate |
+| API multisorgente dry-run con seconda sorgente WAL | 1 | Rifiuto prima dello store QC, file invariati |
+| DSOL: ordine inutilizzabile oppure campioni individuali scartati | 2 | Tutti gli ordini presenti devono avere statistiche; n_points=1 ammesso |
+| OLOC: coefficienti, geometria, metadati vuoti o gradi mancanti | 4 | Unità aperta senza salvataggio parziale |
+| DETLIN: header mancanti/vuoti, indice duplicato, conteggio incoerente/non numerico, più date o pixel non finiti | 10 | Unità aperta senza risultati persistiti |
+| Più sequenze DETLIN nella stessa giornata | 1 | Ambiguità respinta senza mescolare misure/fit |
+| NIR con flat mancante | 1 | Coppia incompleta impedisce la chiusura |
+| Esposizione satura con altri tempi utilizzabili | 1 | Esposizione conservata con fit_used=0, fit complessivo valido |
+| Acquisizione forzata incompleta delle quattro famiglie | 4 | Dati e registro precedenti invariati |
+| Dati parziali sperimentali delle quattro famiglie e retry | 4 | Tentativo incompleto non modifica; completo sostituisce e chiude |
+| Trigger SQL fallisce durante la registrazione, quattro famiglie | 4 | Rollback di dati, registro e sqlite_sequence; retry successivo possibile |
+| QC con una giornata valida e un’altra invalida | 1 | Chiusura indipendente della giornata valida |
+| Nome DSOL selezionato malformato | 1 | Fallimento esplicito senza crash di parsing o chiusura |
+| Dry-run su unità incompleta | 1 | Stessa validazione, nessuna scrittura |
+| Dark NIR senza flat con conteggio header coerente | 1 | Conteggio da solo insufficiente, unità aperta |
+| Sorgente QC vuota/fallita e registro non utilizzato assente | 2 | API ritorna zero senza errore artificiale o migrazione |
+| Geometria OLOC numerica rappresentata come testo | 1 | Confronto numerico dei limiti, range invalido respinto |
+| NEXP dichiarato enorme | 1 | Diagnosi di incompletezza senza allocare un intervallo enorme |
+
+H2 salva solo unità complete. `test_unit_recovery.py` usa trigger SQLite reali
+per i guasti SQL; non sostituisce writer, connessioni o loader con mock. I test
+di force verificano anche la conservazione del vecchio registro chiuso; quelli
+di retry eliminano deliberatamente il registro per simulare dati sperimentali
+rimasti aperti. I nuovi casi esercitano la stessa acquisizione e le stesse
+transazioni utilizzate dai coordinatori.
+
+Le fixture DETLIN ora hanno TPL START/ID coerenti e NEXP/EXPNO assegnati
+all'inventario sintetico. La riparazione di un frame mantiene i suoi identificativi;
+le cardinalità descrivono la fixture, non un conteggio universale del produttore.
+
+## Ambiente ed evidenze H0/H1 del 6 ottobre 2026
 
 Interprete: `/opt/homebrew/Caskroom/miniforge/base/envs/qc/bin/python`, Python
 3.12.12; NumPy 2.1.0, pandas 2.3.3, PyYAML 6.0.2, Astropy 6.1.2, Matplotlib
@@ -155,3 +190,27 @@ Le directory temporanee non sono risorse necessarie a un clone: l'installazione
 ordinaria dell'extra `test` rende disponibili gli stessi comandi senza il
 `PYTHONPATH` locale. Nessuna prova riguarda i dati sperimentali dell'utente,
 lo standalone, il rendering completo del report o le prestazioni operative.
+
+
+## Evidenze H2
+
+Verifica iniziale delle regressioni: `python -m pytest tests/test_completeness.py
+--runxfail -q --tb=short`, **17 PASS** in 35,31 secondi prima della rimozione
+dei marker P0-B. Verifica mirata finale di `test_unit_recovery.py`: **50 PASS**
+in 75,07 secondi. La matrice sopra descrive tutti i nuovi casi.
+
+Le verifiche complete finali, con gli stessi prefissi di ambiente documentati
+per H0/H1, sono:
+
+```sh
+PYTHONPATH=/private/tmp/qc-monitor-h0-test-deps PYTHONDONTWRITEBYTECODE=1 /opt/homebrew/Caskroom/miniforge/base/envs/qc/bin/python -m pytest -ra --tb=short
+PYTHONPATH=/private/tmp/qc-monitor-h0-test-deps PYTHONDONTWRITEBYTECODE=1 /opt/homebrew/Caskroom/miniforge/base/envs/qc/bin/python -m pytest --runxfail --tb=short
+```
+
+Entrambe: **113 PASS**, uscita 0, 591,30 secondi, senza FAIL, XFAIL, XPASS,
+warning o skip. Le esecuzioni sono indipendenti e hanno usato directory
+temporanee separate. Le durate riflettono la suite e i subprocess scientifici
+concorrenti; non sono un benchmark del monitor operativo.
+
+Nessun dato operativo è stato usato come destinazione dei test. Nessuna
+ricostruzione degli archivi sperimentali o modifica al codice standalone.

@@ -284,6 +284,66 @@ loader retains its existing empty-DataFrame behavior for read/schema errors.
 `SQLiteStore(path, read_only=True)` also exposes read-only register access,
 without initializing an absent archive.
 
+
+## Complete observing-day acquisition
+
+Run the monitor **after reduction completes**. H2 has no operational pipeline
+completion marker: it checks selected inputs and their declared metadata, not
+the age of a directory or a fixed number of products.
+
+QC, dispersion solutions, order-location products and detector linearity have
+separate processed-day registers (DETLIN also distinguishes the arm). A complete
+unit replaces its data and writes its `PROCESSED` register in one transaction.
+An incomplete attempt leaves the existing archive unchanged and can be retried;
+no partial measurements or fits from that attempt are published. A failed SQL
+write rolls back the data and register together and raises an explicit error.
+Closed units are skipped normally. Forced acquisition replaces an older closed
+unit only after full validation; failure preserves the previous data and register.
+Consequently a failed forced attempt must be retried explicitly with force.
+
+QC reads all selected session databases before closing any day. A source with
+an unreadable/missing view or schema blocks all new QC units when its affected
+days cannot be identified; a valid empty source does not. Invalid required QC
+identifiers, arms or numeric values block their day. Other acquisition families
+continue independently. Equivalent duplicate rows, including nullable identities,
+are deduplicated; conflicting rows sharing an existing identity keep the unit open.
+Logs distinguish selected rows from persisted rows; general batch summaries and
+new partial-run exit codes are deferred to D1.
+
+A DSOL product requires usable line identifiers and resolution statistics for
+every order actually present. Nonfinite individual `R_pin` samples are excluded
+from statistics if usable samples remain for that order; an order with no usable
+sample blocks closure. OLOC requires both the model HDU and order-metadata HDU,
+finite coordinate ranges, and the coefficients required by its declared polynomial
+degrees. Optional undeclared polynomials are not required.
+
+DETLIN requires `ESO TPL START`, `ESO TPL ID`, `ESO TPL NEXP` and `ESO TPL EXPNO`.
+The exposure indices must uniquely cover the declared `1..NEXP`; no universal
+exposure count is assumed. VIS requires the four existing modes, two bias frames
+per mode, and two flats per selected exposure time. NIR requires one dark and two
+flats per selected exposure time. Each mode must have a finite fit using at least
+two distinct usable times under the existing saturation selection. Saturated
+exposures remain in the results when a fit is available from other exposures.
+
+H2 intentionally keeps the existing SQLite schema: more than one sequence per
+day/arm, missing sequence metadata, or a sequence spanning dates remains open
+with a diagnostic. Persistent multisequence identities and report adaptations
+are deferred to D2. Recognizable DETLIN files with unreadable headers block their
+arm's open units when no day can be established. Foreign files do not block
+acquisition. `DATE-OBS` still supplies the DETLIN day; H2 introduces no new
+observing-night definition.
+
+When `allow_multiple_upstream_databases` is enabled, the public
+`consolidate(upstream_db_path, ...)` API acquires the full set returned by the
+configured discovery policy, verifies membership of the supplied path, and
+returns the aggregate number of valid selected QC rows. This count is not a
+promise that an incomplete unit was persisted. Single-source behavior and the
+read-only dry-run contract remain unchanged.
+
+H2 does not automatically reopen experimental days already registered by earlier
+versions. Explicit archive maintenance requires a backup and verification of
+available source data. It does not alter the standalone detector-linearity tool.
+
 ---
 
 # Batch Execution

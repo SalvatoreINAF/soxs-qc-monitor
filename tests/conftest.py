@@ -183,6 +183,12 @@ class Lab:
         name = f"SOXS_GEN_FLAT_{arm}_DETLIN_{mode_part}{token}_278_{index:04d}.fits"
         path = self.raw / name
         header = fits.Header()
+        metadata = getattr(self, "detlin_headers", {}).get(name)
+        if metadata:
+            header["HIERARCH ESO TPL START"] = DAY + "T08:00:00"
+            header["HIERARCH ESO TPL ID"] = "SOXS_gen_tec_" + arm + "DetLin"
+            header["HIERARCH ESO TPL NEXP"] = metadata[0]
+            header["HIERARCH ESO TPL EXPNO"] = metadata[1]
         header["DATE-OBS"] = DAY + f"T08:{time:02d}:{index:02d}"
         header["HIERARCH ESO SEQ ARM"] = arm
         # Keep the HIERARCH card within FITS' 80-character limit, including
@@ -205,6 +211,20 @@ class Lab:
                            "roi_name": "synthetic", "allow_filename_fallback": False}},
         }
         modes = ("SHG", "FLG", "SLG", "FHG") if arm == "VIS" else ("NIR",)
+        self.detlin_headers = {}
+        planned = []
+        for mode in modes:
+            if arm == "VIS":
+                planned.extend((mode, "bias", 0, index) for index in (1, 2))
+            for time in times:
+                if arm == "NIR":
+                    planned.append((mode, "dark", time, 1))
+                planned.extend((mode, "flat", time, index) for index in (1, 2))
+        for number, (mode, kind, time, index) in enumerate(planned, 1):
+            token = ("BIAS" if kind == "bias" else f"UIT{time}") if arm == "VIS" else (("DARK_" if kind == "dark" else "") + f"DIT{time}")
+            mode_part = mode + "_" if arm == "VIS" else ""
+            name = f"SOXS_GEN_FLAT_{arm}_DETLIN_{mode_part}{token}_278_{index:04d}.fits"
+            self.detlin_headers[name] = (len(planned), number)
         for mode in modes:
             if arm == "VIS":
                 for index in (1, 2):

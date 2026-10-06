@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from astropy.io import fits
+from qc_monitor._outcomes import AcquisitionBatch, InputOutcome
 
 log = logging.getLogger(__name__)
 
@@ -162,6 +163,7 @@ def _scan_detector_linearity_candidates(
     arm: str,
     token: str = DEFAULT_DETLIN_TOKEN,
     allow_filename_fallback: bool = False,
+    outcomes: list[InputOutcome] | None = None,
 ) -> list[tuple[Path, dict, str]]:
     root = Path(root).expanduser().resolve()
 
@@ -175,6 +177,7 @@ def _scan_detector_linearity_candidates(
         if "ignored" not in {part.lower() for part in path.parts}
     )
     candidates = []
+    outcomes = outcomes if outcomes is not None else []
     scanned = 0
     header_matches = 0
     fallback_matches = 0
@@ -186,6 +189,11 @@ def _scan_detector_linearity_candidates(
             header = fits.getheader(path, 0)
         except Exception as exc:
             log.warning("Cannot read FITS header for detector-linearity candidate %s: %s", path, exc)
+            named = _parse_detlin_name(path.name)
+            if (named and named["arm"] == arm) or (token in path.name.upper() and named is None):
+                outcomes.append(InputOutcome(str(path), "failed", reason=str(exc), arm=arm))
+            else:
+                outcomes.append(InputOutcome(str(path), "foreign", arm=arm))
             continue
 
         sequence_image_name = _sequence_image_name_from_header(header, arm)
@@ -203,6 +211,8 @@ def _scan_detector_linearity_candidates(
                 fallback_matches += 1
 
         if parsed is None:
+            state = "failed" if token in sequence_image_name.upper() else "foreign"
+            outcomes.append(InputOutcome(str(path), state, reason="Unrecognized sequence name", arm=arm))
             continue
 
         if str(parsed["arm"]).upper() != str(arm).upper():
@@ -312,26 +322,29 @@ def _measure_frame(
 
 
 def load_detector_linearity_data(
+    cfg: dict, processed_obs_days: set[tuple[str, str]] | None = None, force: bool = False,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    batch = _load_detector_linearity_batch(cfg, processed_obs_days, force)
+    return batch.frames["measurements"], batch.frames["results"]
+
+
+def _load_detector_linearity_batch(
     cfg: dict,
     processed_obs_days: set[tuple[str, str]] | None = None,
     force: bool = False,
-) -> tuple[pd.DataFrame, pd.DataFrame]:
+) -> AcquisitionBatch:
     detlin_cfg = cfg.get("detector_linearity", {})
 
     if not bool(detlin_cfg.get("enabled", False)):
-        return (
-            pd.DataFrame(columns=DETECTOR_LINEARITY_MEASUREMENT_COLUMNS),
-            pd.DataFrame(columns=DETECTOR_LINEARITY_RESULT_COLUMNS),
-        )
+        return AcquisitionBatch({"measurements": pd.DataFrame(columns=DETECTOR_LINEARITY_MEASUREMENT_COLUMNS),
+                                 "results": pd.DataFrame(columns=DETECTOR_LINEARITY_RESULT_COLUMNS)})
 
     arms_cfg = detlin_cfg.get("arms", {})
 
     if not arms_cfg:
         log.info("No detector-linearity arms are configured")
-        return (
-            pd.DataFrame(columns=DETECTOR_LINEARITY_MEASUREMENT_COLUMNS),
-            pd.DataFrame(columns=DETECTOR_LINEARITY_RESULT_COLUMNS),
-        )
+        return AcquisitionBatch({"measurements": pd.DataFrame(columns=DETECTOR_LINEARITY_MEASUREMENT_COLUMNS),
+                                 "results": pd.DataFrame(columns=DETECTOR_LINEARITY_RESULT_COLUMNS)})
 
     token = str(detlin_cfg.get("filename_token", DEFAULT_DETLIN_TOKEN))
     statistic = str(detlin_cfg.get("statistic", "mean")).lower()
@@ -344,6 +357,8 @@ def load_detector_linearity_data(
     processed_obs_days = processed_obs_days or set()
     measurements = []
     roi_cache = {}
+    outcomes = []
+    inventory = []
 
     for configured_arm, arm_cfg in arms_cfg.items():
         if not arm_cfg or not arm_cfg.get("root"):
@@ -360,6 +375,7 @@ def load_detector_linearity_data(
             arm=configured_arm,
             token=token,
             allow_filename_fallback=allow_filename_fallback,
+            outcomes=outcomes,
         )
 
         if not candidates:
@@ -367,7 +383,20 @@ def load_detector_linearity_data(
             continue
 
         for path, parsed, sequence_image_name in candidates:
+            unit = None
             try:
+                header = fits.getheader(path, 0)
+                date = str(_header_value(header, "DATE-OBS") or "")
+                if date:
+                    unit = (_obs_day_from_date(date), configured_arm)
+                if not force and unit in processed_obs_days:
+                    continue
+                entry = {"unit": unit, "path": str(path), "start": header.get("ESO TPL START"),
+                         "id": header.get("ESO TPL ID"), "nexp": header.get("ESO TPL NEXP"),
+                         "expno": header.get("ESO TPL EXPNO")}
+                inventory.append(entry)
+                if unit is None:
+                    raise ValueError("Missing DATE-OBS")
                 measured = _measure_frame(
                     path=path,
                     parsed=parsed,
@@ -378,6 +407,7 @@ def load_detector_linearity_data(
                 )
             except Exception as exc:
                 log.error("Failed to measure detector-linearity FITS %s: %s", path, exc)
+                outcomes.append(InputOutcome(str(path), "failed", unit, str(exc), configured_arm))
                 continue
 
             if measured is None:
@@ -386,7 +416,12 @@ def load_detector_linearity_data(
             row, roi_data = measured
 
             if row["eso seq arm"] != configured_arm:
+                outcomes.append(InputOutcome(str(path), "failed", unit, "Arm/header mismatch", configured_arm))
                 continue
+            if not np.isfinite(row["signal_raw"]) or not np.isfinite(roi_data).all():
+                outcomes.append(InputOutcome(str(path), "failed", unit, "Nonfinite measurement", configured_arm))
+                continue
+            outcomes.append(InputOutcome(str(path), "acquired", unit))
 
             if not force and (row["obs_day"], row["eso seq arm"]) in processed_obs_days:
                 continue
@@ -394,17 +429,18 @@ def load_detector_linearity_data(
             measurements.append(row)
             roi_cache[row["source_file"]] = roi_data
 
+    ambiguous = _validate_detlin_inventory(inventory, outcomes)
     if not measurements:
-        return (
-            pd.DataFrame(columns=DETECTOR_LINEARITY_MEASUREMENT_COLUMNS),
-            pd.DataFrame(columns=DETECTOR_LINEARITY_RESULT_COLUMNS),
-        )
+        return AcquisitionBatch({"measurements": pd.DataFrame(columns=DETECTOR_LINEARITY_MEASUREMENT_COLUMNS),
+                                 "results": pd.DataFrame(columns=DETECTOR_LINEARITY_RESULT_COLUMNS)}, outcomes)
 
     df_measurements = pd.DataFrame(measurements)
     df_measurements = df_measurements[DETECTOR_LINEARITY_MEASUREMENT_COLUMNS]
 
     df_results = compute_detector_linearity_results(
-        df_measurements=df_measurements,
+        df_measurements=df_measurements.loc[[
+            (str(row["obs_day"]), str(row["eso seq arm"])) not in ambiguous
+            for _, row in df_measurements.iterrows()]],
         roi_cache=roi_cache,
         saturation_limit=saturation_limit,
     )
@@ -415,7 +451,29 @@ def load_detector_linearity_data(
         len(df_results),
     )
 
-    return df_measurements, df_results
+    for unit, group in df_measurements.groupby(["obs_day", "eso seq arm"]):
+        unit = tuple(str(value) for value in unit)
+        required_modes = set(VIS_MODE_ORDER) if unit[1] == "VIS" else {"NIR"}
+        if set(group["detector_mode"]) != required_modes:
+            outcomes.append(InputOutcome("sequence", "failed", unit, "Missing detector modes"))
+        for mode, mode_group in group.groupby("detector_mode"):
+            flats = mode_group[~mode_group["frame_type"].str.lower().isin(["bias", "dark"])]
+            if unit[1] == "VIS" and len(mode_group[mode_group["frame_type"].str.lower() == "bias"]) != 2:
+                outcomes.append(InputOutcome(mode, "failed", unit, "Expected two VIS bias frames"))
+            times = set(flats["exptime"])
+            if unit[1] == "NIR":
+                times.update(mode_group.loc[mode_group["frame_type"].str.lower() == "dark", "exptime"])
+            for time in sorted(times):
+                pair = flats[flats["exptime"] == time]
+                darks = mode_group[(mode_group["frame_type"].str.lower() == "dark") & (mode_group["exptime"] == time)]
+                if len(pair) != 2 or (unit[1] == "NIR" and len(darks) != 1):
+                    outcomes.append(InputOutcome(mode, "failed", unit, f"Incomplete exposure at time {time}"))
+            fitted = df_results[(df_results["obs_day"] == unit[0]) &
+                                (df_results["eso seq arm"] == unit[1]) &
+                                (df_results["detector_mode"] == mode)]
+            if fitted.empty or fitted.loc[fitted["fit_used"] == 1, "exptime"].nunique() < 2 or not np.isfinite(fitted[["slope", "intercept"]].to_numpy(dtype=float)).all():
+                outcomes.append(InputOutcome(mode, "failed", unit, "Required fit unavailable"))
+    return AcquisitionBatch({"measurements": df_measurements, "results": df_results}, outcomes)
 
 
 def compute_detector_linearity_results(
@@ -744,3 +802,51 @@ def _warn_if_nir_not_monotonic(rows: list[dict], saturation_limit: float):
             [float(v) for v in exptimes],
             [float(v) for v in signals],
         )
+
+
+def _validate_detlin_inventory(inventory: list[dict], outcomes: list[InputOutcome]) -> set[tuple]:
+    ambiguous = set()
+    sequences = {}
+    by_unit = {}
+    names = {}
+    for entry in inventory:
+        unit = entry["unit"]
+        if unit is None:
+            continue
+        try:
+            if not str(entry["start"] or "").strip() or not str(entry["id"] or "").strip():
+                raise ValueError("Missing TPL START/ID")
+            n, index = int(entry["nexp"]), int(entry["expno"])
+            if n <= 0 or index < 1 or index > n or n != float(entry["nexp"]) or index != float(entry["expno"]):
+                raise ValueError("Invalid TPL NEXP/EXPNO")
+            sequence = (unit[1], str(entry["id"]), str(entry["start"]))
+            sequences.setdefault(sequence, []).append(entry)
+            by_unit.setdefault(unit, set()).add(sequence)
+            name = Path(entry["path"]).name
+            names.setdefault(name, []).append(unit)
+        except (TypeError, ValueError, OverflowError) as exc:
+            outcomes.append(InputOutcome(entry["path"], "failed", unit, str(exc)))
+            ambiguous.add(unit)
+    for sequence, entries in sequences.items():
+        units = {entry["unit"] for entry in entries}
+        counts = {int(entry["nexp"]) for entry in entries}
+        indices = [int(entry["expno"]) for entry in entries]
+        if len(units) != 1:
+            ambiguous.update(units)
+            reason = "Sequence crosses observing days"
+        elif len(counts) != 1 or len(indices) != next(iter(counts)) or len(indices) != len(set(indices)):
+            reason = "Incomplete/inconsistent sequence exposure inventory"
+        else:
+            continue
+        for unit in units:
+            outcomes.append(InputOutcome(str(sequence), "failed", unit, reason))
+    for unit, sequences_for_unit in by_unit.items():
+        if len(sequences_for_unit) > 1:
+            ambiguous.add(unit)
+            outcomes.append(InputOutcome("sequence", "failed", unit, "Multiple sequences for day/arm"))
+    for name, units in names.items():
+        if len(units) > 1:
+            ambiguous.update(units)
+            for unit in set(units):
+                outcomes.append(InputOutcome(name, "failed", unit, "Ambiguous source filename"))
+    return ambiguous

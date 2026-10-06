@@ -18,6 +18,31 @@ log = logging.getLogger(__name__)
 
 TABLE_COLUMNS = list(TABLE_SCHEMA.keys())
 
+# Existing schema identities; these writes deliberately use strict INSERT.
+_UNIT_TABLES = {
+    "qc": [("qc_metrics", TABLE_COLUMNS, ["obs_date_utc", "soxspipe_recipe", "qc_name", "eso seq arm", "qc_order", "file"])],
+    "dsol": [("dispersion_solution_lines", DISPERSION_SOLUTION_COLUMNS, ["source_file", "order", "wavelength", "detector_x", "detector_y"]),
+             ("dispersion_resolution_stats", DISPERSION_RESOLUTION_STATS_COLUMNS, ["source_file", "order"])],
+    "oloc": [("order_location_models", ORDER_LOCATION_MODEL_COLUMNS, ["source_file"]),
+             ("order_location_meta", ORDER_LOCATION_META_COLUMNS, ["source_file", "order"])],
+    "detlin": [("detector_linearity_measurements", DETECTOR_LINEARITY_MEASUREMENT_COLUMNS, ["source_file"]),
+               ("detector_linearity_results", DETECTOR_LINEARITY_RESULT_COLUMNS, ["obs_day", "eso seq arm", "detector_mode", "exptime", "pair_index"])],
+}
+_REGISTERS = {"qc": "processed_obs_days", "dsol": "processed_dispersion_obs_days",
+              "oloc": "processed_order_location_obs_days", "detlin": "processed_detector_linearity_obs_days"}
+
+
+def _prepare_unit_frames(family: str, frames: list[pd.DataFrame]) -> list[pd.DataFrame]:
+    prepared = []
+    for (_, columns, keys), frame in zip(_UNIT_TABLES[family], frames, strict=True):
+        normalized = frame[columns].astype(object).where(pd.notna(frame[columns]), None)
+        normalized = normalized.drop_duplicates().reset_index(drop=True)
+        if normalized.duplicated(subset=keys).any():
+            raise ValueError(f"Conflicting {family} rows for existing identity {keys}")
+        prepared.append(normalized)
+    return prepared
+
+
 class ReadOnlyStorageError(RuntimeError):
     """An archive cannot be safely inspected without filesystem writes."""
 
@@ -589,6 +614,42 @@ class SQLiteStore:
                 (obs_day, arm, processed_at, status),
             )
             conn.commit()
+
+    def _replace_complete_unit(self, family: str, unit: tuple[str, ...], frames: list[pd.DataFrame]):
+        frames = _prepare_unit_frames(family, frames)
+        day_column = "night start date" if family == "qc" else "obs_day"
+        condition = self._quote(day_column) + " = ?"
+        if family == "detlin":
+            condition += ' AND "eso seq arm" = ?'
+        with closing(self._connect()) as conn:
+            with conn:
+                for (table, columns, _), frame in zip(_UNIT_TABLES[family], frames, strict=True):
+                    conn.execute(f'DELETE FROM {self._quote(table)} WHERE {condition}', unit)
+                    columns_sql = ", ".join(self._quote(column) for column in columns)
+                    placeholders = ", ".join("?" for _ in columns)
+                    values = [tuple(value.item() if hasattr(value, "item") else value for value in row)
+                              for row in frame.itertuples(index=False, name=None)]
+                    conn.executemany(f'INSERT INTO {self._quote(table)} ({columns_sql}) VALUES ({placeholders})', values)
+                register = _REGISTERS[family]
+                timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+                if family == "detlin":
+                    conn.execute(f'INSERT OR REPLACE INTO {register} (obs_day, arm, processed_at, status) VALUES (?, ?, ?, ?)',
+                                 (*unit, timestamp, "PROCESSED"))
+                else:
+                    conn.execute(f'INSERT OR REPLACE INTO {register} (obs_day, processed_at, status) VALUES (?, ?, ?)',
+                                 (*unit, timestamp, "PROCESSED"))
+
+    def replace_qc_day(self, day: str, metrics: pd.DataFrame):
+        self._replace_complete_unit("qc", (day,), [metrics])
+
+    def replace_dispersion_day(self, day: str, lines: pd.DataFrame, stats: pd.DataFrame):
+        self._replace_complete_unit("dsol", (day,), [lines, stats])
+
+    def replace_order_location_day(self, day: str, models: pd.DataFrame, meta: pd.DataFrame):
+        self._replace_complete_unit("oloc", (day,), [models, meta])
+
+    def replace_detector_linearity_day(self, day: str, arm: str, measurements: pd.DataFrame, results: pd.DataFrame):
+        self._replace_complete_unit("detlin", (day, arm), [measurements, results])
 
     # Metrics storage
 

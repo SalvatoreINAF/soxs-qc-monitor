@@ -9,6 +9,7 @@ import pandas as pd
 
 from qc_monitor.acquisition import (
     find_session_databases,
+    _load_qc_batch, _load_dsol_batch, _load_oloc_batch,
     find_observing_day_directories,
     load_qc_from_session_db,
     find_dispersion_solution_fits_files,
@@ -20,11 +21,14 @@ from qc_monitor.acquisition import (
     load_order_location_models,
     load_order_location_meta,
 )
-from qc_monitor.storage import SQLiteStore, ReadOnlyStorageError, validate_readonly_sqlite_path
+from qc_monitor.storage import SQLiteStore, ReadOnlyStorageError, validate_readonly_sqlite_path, _prepare_unit_frames
+from qc_monitor.schema import TABLE_SCHEMA
+from qc_monitor._outcomes import AcquisitionBatch
 from qc_monitor.plotting import generate_order_location_plots_from_config, generate_plots_from_config
 from qc_monitor.generate_html import generate_html_report
 from qc_monitor.detector_linearity import (
     VIS_MODE_ORDER,
+    _load_detector_linearity_batch,
     detector_linearity_enabled,
     load_detector_linearity_data,
 )
@@ -437,15 +441,16 @@ def consolidate(
     dry_run: bool = False,
 ) -> int:
     """
-    Consolidate new QC metrics from one upstream SOXS pipeline database
-    into the independent historical QC database.
+    Consolidate selected QC metrics into the independent historical database.
+    With multiple sources enabled, acquire the whole configured source set.
 
     Can be called either from the main QC script or directly within the pipeline.
 
     Parameters
     ----------
     upstream_db_path : Path
-        Path to the upstream SOXS pipeline SQLite database.
+        Path to an upstream SOXS pipeline SQLite database. With multiple
+        sources enabled, it must belong to the configured discovery set.
     config_path : Path
         Path to the qc_monitor YAML configuration file.
     force : bool
@@ -458,7 +463,8 @@ def consolidate(
     Returns
     -------
     int
-        Number of QC datapoints selected for consolidation.
+        Number of valid QC datapoints selected, including rows of units
+        that remain incomplete and are therefore not persisted.
     """
     log = logging.getLogger("qc-monitor")
 
@@ -474,317 +480,134 @@ def consolidate(
         project_root,
     )
 
+    paths = [upstream_db_path]
+    if cfg.get("acquisition", {}).get("allow_multiple_upstream_databases", False):
+        normalized = normalize_runtime_config(cfg, project_root)
+        paths = find_session_databases(Path(normalized["paths"]["upstream_root"]),
+                                       cfg["acquisition"]["upstream_database_name"],
+                                       cfg["acquisition"].get("upstream_database_search", "direct"))
+        if upstream_db_path.resolve() not in {path.resolve() for path in paths}:
+            raise ConfigurationError(f"Upstream path is outside configured sources: {upstream_db_path}")
     if dry_run:
-        validate_readonly_sqlite_path(upstream_db_path)
+        for path in paths:
+            validate_readonly_sqlite_path(path)
     qc_database = SQLiteStore(qc_database_path, read_only=dry_run)
-
-    # Load QC datapoints from the upstream database
-
-    df = load_qc_from_session_db(
-        session_db_path=upstream_db_path,
-        cfg=cfg,
-    )
-
-    if df.empty:
-        log.info("No QC datapoints found in upstream database: %s", upstream_db_path)
-        return 0
-    
-    # Filter out already processed observing days, unless --force is used
-
-    processed_obs_days = qc_database.get_processed_obs_days()
-
-    if not force:
-        df = df[~df["night start date"].isin(processed_obs_days)].copy()
-
-    if df.empty:
-        log.info(
-            "No new QC datapoints to consolidate from upstream database: %s",
-            upstream_db_path,
-        )
-        return 0
-
-    log.info(
-        "Selected %d QC datapoints from %s",
-        len(df),
-        upstream_db_path,
-    )
-
-    # Write new QC datapoints to the historical QC database and mark observing days as processed
-
-    if dry_run:
-        log.info("Dry-run enabled, not writing to historical QC database")
-        print(df)
-        return len(df)
-
-    qc_database.write_metrics(df)
-
-    for obs_day in sorted(df["night start date"].unique()):
-        qc_database.register_processed_obs_day(str(obs_day))
-
-    log.info(
-        "Consolidated %d QC datapoints from %s",
-        len(df),
-        upstream_db_path,
-    )
-
-    return len(df)
+    return _consolidate_qc_sources(paths, cfg, qc_database, force, dry_run)
 
 
-def consolidate_dispersion_solution(
-    reduced_root: Path,
-    qc_database: SQLiteStore,
-    dry_run: bool = False,
-    force: bool = False,
-    search_mode: str = "observing_day_dirs",
-) -> int:
+def _commit_batch(batch, family, qc_database, dry_run, already_closed, force, counts=None):
     log = logging.getLogger("qc-monitor")
+    frames = list(batch.frames.values())
+    day_column = "night start date" if family == "qc" else "obs_day"
+    units = set()
+    for frame in frames:
+        if not frame.empty:
+            columns = [day_column, "eso seq arm"] if family == "detlin" else [day_column]
+            units.update(tuple(str(value) for value in row) for row in frame[columns].itertuples(index=False, name=None))
+    units.update(outcome.unit for outcome in batch.outcomes if outcome.unit is not None)
+    selected, persisted = 0, 0
+    writers = {"qc": qc_database.replace_qc_day, "dsol": qc_database.replace_dispersion_day,
+               "oloc": qc_database.replace_order_location_day, "detlin": qc_database.replace_detector_linearity_day}
+    for unit in sorted(units):
+        closed_key = unit if family == "detlin" else unit[0]
+        if not force and closed_key in already_closed:
+            continue
+        subset = []
+        for frame in frames:
+            mask = frame[day_column].astype(str).eq(unit[0])
+            if family == "detlin":
+                mask &= frame["eso seq arm"].astype(str).eq(unit[1])
+            subset.append(frame.loc[mask].copy())
+        selected += sum(len(frame) for frame in subset)
+        failures = batch.failures(unit)
+        if failures:
+            for failure in failures:
+                log.error("%s unit %s remains open: %s: %s", family, unit, failure.source, failure.reason)
+            continue
+        try:
+            subset = _prepare_unit_frames(family, subset)
+        except ValueError as exc:
+            log.error("%s unit %s remains open: %s", family, unit, exc)
+            continue
+        if not all(not frame.empty for frame in subset):
+            log.error("%s unit %s remains open: missing required data", family, unit)
+            continue
+        if dry_run:
+            for frame in subset:
+                print(frame)
+            log.info("Dry-run: %s unit %s is complete; no writes", family, unit)
+        else:
+            writers[family](*unit, *subset)
+            persisted += sum(len(frame) for frame in subset)
+    for outcome in batch.outcomes:
+        if outcome.state == "failed" and outcome.unit is None:
+            log.error("%s acquisition failed: %s: %s", family, outcome.source, outcome.reason)
+        elif outcome.state == "unusable":
+            log.info("%s discarded sample: %s: %s", family, outcome.source, outcome.reason)
+    if counts is not None:
+        counts.update(selected=selected, persisted=persisted)
+    log.info("%s selected %d rows; persisted %d rows", family, selected, persisted)
+    return selected
 
-    fits_files = find_dispersion_solution_fits_files(
-        reduced_root,
-        search_mode=search_mode,
-    )
 
-    if not fits_files:
-        log.info("No dispersion-solution FITS files found")
-        return 0
-
-    processed_days = qc_database.get_processed_dispersion_obs_days()
-
-    new_files = []
-
-    for fits_file in fits_files:
-        obs_day, _, _ = parse_dispersion_solution_filename(fits_file)
-
-        if force or obs_day not in processed_days:
-            new_files.append(fits_file)
-
-    if not new_files:
-        log.info("No new dispersion-solution FITS files to consolidate")
-        return 0
-
-    log.info(
-        "Found %d new dispersion-solution FITS files",
-        len(new_files),
-    )
-
-    df = load_dispersion_solution_tables(new_files)
-
-    df_stats = compute_dispersion_resolution_stats(df)
-
-    if df.empty and df_stats.empty:
-        log.info("No dispersion-solution rows loaded")
-        return 0
-
+def _consolidate_qc_sources(paths, cfg, qc_database, force=False, dry_run=False, counts=None):
     if dry_run:
-        log.info("Dry-run enabled, not writing dispersion-solution data")
-
-        if not df.empty:
-            print("DISPERSION SOLUTION LINES")
-            print(df)
-
-        if not df_stats.empty:
-            print("DISPERSION RESOLUTION STATS")
-            print(df_stats)
-
-        return len(df) + len(df_stats)
-
-    if not df.empty:
-        qc_database.write_dispersion_solution_lines(df)
-
-    if not df_stats.empty:
-        qc_database.write_dispersion_resolution_stats(df_stats)
-
-    obs_days = set()
-
-    if not df.empty:
-        obs_days.update(str(v) for v in df["obs_day"].unique())
-
-    if not df_stats.empty:
-        obs_days.update(str(v) for v in df_stats["obs_day"].unique())
-
-    for obs_day in sorted(obs_days):
-        qc_database.register_processed_dispersion_obs_day(obs_day)
-
-    log.info(
-        "Consolidated %d dispersion-solution rows and %d resolution-stat rows",
-        len(df),
-        len(df_stats),
-    )
-
-    return len(df) + len(df_stats)
+        for path in paths:
+            validate_readonly_sqlite_path(path)
+    batches = [_load_qc_batch(path, cfg) for path in paths]
+    frames = [batch.frames["metrics"] for batch in batches if not batch.frames["metrics"].empty]
+    metrics = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=list(TABLE_SCHEMA))
+    batch = AcquisitionBatch({"metrics": metrics}, [outcome for item in batches for outcome in item.outcomes])
+    has_units = not metrics.empty or any(outcome.unit is not None for outcome in batch.outcomes)
+    closed = qc_database.get_processed_obs_days() if has_units else set()
+    return _commit_batch(batch, "qc", qc_database, dry_run, closed, force, counts)
 
 
-def consolidate_order_location_models(
-    reduced_root: Path,
-    qc_database: SQLiteStore,
-    dry_run: bool = False,
-    force: bool = False,
-    search_mode: str = "observing_day_dirs",
-) -> int:
-    log = logging.getLogger("qc-monitor")
+def _selected_product_files(paths, parser, closed, force):
+    # Malformed selected filenames must become failures, not abort discovery.
+    selected = []
+    for path in paths:
+        try:
+            day = parser(path)
+        except (ValueError, KeyError):
+            selected.append(path)
+            continue
+        if force or day not in closed:
+            selected.append(path)
+    return selected
 
-    fits_files = find_order_location_fits_files(
-        reduced_root,
-        search_mode=search_mode,
-    )
 
-    if not fits_files:
-        log.info("No order-location FITS files found")
+def consolidate_dispersion_solution(reduced_root: Path, qc_database: SQLiteStore,
+                                    dry_run: bool = False, force: bool = False,
+                                    search_mode: str = "observing_day_dirs") -> int:
+    discovered = find_dispersion_solution_fits_files(reduced_root, search_mode)
+    if not discovered:
         return 0
+    closed = qc_database.get_processed_dispersion_obs_days()
+    paths = _selected_product_files(discovered,
+                                    lambda path: parse_dispersion_solution_filename(path)[0], closed, force)
+    return _commit_batch(_load_dsol_batch(paths), "dsol", qc_database, dry_run, closed, force)
 
-    processed_days = qc_database.get_processed_order_location_obs_days()
 
-    new_files = []
-
-    for fits_file in fits_files:
-        obs_day = parse_order_location_filename(fits_file)["obs_day"]
-
-        if force or obs_day not in processed_days:
-            new_files.append(fits_file)
-
-    if not new_files:
-        log.info("No new order-location FITS files to consolidate")
+def consolidate_order_location_models(reduced_root: Path, qc_database: SQLiteStore,
+                                      dry_run: bool = False, force: bool = False,
+                                      search_mode: str = "observing_day_dirs") -> int:
+    discovered = find_order_location_fits_files(reduced_root, search_mode)
+    if not discovered:
         return 0
-
-    log.info(
-        "Found %d new order-location FITS files",
-        len(new_files),
-    )
-
-    df_models = load_order_location_models(new_files)
-    df_meta = load_order_location_meta(new_files)
-
-    if df_models.empty and df_meta.empty:
-        log.info("No order-location rows loaded")
-        return 0
-
-    if dry_run:
-        log.info("Dry-run enabled, not writing order-location data")
-        if not df_models.empty:
-            print("ORDER LOCATION MODELS")
-            print(df_models)
-        if not df_meta.empty:
-            print("ORDER LOCATION META")
-            print(df_meta)
-        return len(df_models) + len(df_meta)
-
-    if not df_models.empty:
-        qc_database.write_order_location_models(df_models)
-
-    if not df_meta.empty:
-        qc_database.write_order_location_meta(df_meta)
-
-    obs_days = set()
-
-    if not df_models.empty:
-        obs_days.update(str(v) for v in df_models["obs_day"].unique())
-
-    if not df_meta.empty:
-        obs_days.update(str(v) for v in df_meta["obs_day"].unique())
-
-    for obs_day in sorted(obs_days):
-        qc_database.register_processed_order_location_obs_day(obs_day)
-
-    log.info(
-        "Consolidated %d order-location model rows and %d order-location meta rows",
-        len(df_models),
-        len(df_meta),
-    )
-
-    return len(df_models) + len(df_meta)
+    closed = qc_database.get_processed_order_location_obs_days()
+    paths = _selected_product_files(discovered,
+                                    lambda path: parse_order_location_filename(path)["obs_day"], closed, force)
+    return _commit_batch(_load_oloc_batch(paths), "oloc", qc_database, dry_run, closed, force)
 
 
-def consolidate_detector_linearity(
-    cfg: dict,
-    qc_database: SQLiteStore,
-    dry_run: bool = False,
-    force: bool = False,
-) -> int:
-    log = logging.getLogger("qc-monitor")
-
+def consolidate_detector_linearity(cfg: dict, qc_database: SQLiteStore,
+                                   dry_run: bool = False, force: bool = False) -> int:
     if not detector_linearity_enabled(cfg):
-        log.info("Detector-linearity acquisition disabled")
         return 0
-
-    processed_days = qc_database.get_processed_detector_linearity_obs_days()
-
-    df_measurements, df_results = load_detector_linearity_data(
-        cfg=cfg,
-        processed_obs_days=processed_days,
-        force=force,
-    )
-
-    if df_measurements.empty and df_results.empty:
-        log.info("No new detector-linearity rows to consolidate")
-        return 0
-
-    if dry_run:
-        log.info("Dry-run enabled, not writing detector-linearity data")
-
-        if not df_measurements.empty:
-            print("DETECTOR LINEARITY MEASUREMENTS")
-            print(df_measurements)
-
-        if not df_results.empty:
-            print("DETECTOR LINEARITY RESULTS")
-            print(df_results)
-
-        return len(df_measurements) + len(df_results)
-
-    if not df_measurements.empty:
-        qc_database.write_detector_linearity_measurements(df_measurements)
-
-    if not df_results.empty:
-        qc_database.write_detector_linearity_results(df_results)
-
-    processed_arm_days = set()
-
-    if not df_results.empty:
-        expected_modes_by_arm = {}
-        for arm in cfg.get("detector_linearity", {}).get("arms", {}):
-            arm = str(arm).upper()
-            if arm == "VIS":
-                expected_modes_by_arm[arm] = set(VIS_MODE_ORDER)
-            elif arm == "NIR":
-                expected_modes_by_arm[arm] = {"NIR"}
-
-        for (obs_day, arm), group in df_results.groupby(["obs_day", "eso seq arm"]):
-            arm = str(arm).upper()
-            expected_modes = expected_modes_by_arm.get(arm)
-
-            if expected_modes is None:
-                log.warning(
-                    "Detector-linearity day %s arm %s is not configured; "
-                    "not marking it as processed",
-                    obs_day,
-                    arm,
-                )
-                continue
-
-            modes = {str(v) for v in group["detector_mode"].unique()}
-            missing_modes = expected_modes - modes
-
-            if not missing_modes:
-                processed_arm_days.add((str(obs_day), arm))
-            else:
-                log.warning(
-                    "Detector-linearity day %s arm %s has partial results; missing modes %s; "
-                    "not marking it as processed",
-                    obs_day,
-                    arm,
-                    sorted(missing_modes),
-                )
-
-    for obs_day, arm in sorted(processed_arm_days):
-        qc_database.register_processed_detector_linearity_obs_day(obs_day, arm)
-
-    log.info(
-        "Consolidated %d detector-linearity measurements and %d result rows",
-        len(df_measurements),
-        len(df_results),
-    )
-
-    return len(df_measurements) + len(df_results)
+    closed = qc_database.get_processed_detector_linearity_obs_days()
+    batch = _load_detector_linearity_batch(cfg, closed, force)
+    return _commit_batch(batch, "detlin", qc_database, dry_run, closed, force)
 
 
 def _run_main():
@@ -854,18 +677,13 @@ def _run_main():
 
     log.info("Found %d upstream session databases", len(session_databases))
 
-    total_points = 0
+    qc_counts = {}
+    total_points = _consolidate_qc_sources(session_databases, cfg, qc_database,
+                                            force=args.rebuild_db, dry_run=args.dry_run, counts=qc_counts)
 
-    # consolidate new QC datapoints into the historical QC database
-    for upstream_db_path in session_databases:
-        total_points += consolidate(
-            upstream_db_path=upstream_db_path,
-            config_path=config_path,
-            force=args.rebuild_db,
-            dry_run=args.dry_run,
-        )
-
-    log.info("Total consolidated QC datapoints: %d", total_points)
+    log.info("Total consolidated QC datapoints: %d%s",
+             total_points if args.dry_run else qc_counts["persisted"],
+             " (dry-run selection; no writes)" if args.dry_run else "")
 
     dsol_points = consolidate_dispersion_solution(
         reduced_root=reduced_root,
@@ -875,7 +693,7 @@ def _run_main():
         search_mode=reduced_search_mode,
     )
 
-    log.info("Total consolidated dispersion-solution rows: %d", dsol_points)
+    log.info("Total selected dispersion-solution rows: %d", dsol_points)
 
     oloc_points = consolidate_order_location_models(
         reduced_root=reduced_root,
@@ -885,7 +703,7 @@ def _run_main():
         search_mode=reduced_search_mode,
     )
 
-    log.info("Total consolidated order-location model rows: %d", oloc_points)
+    log.info("Total selected order-location model rows: %d", oloc_points)
 
     detlin_points = consolidate_detector_linearity(
         cfg=cfg,
@@ -894,7 +712,7 @@ def _run_main():
         force=args.rebuild_db,
     )
 
-    log.info("Total consolidated detector-linearity rows: %d", detlin_points)
+    log.info("Total selected detector-linearity rows: %d", detlin_points)
 
     if args.dry_run:
         log.info("Dry-run enabled, skipping plot generation")

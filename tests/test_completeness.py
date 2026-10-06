@@ -31,7 +31,6 @@ def detlin_run(lab, store):
     return consolidate_detector_linearity(lab.cfg, store)
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="P0-B: corrupt selected DSOL product closes the day")
 def test_dsol_corrupt_required_product_keeps_day_open(lab):
     valid = lab.dsol()
     lab.dsol("090000", broken=True)
@@ -41,7 +40,6 @@ def test_dsol_corrupt_required_product_keeps_day_open(lab):
     assert rows(lab.db, 'SELECT * FROM processed_dispersion_obs_days') == [], "P0-B: corrupt DSOL closed day"
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="P0-B: premature DSOL closure skips repaired input")
 def test_dsol_retry_repairs_day_without_duplicates(lab):
     lab.dsol()
     lab.dsol("090000", broken=True)
@@ -57,7 +55,6 @@ def test_dsol_retry_repairs_day_without_duplicates(lab):
     assert database_snapshot(lab.db) == before
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="P0-B: DSOL closes without required resolution statistics")
 def test_dsol_missing_required_statistics_keeps_day_open(lab):
     path = lab.dsol(stats=False)
     require(len(load_dispersion_solution_tables([path])) == 2, "DSOL must remain readable")
@@ -66,7 +63,6 @@ def test_dsol_missing_required_statistics_keeps_day_open(lab):
     assert rows(lab.db, 'SELECT * FROM processed_dispersion_obs_days') == [], "P0-B: DSOL without usable R_pin closed day"
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="P0-B: OLOC closes without the required metadata HDU")
 def test_oloc_missing_metadata_keeps_day_open(lab):
     path = lab.oloc(meta=False)
     require(len(load_order_location_models([path])) == 1, "Invalid nominal OLOC model fixture")
@@ -76,7 +72,6 @@ def test_oloc_missing_metadata_keeps_day_open(lab):
     assert rows(lab.db, 'SELECT * FROM processed_order_location_obs_days') == [], "P0-B: missing OLOC HDU closed day"
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="P0-B: premature OLOC closure skips repaired metadata")
 def test_oloc_retry_repairs_day_without_duplicates(lab):
     lab.oloc(meta=False)
     store = SQLiteStore(lab.db)
@@ -92,7 +87,6 @@ def test_oloc_retry_repairs_day_without_duplicates(lab):
 
 
 @pytest.mark.parametrize("failure", ["missing", "unreadable"])
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="P0-B: present modes conceal a failed DETLIN pair")
 def test_detlin_present_modes_with_failed_pair_keep_day_open(lab, failure):
     lab.detlin(times=(1, 2, 3))
     path = lab.raw / "SOXS_GEN_FLAT_VIS_DETLIN_SHG_UIT3_278_0002.fits"
@@ -109,7 +103,6 @@ def test_detlin_present_modes_with_failed_pair_keep_day_open(lab, failure):
 
 
 @pytest.mark.parametrize("arm", ["VIS", "NIR"])
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="P0-B: DETLIN closes with an unavailable fit")
 def test_detlin_unavailable_fit_keeps_day_open(lab, arm):
     lab.detlin(arm=arm, times=(1,))
     _, results = load_detector_linearity_data(lab.cfg)
@@ -119,7 +112,6 @@ def test_detlin_unavailable_fit_keeps_day_open(lab, arm):
     assert rows(lab.db, 'SELECT * FROM processed_detector_linearity_obs_days') == [], "P0-B: unavailable fit closed day"
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="P0-B: premature DETLIN closure skips repaired input and refreshed fit")
 def test_detlin_retry_replaces_all_coefficients(lab):
     lab.detlin(times=(1, 2, 3))
     # SHG third time is selected but one of its two required FITS is corrupt.
@@ -148,7 +140,6 @@ def test_detlin_retry_replaces_all_coefficients(lab):
     assert database_snapshot(lab.db) == before
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="P0-B: first upstream DB closes the day before the second source")
 def test_qc_multiple_sources_same_day_are_all_ingested(lab):
     lab.upstream.unlink()
     lab.make_upstream(lab.upstream.parent / "a" / "soxspipe.db", "metric_a")

@@ -11,6 +11,7 @@ from astropy.io import fits
 from astropy.table import Table
 
 from qc_monitor.schema import TABLE_SCHEMA
+from qc_monitor._outcomes import AcquisitionBatch, InputOutcome
 
 log = logging.getLogger(__name__)
 
@@ -238,19 +239,26 @@ def _build_select_query(upstream_table: str) -> str:
             """
 
 
-def load_qc_from_session_db(
+def load_qc_from_session_db(session_db_path: Path, cfg: dict) -> pd.DataFrame:
+    """Load usable QC metrics; read/schema failures retain an empty schema."""
+    return _load_qc_batch(session_db_path, cfg).frames["metrics"]
+
+
+def _load_qc_batch(
     session_db_path: Path,
     cfg: dict,
-) -> pd.DataFrame:
+) -> AcquisitionBatch:
     """
     Load all QC metrics from one upstream SOXS pipeline session database.
 
     The upstream database is expected to contain the configured upstream QC view.
     The returned DataFrame uses the original upstream column names.
     """
+    failure = lambda reason: AcquisitionBatch({"metrics": _empty_qc_dataframe()}, [
+        InputOutcome(str(session_db_path), "failed", reason=reason)])
     if not session_db_path.is_file():
         log.warning("Session database not found: %s", session_db_path)
-        return _empty_qc_dataframe()
+        return failure("Source is absent")
 
     try:
         upstream_table = cfg["acquisition"]["upstream_table"]
@@ -263,7 +271,7 @@ def load_qc_from_session_db(
                     upstream_table,
                     session_db_path,
                 )
-                return _empty_qc_dataframe()
+                return failure(f"Required table/view {upstream_table} is absent")
 
             available_columns = _get_table_columns(conn, upstream_table)
             required_columns = set(TABLE_COLUMNS)
@@ -276,22 +284,22 @@ def load_qc_from_session_db(
                     session_db_path,
                     ", ".join(sorted(missing_columns)),
                 )
-                return _empty_qc_dataframe()
+                return failure(f"Missing columns: {sorted(missing_columns)}")
 
             query = _build_select_query(upstream_table)
             df = pd.read_sql_query(query, conn)
 
     except KeyError as exc:
         log.error("Missing configuration key: %s", exc)
-        return _empty_qc_dataframe()
+        return failure(str(exc))
 
     except Exception as exc:
         log.error("Failed to read QC data from %s: %s", session_db_path, exc)
-        return _empty_qc_dataframe()
+        return failure(str(exc))
 
     if df.empty:
         log.info("No QC rows found in session database %s", session_db_path)
-        return _empty_qc_dataframe()
+        return AcquisitionBatch({"metrics": _empty_qc_dataframe()}, [InputOutcome(str(session_db_path), "acquired", reason="Empty source")])
 
     # Normalize / validate values, keeping upstream column names
     df["eso seq arm"] = df["eso seq arm"].apply(normalize_arm)
@@ -306,54 +314,23 @@ def load_qc_from_session_db(
         .str.strip()
     )
 
-    invalid_obs_day = int(df["night start date"].isna().sum())
-    invalid_obs_date_utc = int(df["obs_date_utc"].isna().sum())
-    invalid_arm = int(df["eso seq arm"].isna().sum())
-    invalid_value = int(df["qc_value"].isna().sum())
-
-    if invalid_obs_day:
-        log.warning(
-            "Dropping %d rows with missing night start date in %s",
-            invalid_obs_day,
-            session_db_path.name,
-        )
-
-    if invalid_obs_date_utc:
-        log.warning(
-            "Dropping %d rows with missing obs_date_utc in %s",
-            invalid_obs_date_utc,
-            session_db_path.name,
-        )
-
-    if invalid_arm:
-        log.warning(
-            "Dropping %d rows with invalid arm in %s",
-            invalid_arm,
-            session_db_path.name,
-        )
-
-    if invalid_value:
-        log.warning(
-            "Dropping %d rows with non-numeric qc_value in %s",
-            invalid_value,
-            session_db_path.name,
-        )
-
-    df = df.dropna(
-        subset=[
-            "night start date",
-            "obs_date_utc",
-            "eso seq arm",
-            "qc_value",
-        ]
-    ).copy()
-
-    if df.empty:
-        log.info(
-            "No valid QC datapoints left after cleaning in %s",
-            session_db_path,
-        )
-        return _empty_qc_dataframe()
+    outcomes = []
+    required = ["night start date", "obs_date_utc", "eso seq arm", "qc_value",
+                "soxspipe_recipe", "qc_name"]
+    invalid = df[required].isna().any(axis=1)
+    for col in required:
+        invalid |= df[col].astype(str).str.strip().eq("")
+    if invalid.any():
+        log.warning("Discarding %d invalid QC rows from %s", int(invalid.sum()), session_db_path)
+    for index, row in df.iterrows():
+        day = row["night start date"]
+        unit = (str(day),) if pd.notna(day) and str(day).strip() else None
+        if invalid.loc[index]:
+            outcomes.append(InputOutcome(str(session_db_path), "failed", unit,
+                                         f"Invalid required QC fields in row {index}"))
+        else:
+            outcomes.append(InputOutcome(str(session_db_path), "acquired", unit))
+    df = df.loc[~invalid].copy()
 
     df = df[TABLE_COLUMNS].reset_index(drop=True)
 
@@ -363,7 +340,7 @@ def load_qc_from_session_db(
         session_db_path,
     )
 
-    return df
+    return AcquisitionBatch({"metrics": df}, outcomes)
 
 
 def find_dispersion_solution_fits_files(
@@ -575,6 +552,8 @@ def _concat_preserving_schema(
     """
     Concatenate frames without feeding pandas all-NA columns.
     """
+    if not frames:
+        return pd.DataFrame(columns=columns)
     compact_frames = [
         frame.dropna(axis=1, how="all")
         for frame in frames
@@ -841,3 +820,92 @@ def load_order_location_models(
     )
 
     return out
+
+
+def _finite_columns(frame: pd.DataFrame, columns: list[str]) -> bool:
+    return all(column in frame and np.isfinite(pd.to_numeric(frame[column], errors="coerce")).all()
+               for column in columns)
+
+
+def _load_dsol_batch(files: list[Path]) -> AcquisitionBatch:
+    lines, stats, outcomes = [], [], []
+    for path in files:
+        unit = None
+        try:
+            unit = (parse_dispersion_solution_filename(path)[0],)
+            frame = load_dispersion_solution_fits_table(path)
+            if frame.empty or frame["order"].isna().any() or frame["order"].astype(str).str.strip().eq("").any() or not _finite_columns(
+                frame, ["wavelength", "detector_x", "detector_y"]
+            ):
+                raise ValueError("Missing DSOL rows or line identifiers")
+            numeric = pd.to_numeric(frame["R_pin"], errors="coerce")
+            usable = np.isfinite(numeric)
+            clean = frame.copy()
+            clean["R_pin"] = numeric.where(usable)
+            derived = compute_dispersion_resolution_stats(clean)
+            if set(frame["order"].astype(str)) != set(derived["order"].astype(str)):
+                raise ValueError("An order has no finite R_pin samples")
+            lines.append(clean)
+            stats.append(derived)
+            outcomes.append(InputOutcome(str(path), "acquired", unit))
+            if not usable.all():
+                outcomes.append(InputOutcome(str(path), "unusable", unit,
+                                             "Nonfinite R_pin samples excluded from statistics"))
+        except Exception as exc:
+            outcomes.append(InputOutcome(str(path), "failed", unit, str(exc)))
+    return AcquisitionBatch({
+        "lines": _concat_preserving_schema(lines, DISPERSION_SOLUTION_COLUMNS),
+        "stats": _concat_preserving_schema(stats, DISPERSION_RESOLUTION_STATS_COLUMNS),
+    }, outcomes)
+
+
+def _validate_oloc_model(frame: pd.DataFrame):
+    if len(frame) != 1:
+        raise ValueError("Expected one OLOC model per file")
+    row = frame.iloc[0]
+    for prefix, coefficient in (("cent", "cent_"), ("std", "std_"),
+                                ("edgelow", "edgelow_c"), ("edgeup", "edgeup_c")):
+        degrees = [row.get("degorder_" + prefix), row.get("degy_" + prefix),
+                   row.get("degx_" + prefix)]
+        if prefix != "cent" and all(pd.isna(value) for value in degrees):
+            continue
+        order_degree = degrees[0]
+        axis_degree = degrees[1] if pd.notna(degrees[1]) else degrees[2]
+        if any(pd.isna(value) or not np.isfinite(float(value)) or
+               float(value) != int(float(value)) or float(value) < 0
+               for value in (order_degree, axis_degree)):
+            raise ValueError(f"Invalid declared {prefix} polynomial degrees")
+        order_degree, axis_degree = int(float(order_degree)), int(float(axis_degree))
+        if order_degree > 6 or axis_degree > 5:
+            raise ValueError(f"Unsupported declared {prefix} polynomial degrees")
+        for i in range(int(order_degree) + 1):
+            for j in range(int(axis_degree) + 1):
+                value = row.get(f"{coefficient}{i}{j}")
+                if pd.isna(value) or not np.isfinite(float(value)):
+                    raise ValueError(f"Missing/nonfinite declared coefficient {coefficient}{i}{j}")
+
+
+def _load_oloc_batch(files: list[Path]) -> AcquisitionBatch:
+    models, metadata, outcomes = [], [], []
+    for path in files:
+        unit = None
+        try:
+            unit = (str(parse_order_location_filename(path)["obs_day"]),)
+            model = load_order_location_model_fits_table(path)
+            meta = load_order_location_meta_fits_table(path)
+            _validate_oloc_model(model)
+            if meta.empty or not _finite_columns(meta, ["order", "xmin", "xmax", "ymin", "ymax"]):
+                raise ValueError("Missing OLOC order metadata/geometry")
+            for column in ("order", "xmin", "xmax", "ymin", "ymax"):
+                meta[column] = pd.to_numeric(meta[column])
+            if (meta["xmax"] < meta["xmin"]).any() or (meta["ymax"] < meta["ymin"]).any():
+                raise ValueError("Invalid OLOC coordinate ranges")
+            models.append(model)
+            metadata.append(meta)
+            outcomes.append(InputOutcome(str(path), "acquired", unit))
+        except Exception as exc:
+            outcomes.append(InputOutcome(str(path), "failed", unit, str(exc)))
+    return AcquisitionBatch({
+        "models": _concat_preserving_schema(models, ORDER_LOCATION_MODEL_COLUMNS),
+        "meta": _concat_preserving_schema(metadata, ORDER_LOCATION_META_COLUMNS),
+    }, outcomes)
