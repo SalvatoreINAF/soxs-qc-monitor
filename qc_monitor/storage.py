@@ -1,5 +1,6 @@
 import logging
 import sqlite3
+from contextlib import closing
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -17,14 +18,63 @@ log = logging.getLogger(__name__)
 
 TABLE_COLUMNS = list(TABLE_SCHEMA.keys())
 
+class ReadOnlyStorageError(RuntimeError):
+    """An archive cannot be safely inspected without filesystem writes."""
+
+
+def validate_readonly_sqlite_path(path: Path) -> bool:
+    """Inspect the header without opening SQLite; absent files are allowed.
+
+    WAL reads may create sidecars even with mode=ro. Do not use immutable=1
+    for archives that another process could change.
+    """
+    path = Path(path).expanduser().resolve()
+    try:
+        with path.open("rb") as source:
+            header = source.read(20)
+    except FileNotFoundError:
+        return False
+    except OSError as exc:
+        raise ReadOnlyStorageError(f"Cannot read SQLite archive {path}: {exc}") from exc
+    if header[:16] == b"SQLite format 3\x00" and 2 in header[18:20]:
+        raise ReadOnlyStorageError(f"WAL archive is unsupported in dry-run: {path}")
+    return True
+
+
 class SQLiteStore:
-    def __init__(self, db_path: Path):
+    def __init__(self, db_path: Path, *, read_only: bool = False):
         self.db_path = Path(db_path).expanduser().resolve()
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        self._init_db()
+        self.read_only = read_only
+        self._missing_database = False
+        if read_only:
+            self._missing_database = not validate_readonly_sqlite_path(self.db_path)
+            if not self._missing_database:
+                self._read_registry("SELECT name FROM sqlite_master")
+        else:
+            self.db_path.parent.mkdir(parents=True, exist_ok=True)
+            self._init_db()
 
     def _connect(self):
-        return sqlite3.connect(self.db_path)
+        if not self.read_only:
+            return sqlite3.connect(self.db_path)
+        validate_readonly_sqlite_path(self.db_path)
+        try:
+            return sqlite3.connect(self.db_path.as_uri() + "?mode=ro", uri=True)
+        except sqlite3.Error as exc:
+            raise ReadOnlyStorageError(f"Cannot open SQLite archive {self.db_path}: {exc}") from exc
+
+    def _read_registry(self, query: str) -> list[tuple]:
+        if self.read_only and self._missing_database:
+            return []
+        try:
+            with closing(self._connect()) as conn:
+                return conn.execute(query).fetchall()
+        except sqlite3.Error as exc:
+            if not self.read_only:
+                raise
+            raise ReadOnlyStorageError(
+                f"Cannot read SQLite archive {self.db_path}: {exc}"
+            ) from exc
 
     def _quote(self, name: str) -> str:
         return f'"{name}"'
@@ -429,8 +479,7 @@ class SQLiteStore:
         WHERE status = 'PROCESSED'
         """
 
-        with self._connect() as conn:
-            rows = conn.execute(query).fetchall()
+        rows = self._read_registry(query)
 
         return {r[0] for r in rows}
 
@@ -459,8 +508,7 @@ class SQLiteStore:
         WHERE status = 'PROCESSED'
         """
 
-        with self._connect() as conn:
-            rows = conn.execute(query).fetchall()
+        rows = self._read_registry(query)
 
         return {r[0] for r in rows}
 
@@ -490,8 +538,7 @@ class SQLiteStore:
         WHERE status = 'PROCESSED'
         """
 
-        with self._connect() as conn:
-            rows = conn.execute(query).fetchall()
+        rows = self._read_registry(query)
 
         return {r[0] for r in rows}
 
@@ -520,8 +567,7 @@ class SQLiteStore:
         WHERE status = 'PROCESSED'
         """
 
-        with self._connect() as conn:
-            rows = conn.execute(query).fetchall()
+        rows = self._read_registry(query)
 
         return {(r[0], r[1]) for r in rows}
 

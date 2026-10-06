@@ -1,4 +1,4 @@
-"""P0-A: observable CLI/API dry-run contracts, before the H1 correction."""
+"""P0-A: observable CLI/API dry-run contracts protected by H0 and fixed in H1."""
 import pytest
 
 from qc_monitor.main import consolidate
@@ -14,7 +14,6 @@ def dry_run(lab, interface):
 
 
 @pytest.mark.parametrize("interface", ["cli", "api"])
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="P0-A: dry-run creates an absent QC database and its parent")
 def test_dry_run_absent_database_creates_nothing(lab, interface):
     before = tree_snapshot(lab.root)
     dry_run(lab, interface)
@@ -24,9 +23,7 @@ def test_dry_run_absent_database_creates_nothing(lab, interface):
 
 
 @pytest.mark.parametrize("interface", ["cli", "api"])
-@pytest.mark.parametrize("legacy", [False, pytest.param(True, marks=pytest.mark.xfail(
-    strict=True, raises=AssertionError, reason="P0-A: dry-run migrates an existing schema"))],
-    ids=["current-schema", "migration-needed"])
+@pytest.mark.parametrize("legacy", [False, True], ids=["current-schema", "migration-needed"])
 def test_dry_run_existing_database_is_unchanged(lab, interface, legacy):
     lab.seed(legacy=legacy)
     before_sql = database_snapshot(lab.db)
@@ -37,7 +34,6 @@ def test_dry_run_existing_database_is_unchanged(lab, interface, legacy):
 
 
 @pytest.mark.parametrize("existing", [False, True], ids=["absent-db", "existing-db"])
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason="P0-A: dry-run/rebuild is accepted and changes the archive")
 def test_dry_run_rebuild_is_rejected_without_side_effects(lab, existing):
     if existing:
         lab.seed()
@@ -45,7 +41,7 @@ def test_dry_run_rebuild_is_rejected_without_side_effects(lab, existing):
     before_sql = database_snapshot(lab.db) if existing else None
     result = lab.cli("--dry-run", "--rebuild-db", expected=None)
     require(result.returncode in (0, 2), f"Unexpected CLI failure: {result.stderr}")
-    # Check destructive effects first so the baseline's deletion is explicit.
+    # Verify filesystem effects as well as the parser exit code.
     assert tree_snapshot(lab.root) == before_files, "P0-A: incompatible flags changed files"
     if existing:
         assert database_snapshot(lab.db) == before_sql

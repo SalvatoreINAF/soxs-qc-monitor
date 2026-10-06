@@ -1,8 +1,8 @@
-# H0 — Regressioni minime delle P0
+# H0/H1 — Regressioni delle P0 e dry-run in sola lettura
 
-Suite su `main`, baseline applicativa `96f18e3`. H0 aggiunge test e fixture,
-senza correggere il monitor. Le correzioni appartengono a H1 (P0-A) e H2
-(P0-B); CI e suite estesa appartengono a D1.
+Suite su `main`: H0 (`314441f`) introduce le fixture e le regressioni sulla
+baseline applicativa `96f18e3`; H1 corregge P0-A e aggiunge i casi read-only.
+P0-B rimane aperta per H2; CI e suite estesa appartengono a D1.
 
 ## Esecuzione
 
@@ -15,15 +15,18 @@ python -m pytest -ra
 python -m pytest --runxfail
 ```
 
-La prima esecuzione deve avere **15 PASS e 17 XFAIL**, senza FAIL o XPASS.
-La seconda deve mostrare **17 FAIL e 15 PASS**, con uscita pytest `1`: rende
-visibili le violazioni delle P0. Questi conteggi valgono per la baseline H0;
-un successo inatteso di una regressione è un errore della suite, perché tutti
-i marker sono `xfail(strict=True, raises=AssertionError)`.
+Dopo H1 la prima esecuzione deve avere **52 PASS e 11 XFAIL P0-B**, senza
+FAIL o XPASS. La seconda deve mostrare **11 FAIL P0-B e 52 PASS**, con uscita
+pytest `1`. I 32 casi originali H0 diventano 21 PASS e 11 XFAIL; H1 aggiunge
+31 casi verdi. Soltanto la prova dei permessi può essere saltata quando i
+privilegi del processo rendono non significativo il controllo.
 
-Ogni marker indica la P0 e l'invariante violata. In H1/H2, dopo la correzione,
-rimuovere soltanto i marker dei casi risolti e verificare nuovamente entrambe
-le famiglie. Non aggiornare le aspettative per accettare il difetto attuale.
+La baseline H0 aveva 15 PASS e 17 XFAIL (17 FAIL e 15 PASS con `--runxfail`).
+I sei casi P0-A ora passano e non hanno più marker. Tutti i marker rimanenti
+sono `xfail(strict=True, raises=AssertionError)` e indicano l'invariante P0-B
+violata: un successo inatteso è un errore della suite. In H2 rimuovere soltanto
+i marker dei casi risolti e verificare nuovamente entrambe le famiglie; non
+cambiare le aspettative per accettare un difetto.
 
 ## Isolamento e contratti delle fixture
 
@@ -47,7 +50,8 @@ inventario di file/directory, SHA-256 e `mtime_ns` dei file. Non si confronta
 presenza, senza dipendere dalla risoluzione dei loro timestamp.
 
 Il caso di migrazione usa uno schema QC esistente con `n_flat_frames` rimossa:
-la reinizializzazione attuale la aggiunge anche in dry-run. Le sentinelle
+la reinizializzazione della baseline H0 la aggiungeva anche in dry-run; H1
+ora legge i registri senza migrare il resto dello schema. Le sentinelle
 includono una metrica storica e una giornata registrata. I test nominali
 preservano il valore di stato attuale `PROCESSED`.
 
@@ -69,14 +73,14 @@ riduzione: ordine operativo «riduzione completata → monitor» e indicatore di
 fine pipeline restano da verificare in H2. Non si testa l'arrivo di dati nuovi
 dopo una chiusura valida.
 
-## Matrice dei casi
+## Matrice dei casi H0 dopo H1
 
-| Gruppo | Casi parametrizzati | Attesa H0 |
+| Gruppo | Casi parametrizzati | Attesa dopo H1 |
 |---|---:|---|
-| Dry-run CLI/API, DB e directory assenti | 2 | XFAIL: creazione DB |
+| Dry-run CLI/API, DB e directory assenti | 2 | PASS: DB e directory non creati |
 | Dry-run CLI/API, DB esistente con sentinelle e schema attuale | 2 | PASS: dati, schema e file invariati |
-| Dry-run CLI/API, schema da aggiornare | 2 | XFAIL: migrazione incidentale |
-| CLI dry-run + rebuild, DB assente/presente | 2 | XFAIL: flag accettati ed effetti collaterali; contratto finale uscita 2 |
+| Dry-run CLI/API, schema da aggiornare | 2 | PASS: nessuna migrazione |
+| CLI dry-run + rebuild, DB assente/presente | 2 | PASS: flag rifiutati con uscita 2, senza effetti collaterali |
 | Dry-run CLI/API, output assente/presente e figura configurata | 4 | PASS: input e artefatti invariati |
 | Consolidamento ordinario CLI/API | 2 | PASS: metrica e registro persistiti |
 | Rebuild ordinario CLI | 1 | PASS: sentinelle sostituite dagli input |
@@ -95,8 +99,34 @@ dopo una chiusura valida.
 Mancata chiusura e recupero sono test separati. Le precondizioni delle fixture
 e gli errori CLI inattesi sollevano `RuntimeError`, quindi non possono essere
 assorbiti dai marker che ammettono soltanto `AssertionError`. Il caso dei flag
-incompatibili ammette come risultato intermedio soltanto 0 (difetto attuale) o
+incompatibili ammette come risultato intermedio soltanto 0 (difetto della baseline H0) o
 2 (rifiuto richiesto); qualunque altra uscita è un errore dell'harness.
+
+## Casi aggiuntivi H1
+
+| Contratto | Casi | Attesa |
+|---|---:|---|
+| CLI/API saltano la giornata già chiusa | 2 | PASS: registro rispettato e file invariati |
+| API force + dry-run seleziona la giornata chiusa | 1 | PASS: una riga selezionata senza scritture |
+| CLI/API con registro mancante, colonna mancante o QC corrotto | 6 | PASS: diagnosi esplicita con percorso; CLI 2/API ReadOnlyStorageError |
+| URI SQLite con spazi, ?, # e % nei percorsi QC/upstream | 2 | PASS: selezione corretta, file invariati |
+| Scrittura reale su store read-only | 1 | PASS: SQLite rifiuta il writer, DB invariato |
+| Store assente, tutti e quattro i registri | 1 | PASS: insiemi vuoti senza inizializzazione |
+| Schema incompatibile per ciascuno dei quattro registri | 4 | PASS: errore esplicito senza migrazione |
+| WAL QC/upstream, CLI/API, con/senza sidecar | 8 | PASS: rifiuto prima delle operazioni SQLite, file invariati |
+| WAL nella seconda sorgente CLI | 1 | PASS: tutte le sorgenti controllate prima dello store QC |
+| Template assente o destinazioni di tipo errato in dry-run | 2 | PASS: output ignorati, preflight ordinario ancora rifiuta |
+| DB leggibile e destinazioni non scrivibili | 1 | PASS: dry-run possibile, preflight ordinario rifiuta |
+| Input di acquisizione assente | 1 | PASS: preflight dry-run e CLI rifiutano senza scritture |
+| Flag incompatibili e configurazione assente | 1 | PASS: errore argparse prima del caricamento config |
+
+La modalità `SQLiteStore(..., read_only=True)` non crea directory o database.
+Soltanto l'assenza del DB equivale a un registro vuoto; DB presenti con registri
+richiesti incompatibili generano `ReadOnlyStorageError`. I DB WAL sono rifiutati
+nel dry-run tramite ispezione del solo header: non si usa `immutable=1`, non si
+eseguono checkpoint o conversioni e non si aprono copie temporanee. Nei test
+WAL con sidecar un writer controllato resta aperto durante il confronto;
+quando i sidecar sono assenti, il writer viene chiuso prima della prova.
 
 ## Evidenze locali del 6 ottobre 2026
 
@@ -110,6 +140,16 @@ I comandi di verifica effettivi, dalla radice del checkout, sono:
 PYTHONPATH=/private/tmp/qc-monitor-h0-test-deps PYTHONDONTWRITEBYTECODE=1 /opt/homebrew/Caskroom/miniforge/base/envs/qc/bin/python -m pytest -ra --tb=short
 PYTHONPATH=/private/tmp/qc-monitor-h0-test-deps PYTHONDONTWRITEBYTECODE=1 /opt/homebrew/Caskroom/miniforge/base/envs/qc/bin/python -m pytest --runxfail --tb=short
 ```
+
+H1 usa gli stessi due comandi e lo stesso ambiente di H0. La verifica mirata
+`python -m pytest tests/test_dry_run.py --runxfail -q --tb=short` ha confermato
+15 PASS prima della rimozione dei marker P0-A.
+
+Verifica finale H1: **52 PASS, 11 XFAIL**, uscita 0, in 294,08 secondi;
+con `--runxfail`: **11 FAIL P0-B, 52 PASS**, uscita 1, in 289,41 secondi.
+I 31 casi aggiuntivi H1 sono passati anche nell'esecuzione mirata (172,65
+secondi), senza skip. Queste durate misurano la suite sintetica, non il batch
+operativo. Nessun errore di fixture, import o subprocess.
 
 Le directory temporanee non sono risorse necessarie a un clone: l'installazione
 ordinaria dell'extra `test` rende disponibili gli stessi comandi senza il

@@ -238,6 +238,52 @@ qc-monitor --rebuild-db
 qc-monitor --force-date YYYY-MM-DD
 ```
 
+
+## Dry-run
+
+```bash
+qc-monitor --dry-run --config configs/qc_monitor.yaml
+```
+
+Dry-run loads and selects acquisition data without creating or changing the QC
+archive, running schema migrations, generating plots or publishing HTML. An
+absent QC archive is treated as having empty processed-day registers; existing
+registers still filter out closed days. The dry-run preflight checks acquisition
+inputs, without requiring writable output destinations or an HTML template.
+
+`--dry-run --rebuild-db` is rejected with exit code `2` before configuration or
+database access. A corrupt/unreadable QC archive or a required missing or
+incompatible register also produces a diagnostic and exit code `2`, without
+migration. Schema differences unrelated to the registers being read are left
+untouched.
+
+WAL-mode QC and upstream databases are explicitly rejected during dry-run,
+even when their `-wal`/`-shm` files already exist. SQLite can create auxiliary
+files during a read-only WAL open; H1 checks the header before opening SQLite
+and does not checkpoint, convert, or copy the original archive. Ordinary runs
+retain their existing WAL behavior. Run the monitor after reduction completes;
+H1 does not introduce concurrency protection or WAL snapshot support.
+
+The API has the same storage contract:
+
+```python
+from qc_monitor.main import consolidate
+from pathlib import Path
+
+selected = consolidate(
+    Path("/path/to/soxspipe.db"),
+    config_path=Path("/path/to/configs/qc_monitor.yaml"),
+    dry_run=True,
+)
+```
+
+It returns the number of selected QC rows and prints them as before.
+`force=True, dry_run=True` selects closed days without writing. Storage failures
+raise `qc_monitor.storage.ReadOnlyStorageError` (`RuntimeError`); the upstream
+loader retains its existing empty-DataFrame behavior for read/schema errors.
+`SQLiteStore(path, read_only=True)` also exposes read-only register access,
+without initializing an absent archive.
+
 ---
 
 # Batch Execution

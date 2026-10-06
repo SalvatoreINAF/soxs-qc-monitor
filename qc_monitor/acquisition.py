@@ -1,6 +1,7 @@
 import re
 import logging
 import sqlite3
+from contextlib import closing
 
 import numpy as np
 import pandas as pd
@@ -254,7 +255,8 @@ def load_qc_from_session_db(
     try:
         upstream_table = cfg["acquisition"]["upstream_table"]
 
-        with sqlite3.connect(session_db_path) as conn:
+        uri = session_db_path.resolve().as_uri() + "?mode=ro"
+        with closing(sqlite3.connect(uri, uri=True)) as conn:
             if not _table_or_view_exists(conn, upstream_table):
                 log.error(
                     "Required upstream view/table %s not found in %s",

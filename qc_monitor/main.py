@@ -20,7 +20,7 @@ from qc_monitor.acquisition import (
     load_order_location_models,
     load_order_location_meta,
 )
-from qc_monitor.storage import SQLiteStore
+from qc_monitor.storage import SQLiteStore, ReadOnlyStorageError, validate_readonly_sqlite_path
 from qc_monitor.plotting import generate_order_location_plots_from_config, generate_plots_from_config
 from qc_monitor.generate_html import generate_html_report
 from qc_monitor.detector_linearity import (
@@ -55,7 +55,7 @@ def parse_args():
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Run acquisition but do not write anything to the database",
+        help="Inspect acquisition without changing databases or generating plots/report (WAL unsupported)",
     )
 
     parser.add_argument(
@@ -76,7 +76,10 @@ def parse_args():
         help="Enable verbose (DEBUG) logging",
     )
 
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.dry_run and args.rebuild_db:
+        parser.error("--dry-run and --rebuild-db cannot be used together")
+    return args
 
 
 def default_config_path() -> Path:
@@ -244,7 +247,7 @@ def normalize_runtime_config(cfg: dict, project_root: Path) -> dict:
     return cfg
 
 
-def run_preflight(cfg: dict, project_root: Path) -> bool:
+def run_preflight(cfg: dict, project_root: Path, *, dry_run: bool = False) -> bool:
     log = logging.getLogger("qc-monitor")
     errors = []
     warnings = []
@@ -289,6 +292,9 @@ def run_preflight(cfg: dict, project_root: Path) -> bool:
         ("plots.output_dir", output_dir),
         ("plots.html_output", html_output),
     ):
+        if dry_run and label != "qc_database":
+            continue
+
         if label == "qc_database" and path.exists() and not path.is_file():
             errors.append(f"{label} exists but is not a file: {path}")
             continue
@@ -301,11 +307,14 @@ def run_preflight(cfg: dict, project_root: Path) -> bool:
             errors.append(f"{label} exists but is a directory: {path}")
             continue
 
+        if dry_run:
+            continue
+
         target = path if label == "plots.output_dir" else path.parent
         if not _is_writable_path(target):
             errors.append(f"{label} parent is not writable or cannot be reached: {path}")
 
-    if template_path:
+    if template_path and not dry_run:
         template_path = Path(template_path).expanduser()
         if not template_path.is_file():
             errors.append(f"plots.template is not an existing file: {template_path}")
@@ -320,7 +329,7 @@ def run_preflight(cfg: dict, project_root: Path) -> bool:
             for fig in plots_cfg.get("figures", [])
             if fig.get("type") == "detector_linearity"
         ]
-        if not detlin_figures:
+        if not detlin_figures and not dry_run:
             warnings.append(
                 "detector_linearity enabled but no detector_linearity plots configured"
             )
@@ -374,6 +383,17 @@ def run_preflight(cfg: dict, project_root: Path) -> bool:
                 )
         else:
             errors.append(f"No upstream database named {upstream_database_name} found")
+
+    if dry_run:
+        # Inspect every selected header before any acquisition opens SQLite.
+        databases = find_session_databases(
+            upstream_root, upstream_database_name, search_mode=upstream_search_mode
+        ) if upstream_root.is_dir() and upstream_search_mode in {"direct", "recursive"} else []
+        for database in [qc_database_path, *databases]:
+            try:
+                validate_readonly_sqlite_path(database)
+            except ReadOnlyStorageError as exc:
+                errors.append(str(exc))
 
     if reduced_root.is_dir():
         day_dirs = find_observing_day_directories(reduced_root)
@@ -454,7 +474,9 @@ def consolidate(
         project_root,
     )
 
-    qc_database = SQLiteStore(qc_database_path)
+    if dry_run:
+        validate_readonly_sqlite_path(upstream_db_path)
+    qc_database = SQLiteStore(qc_database_path, read_only=dry_run)
 
     # Load QC datapoints from the upstream database
 
@@ -765,7 +787,7 @@ def consolidate_detector_linearity(
     return len(df_measurements) + len(df_results)
 
 
-def main():
+def _run_main():
 
     ####################################################
     ############ Load configuration ####################
@@ -805,13 +827,13 @@ def main():
     upstream_search_mode = acquisition_cfg.get("upstream_database_search", "direct")
     reduced_search_mode = acquisition_cfg.get("reduced_products_search", "observing_day_dirs")
 
-    if not run_preflight(cfg, project_root):
+    if not run_preflight(cfg, project_root, dry_run=args.dry_run):
         sys.exit(2)
 
     if args.preflight:
         return
 
-    qc_database = SQLiteStore(qc_database_path)
+    qc_database = SQLiteStore(qc_database_path, read_only=args.dry_run)
 
     if args.rebuild_db:
         log.warning("Rebuilding QC database from scratch")
@@ -959,6 +981,14 @@ def main():
             else None
         ),
     )
+
+
+def main():
+    try:
+        _run_main()
+    except ReadOnlyStorageError as exc:
+        logging.getLogger("qc-monitor").error("Dry-run storage error: %s", exc)
+        sys.exit(2)
 
 
 if __name__ == "__main__":
