@@ -11,6 +11,7 @@ log = logging.getLogger(__name__)
 VIS_MODE_ORDER = ["SHG", "FLG", "SLG", "FHG"]
 DEFAULT_DETLIN_TOKEN = "DETLIN"
 DEFAULT_SATURATION_LEVEL = 2**16
+DEFAULT_SATURATION_FRACTION = 0.60
 
 DETECTOR_LINEARITY_MEASUREMENT_COLUMNS = [
     "obs_day",
@@ -334,10 +335,11 @@ def load_detector_linearity_data(
 
     token = str(detlin_cfg.get("filename_token", DEFAULT_DETLIN_TOKEN))
     statistic = str(detlin_cfg.get("statistic", "mean")).lower()
-    saturation_limit = (
-        float(detlin_cfg.get("saturation_fraction", 0.80))
-        * float(detlin_cfg.get("saturation_level", DEFAULT_SATURATION_LEVEL))
-    )
+    saturation_level = float(detlin_cfg.get("saturation_level", DEFAULT_SATURATION_LEVEL))
+    saturation_fraction = float(detlin_cfg.get("saturation_fraction", DEFAULT_SATURATION_FRACTION))
+    if not np.isfinite(saturation_level) or saturation_level <= 0 or not 0 < saturation_fraction <= 1:
+        raise ValueError("Invalid detector-linearity saturation_level or saturation_fraction")
+    saturation_limit = saturation_fraction * saturation_level
 
     processed_obs_days = processed_obs_days or set()
     measurements = []
@@ -691,11 +693,22 @@ def _fit_detector_linearity_rows(rows: list[dict], saturation_limit: float):
         & (y <= saturation_limit)
     )
 
-    if np.count_nonzero(good) < 2:
-        log.warning("Cannot fit detector linearity: fewer than 2 unsaturated points")
+    for row in rows:
+        row["fit_used"] = 0
+
+    if len(np.unique(x[good])) < 2:
+        log.warning(
+            "Cannot fit detector linearity: fewer than 2 distinct usable times "
+            "at signal <= %.6g ADU",
+            saturation_limit,
+        )
         return
 
     slope, intercept = np.polyfit(x[good], y[good], 1)
+    log.info(
+        "Detector-linearity fit: %d/%d points, signal <= %.6g ADU",
+        np.count_nonzero(good), len(rows), saturation_limit,
+    )
     y_fit = slope * x + intercept
 
     for index, row in enumerate(rows):

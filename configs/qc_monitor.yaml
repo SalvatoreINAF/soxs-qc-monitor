@@ -40,7 +40,8 @@ detector_linearity:
   filename_token: DETLIN
   statistic: mean
   saturation_level: 65536
-  saturation_fraction: 0.80
+  # Fit only low-signal points; retain brighter exposures in the plots.
+  saturation_fraction: 0.60
   arms:
     VIS:
       root: /diska/home/pipeline/soxspipe_reductions/raw/

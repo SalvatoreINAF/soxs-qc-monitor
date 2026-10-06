@@ -7,7 +7,8 @@ logs/
 qc_monitor/__pycache__/
 qc_monitor.egg-info/
 qc_monitor.egg-info/*
-SPIE-2026-SOXS-QC-Monitor/
+reference_docs/
+utils/
 *.swp
 .DS_Store
 example_script.sh

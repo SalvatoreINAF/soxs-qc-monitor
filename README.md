@@ -105,6 +105,28 @@ Legacy recursive scanning is still available by setting the corresponding
 search option to `recursive`, but it should not be used in production unless the
 directory tree has been checked carefully.
 
+## Detector Linearity Fit
+
+The linear fit uses only positive signals at or below
+`detector_linearity.saturation_level * saturation_fraction`. The default
+`saturation_fraction` is `0.60`, selecting the low-signal part of the response
+before departures from linearity near saturation. Higher-signal measurements
+remain in the plots and residuals but do not influence the fit. There is no
+exposure-time cutoff. At least two distinct exposure times must survive the
+signal threshold; the threshold is never widened automatically.
+
+The standalone `utils/analyze_detector_linearity.py --config <config.yaml>`
+uses the same signal threshold. It divides signals and ADU thresholds by
+`BINX * BINY` to compare different binning factors in equivalent 1x1 ADU.
+Its extrapolated maximum exposure uses the normalized nominal saturation, so
+the reported time refers to the binning actually acquired, not a hypothetical
+1x1 acquisition.
+
+Existing processed days in the monitor database are not refitted automatically
+when this setting changes. Recalculate from the original FITS in a separate
+database if historical fits need the new threshold; the database rebuild option
+recreates the entire QC database.
+
 ## Default Configuration Resolution
 
 When `qc-monitor` is executed without `--config`, it never uses the installed
