@@ -115,6 +115,21 @@ remain in the plots and residuals but do not influence the fit. There is no
 exposure-time cutoff. At least two distinct exposure times must survive the
 signal threshold; the threshold is never widened automatically.
 
+Frame recognition uses the sequence IMGNAME header (or the configured filename
+fallback). Both tools check `ESO DPR TYPE` against that name: bias/dark frames
+require `LAMP,OFF`, illuminated frames require `LAMP,ON`. Missing/blank values
+and historical `LAMP,FLAT` remain accepted with a warning; other mismatches are
+rejected. VIS `ESO DET EXP TYPE`, when present, must also agree with the name.
+DPR CATG and TECH are not constrained. Invalid frames prevent monitor day closure.
+
+VIS processing requires exactly three biases per mode. Their pixelwise mean is
+the master bias; single-frame read noise is the square root of half the mean
+spatial variance of all three pair differences (`ddof=0`). This is not the noise
+of the averaged master. The common master cancels in each flat-pair difference.
+The standalone tool remains permissive: it averages all available biases and,
+with at least two, uses all pair differences for noise. With one bias noise is
+unavailable; with none it shows raw signals. Counts other than three are reported.
+
 The standalone `utils/analyze_detector_linearity.py --config <config.yaml>`
 uses the same signal threshold. It divides signals and ADU thresholds by
 `BINX * BINY` to compare different binning factors in equivalent 1x1 ADU.
@@ -319,7 +334,7 @@ degrees. Optional undeclared polynomials are not required.
 
 DETLIN requires `ESO TPL START`, `ESO TPL ID`, `ESO TPL NEXP` and `ESO TPL EXPNO`.
 The exposure indices must uniquely cover the declared `1..NEXP`; no universal
-exposure count is assumed. VIS requires the four existing modes, two bias frames
+exposure count is assumed. VIS requires the four existing modes, three bias frames
 per mode, and two flats per selected exposure time. NIR requires one dark and two
 flats per selected exposure time. Each mode must have a finite fit using at least
 two distinct usable times under the existing saturation selection. Saturated

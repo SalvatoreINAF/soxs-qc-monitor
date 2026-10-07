@@ -1,4 +1,5 @@
 import logging
+from itertools import combinations
 import re
 from pathlib import Path
 
@@ -255,6 +256,26 @@ def _obs_day_from_date(obs_date_utc: str) -> str:
     return str(obs_date_utc)[:10]
 
 
+def validate_frame_classification(header, arm, kind):
+    """Check name-derived classification; return a warning for legacy DPR."""
+    expected = "LAMP,OFF" if kind.lower() in {"bias", "dark"} else "LAMP,ON"
+    raw = header.get("ESO DPR TYPE", header.get("HIERARCH ESO DPR TYPE"))
+    dpr = "" if raw is None else ",".join(part.strip().upper() for part in str(raw).split(","))
+    if dpr not in {"", "LAMP,FLAT", expected}:
+        raise ValueError(f"ESO DPR TYPE={raw!r}; expected {expected} from sequence name")
+    if arm.upper() == "VIS":
+        exp_type = header.get("ESO DET EXP TYPE", header.get("HIERARCH ESO DET EXP TYPE"))
+        expected_type = "Bias" if kind.lower() == "bias" else "Normal"
+        if exp_type is not None and str(exp_type).strip().lower() != expected_type.lower():
+            raise ValueError(
+                f"ESO DET EXP TYPE={exp_type!r}; expected {expected_type} from sequence name"
+            )
+    if dpr in {"", "LAMP,FLAT"}:
+        return (f"Legacy ESO DPR TYPE={raw!r}; classification cannot be verified "
+                f"against expected {expected}; using sequence name")
+    return None
+
+
 def _measure_frame(
     path: Path,
     parsed: dict[str, object],
@@ -263,6 +284,10 @@ def _measure_frame(
     roi: tuple[int, int, int, int],
     statistic: str,
 ) -> tuple[dict, np.ndarray] | None:
+    header = fits.getheader(path, 0)
+    warning = validate_frame_classification(header, str(parsed["arm"]), str(parsed["frame_type"]))
+    if warning:
+        log.warning("%s: %s", path, warning)
     roi_data, header = _read_roi(path, roi)
 
     obs_date_utc = _header_value(header, "DATE-OBS")
@@ -285,10 +310,7 @@ def _measure_frame(
             _header_value(header, "ESO DET UIT1", "HIERARCH ESO DET UIT1"),
             default=float(parsed["filename_exptime"]),
         )
-        frame_type = str(
-            _header_value(header, "ESO DET EXP TYPE", "HIERARCH ESO DET EXP TYPE")
-            or parsed["frame_type"]
-        )
+        frame_type = str(parsed["frame_type"])
 
     if statistic == "mean":
         signal_raw = float(np.mean(roi_data))
@@ -458,8 +480,8 @@ def _load_detector_linearity_batch(
             outcomes.append(InputOutcome("sequence", "failed", unit, "Missing detector modes"))
         for mode, mode_group in group.groupby("detector_mode"):
             flats = mode_group[~mode_group["frame_type"].str.lower().isin(["bias", "dark"])]
-            if unit[1] == "VIS" and len(mode_group[mode_group["frame_type"].str.lower() == "bias"]) != 2:
-                outcomes.append(InputOutcome(mode, "failed", unit, "Expected two VIS bias frames"))
+            if unit[1] == "VIS" and len(mode_group[mode_group["frame_type"].str.lower() == "bias"]) != 3:
+                outcomes.append(InputOutcome(mode, "failed", unit, "Expected three VIS bias frames"))
             times = set(flats["exptime"])
             if unit[1] == "NIR":
                 times.update(mode_group.loc[mode_group["frame_type"].str.lower() == "dark", "exptime"])
@@ -579,9 +601,9 @@ def _compute_vis_detector_linearity_rows(
     bias = group[group["frame_type"].str.lower() == "bias"].copy()
     flats = group[group["frame_type"].str.lower() != "bias"].copy()
 
-    if len(bias) != 2:
+    if len(bias) != 3:
         log.warning(
-            "Skipping detector-linearity %s %s %s: expected 2 bias frames, got %d",
+            "Skipping detector-linearity %s %s %s: expected 3 bias frames, got %d",
             obs_day,
             arm,
             mode,
@@ -597,9 +619,11 @@ def _compute_vis_detector_linearity_rows(
         roi_cache[row["source_file"]]
         for _, row in bias.sort_values("obs_date_utc").iterrows()
     ]
-    master_bias = 0.5 * (bias_arrays[0] + bias_arrays[1])
+    master_bias = np.mean(bias_arrays, axis=0)
     mean_bias_roi = _safe_float(np.mean(master_bias))
-    rms_bias_adu = _safe_float(np.sqrt(np.var(bias_arrays[0] - bias_arrays[1]) / 2.0))
+    # Estimate single-frame read noise from all pairs, not the noise of the master.
+    pair_variances = [np.var(a - b, ddof=0) for a, b in combinations(bias_arrays, 2)]
+    rms_bias_adu = _safe_float(np.sqrt(np.mean(pair_variances) / 2.0))
 
     rows = []
 

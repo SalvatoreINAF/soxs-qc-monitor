@@ -133,7 +133,7 @@ def test_detlin_retry_replaces_all_coefficients(lab):
         assert slope == pytest.approx(target.slope, rel=1e-10, abs=1e-8), "P0-B: retry retained the previous fit slope"
         assert intercept == pytest.approx(target.intercept, rel=1e-10, abs=1e-8), "P0-B: retry retained the previous fit intercept"
     assert len(actual) == 12, "P0-B: retry skipped the repaired exposure"
-    assert rows(lab.db, 'SELECT count(*) FROM detector_linearity_measurements') == [(32,)]
+    assert rows(lab.db, 'SELECT count(*) FROM detector_linearity_measurements') == [(36,)]
     assert rows(lab.db, 'SELECT obs_day, arm, status FROM processed_detector_linearity_obs_days') == [(DAY, "VIS", "PROCESSED")]
     before = database_snapshot(lab.db)
     assert detlin_run(lab, store) == 0

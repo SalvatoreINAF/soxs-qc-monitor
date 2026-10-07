@@ -197,6 +197,7 @@ class Lab:
             "SOXS_GEN_FLAT", "SOXS"
         )
         header["HIERARCH ESO DET UIT1" if arm == "VIS" else "HIERARCH ESO DET SEQ1 DIT"] = time
+        header["HIERARCH ESO DPR TYPE"] = "LAMP,OFF" if kind in {"bias", "dark"} else "LAMP,ON"
         header["HIERARCH ESO DET EXP TYPE"] = "Bias" if kind == "bias" else "Normal"
         # Small zero-mean patterns give nonzero pair variance without changing signal.
         pattern = np.array([[-1.0, 1.0], [1.0, -1.0]]) * index
@@ -215,7 +216,7 @@ class Lab:
         planned = []
         for mode in modes:
             if arm == "VIS":
-                planned.extend((mode, "bias", 0, index) for index in (1, 2))
+                planned.extend((mode, "bias", 0, index) for index in (1, 2, 3))
             for time in times:
                 if arm == "NIR":
                     planned.append((mode, "dark", time, 1))
@@ -227,7 +228,7 @@ class Lab:
             self.detlin_headers[name] = (len(planned), number)
         for mode in modes:
             if arm == "VIS":
-                for index in (1, 2):
+                for index in (1, 2, 3):
                     self.detlin_frame(arm, mode, "bias", 0, index, 10.0)
             for time in times:
                 if arm == "NIR":
