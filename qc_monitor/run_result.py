@@ -25,6 +25,7 @@ class RunResult:
     phases: list = field(default_factory=list)
     errors: list = field(default_factory=list)
     storage: dict = field(default_factory=dict)
+    coordination: dict = field(default_factory=dict)
     sqlite_operations: list = field(default_factory=list)
     exit_code: int = 0
     ended_utc: str | None = None
@@ -65,7 +66,7 @@ class RunResult:
                 "started_utc": self.started_utc, "ended_utc": self.ended_utc,
                 "duration_seconds": self.duration_seconds, "versions": versions,
                 "families": self.families, "phases": self.phases,
-                "storage": self.storage,
+                "storage": self.storage, "coordination": self.coordination,
                 "sqlite_operations": self.sqlite_operations,
                 "errors": self.errors, "exit_code": self.exit_code}
 

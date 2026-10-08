@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Batch supervision using the same interpreter as installation and execution."""
 import argparse
+from contextlib import ExitStack
 from datetime import datetime, timezone
 import json
 import os
@@ -62,27 +63,35 @@ def freshness(directory, hours):
     return max(supervisor_code, int(latest[1]["exit_code"]))
 
 
-def execute(command, root, stream, deadline):
+def execute(command, root, stream, deadline, *, pass_fds=()):
     remaining = deadline - time.monotonic()
     if remaining <= 0:
         raise subprocess.TimeoutExpired(command, 0)
     # A separate process group allows termination of the whole job on timeout.
     with subprocess.Popen(command, cwd=root, stdout=stream, stderr=subprocess.STDOUT,
-                          start_new_session=True) as process:
+                          start_new_session=True, pass_fds=pass_fds) as process:
         try:
             return process.wait(timeout=remaining)
         except subprocess.TimeoutExpired:
             import signal
-            os.killpg(process.pid, signal.SIGTERM)
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
             try:
                 process.wait(timeout=5)
             except subprocess.TimeoutExpired:
+                pass
+            # The leader may exit before descendants which ignored SIGTERM.
+            try:
                 os.killpg(process.pid, signal.SIGKILL)
-                process.wait()
+            except ProcessLookupError:
+                pass
+            process.wait()
             raise
 
 
-def backup(root, directory, stream, deadline):
+def backup(root, directory, stream, deadline, cfg=None):
     """Preserve config, Git revision, environment and a consistent SQLite snapshot."""
     directory.mkdir()
     shutil.copytree(root / "configs", directory / "configs")
@@ -90,12 +99,17 @@ def backup(root, directory, stream, deadline):
     (directory / "revision.txt").write_text(revision)
     with (directory / "requirements.txt").open("w") as output:
         subprocess.run([sys.executable, "-m", "pip", "freeze"], stdout=output, check=True, timeout=max(0.01, deadline - time.monotonic()))
-    # YAML is an existing runtime dependency, not needed for batch supervision.
-    import yaml
-    cfg = yaml.safe_load((root / "configs/qc_monitor.yaml").read_text())
-    database = Path(cfg["paths"]["qc_database"]).expanduser()
-    if not database.is_absolute():
-        database = root / database
+    if cfg is None:
+        cfg = update_config(root)
+    sources = [root / 'configs/qc_monitor.yaml', *map(Path, cfg.get('_origins', {}).get('includes', []))]
+    manifest = []
+    (directory / 'configuration').mkdir()
+    for index, source in enumerate(sources):
+        target = directory / 'configuration' / f'{index}-{source.name}'
+        shutil.copyfile(source, target)
+        manifest.append({'source': str(source), 'backup': str(target.relative_to(directory))})
+    (directory / 'configuration-provenance.json').write_text(json.dumps(manifest, indent=2) + '\n')
+    database = Path(cfg['paths']['qc_database'])
     if database.exists():
         from contextlib import closing
         with closing(sqlite3.connect(database.resolve().as_uri() + "?mode=ro", uri=True)) as source:
@@ -108,7 +122,17 @@ def backup(root, directory, stream, deadline):
     stream.flush()
 
 
+def update_config(root):
+    from qc_monitor.config import load_config, normalize_runtime_config
+    return normalize_runtime_config(load_config(root / 'configs/qc_monitor.yaml'), root, validated=True)
+
+
 def main(argv=None):
+    with ExitStack() as operation:
+        return _main(argv, operation)
+
+
+def _main(argv, operation):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=("run", "update", "freshness"))
     parser.add_argument("--root", type=Path, required=True)
@@ -136,22 +160,43 @@ def main(argv=None):
         code = 2
         try:
             if args.action == "update":
-                backup(root, logs / ("backup_" + stamp), stream, deadline)
-                commands.extend((["git", "pull", "--ff-only"],
-                                 [sys.executable, "-m", "pip", "install", "."]))
-                commands.extend((cli + ["--preflight"], cli + ["--dry-run"]))
-            else:
-                commands.append(cli + ["--verbose"])
-            for command in commands:
-                code = execute(command, root, stream, deadline)
+                sys.path.insert(0, str(root))
+                from qc_monitor.coordination import leases, runtime_requests, project_requests, config_resources, resource_requests
+                diagnosis = {'operation': 'update', 'resources': [], 'conflict_resource': None}
+                fds = operation.enter_context(leases(runtime_requests(update=True) + project_requests(root) + [('source', str(root / 'qc_monitor'), True)], diagnosis))
+                cfg = update_config(root)
+                resources = config_resources(cfg)
+                fds += operation.enter_context(leases(resources + resource_requests(directories=[root / 'configs']), diagnosis))
+                if update_config(root) != cfg:
+                    raise RuntimeError('Configuration changed during operational coordination')
+                from qc_monitor.locking import _archive_lease
+                fds += (operation.enter_context(_archive_lease(cfg['paths']['qc_database'])),)
+                stream.write('COORDINATION ' + json.dumps(diagnosis, sort_keys=True) + '\n')
+                backup(root, logs / ("backup_" + stamp), stream, deadline, cfg)
+                code = execute(["git", "pull", "--ff-only"], root, stream, deadline, pass_fds=fds)
                 if code:
-                    if command[:3] != cli[:3]:
-                        # Git/pip failures prevent an update; they are not partial acquisition.
+                    code = 2
+                else:
+                    after = update_config(root)
+                    if set(config_resources(after)) != set(resources):
+                        raise RuntimeError('Protected archive/report destinations changed after pull; installation stopped')
+                    code = execute([sys.executable, "-m", "pip", "install", "."], root, stream, deadline, pass_fds=fds)
+                    if code:
                         code = 2
-                    break
+                    else:
+                        for command in (cli + ["--preflight"], cli + ["--dry-run"]):
+                            code = execute(command, root, stream, deadline, pass_fds=fds)
+                            if code:
+                                break
+            else:
+                code = execute(cli + ["--verbose"], root, stream, deadline)
             # Non-CLI failures may have unrelated exit codes; batch contract is 0/1/2.
             code = code if code in (0, 1, 2) else 2
         except Exception as exc:
+            if args.action == 'update' and 'diagnosis' in locals():
+                diagnosis['conflict_resource'] = getattr(exc, 'resource', diagnosis['conflict_resource'])
+                diagnosis['error'] = {'type': type(exc).__name__, 'reason': str(exc)}
+                stream.write('COORDINATION ' + json.dumps(diagnosis, sort_keys=True) + '\n')
             stream.write(f"Batch supervisor failed: {type(exc).__name__}: {exc}\n")
             code = 2
         label = {0: "completed", 1: "partial", 2: "blocking error"}[code]

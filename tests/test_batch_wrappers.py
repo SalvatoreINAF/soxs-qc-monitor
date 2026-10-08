@@ -101,15 +101,16 @@ def test_supervisor_failure_dominates_successful_monitor_summary(tmp_path):
 
 
 @pytest.mark.parametrize("failure", ["git", "pip"])
-def test_update_external_command_failure_is_blocking(tmp_path, monkeypatch, failure):
+def test_update_external_command_failure_is_blocking(lab, tmp_path, monkeypatch, failure):
     # Real updates are external mutations; simulate failure at their explicit boundary.
     monkeypatch.setenv("QC_MONITOR_ROOT", str(tmp_path))
     monkeypatch.setenv("MPLBACKEND", "Agg")
     monkeypatch.setattr(batch, "backup", lambda *args: None)
+    shutil.copyfile(lab.config, lab.config.parent / 'qc_monitor.yaml')
     calls = []
-    def fail_command(command, root, stream, deadline):
+    def fail_command(command, root, stream, deadline, **kwargs):
         calls.append(command)
         return 1 if (command[0] == "git" if failure == "git" else command[:3] == [sys.executable, "-m", "pip"]) else 0
     monkeypatch.setattr(batch, "execute", fail_command)
-    assert batch.main(["update", "--root", str(tmp_path)]) == 2
+    assert batch.main(["update", "--root", str(lab.root)]) == 2
     assert not any(command[:3] == [sys.executable, "-m", "qc_monitor.main"] for command in calls)

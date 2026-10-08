@@ -116,7 +116,7 @@ def test_competing_writers_rejected_without_writes(lab, interface):
     before = tree_snapshot(lab.root)
     with external_writer(lab.db):
         if interface == 'cli':
-            assert 'WriterBusyError' in lab.cli('--no-plots', expected=2).stderr
+            assert 'BusyError' in lab.cli('--no-plots', expected=2).stderr
         elif interface == 'api':
             with pytest.raises(WriterBusyError):
                 consolidate(lab.upstream, lab.config)

@@ -13,7 +13,7 @@ from qc_monitor.schema import (
     ORDER_LOCATION_MODEL_COLUMNS, ORDER_LOCATION_META_COLUMNS,
     DETECTOR_LINEARITY_MEASUREMENT_COLUMNS, DETECTOR_LINEARITY_RESULT_COLUMNS,
 )
-from qc_monitor.locking import writer_lease, locked_store_method
+from qc_monitor.locking import locked_store_read, writer_lease, locked_store_method
 from qc_monitor._sqlite_retry import (SQLITE_TIMEOUT_SECONDS, retry_store_method,
                                       is_transient_sqlite_error)
 import json
@@ -100,7 +100,6 @@ class SQLiteStore:
                 if version not in (0, SCHEMA_VERSION):
                     raise ReadOnlyStorageError(f'Unsupported schema version {version}: {self.db_path}')
         else:
-            self.db_path.parent.mkdir(parents=True, exist_ok=True)
             self._init_db()
             self.schema_version = SCHEMA_VERSION
 
@@ -119,6 +118,7 @@ class SQLiteStore:
         except sqlite3.Error as exc:
             raise ReadOnlyStorageError(f"Cannot open SQLite archive {self.db_path}: {exc}") from exc
 
+    @locked_store_read
     @retry_store_method
     def _read_registry(self, query: str, parameters=()) -> list[tuple]:
         if self.read_only and self._missing_database:
@@ -630,6 +630,7 @@ class SQLiteStore:
 
     # Metrics load
 
+    @locked_store_read
     @retry_store_method
     def load_all_metrics(self) -> pd.DataFrame:
         order_cols = [
@@ -653,6 +654,7 @@ class SQLiteStore:
             return pd.read_sql(query, conn)
         
 
+    @locked_store_read
     @retry_store_method
     def load_dispersion_solution_lines(self) -> pd.DataFrame:
         query = """
@@ -664,6 +666,7 @@ class SQLiteStore:
         with closing(self._connect()) as conn, conn:
             return pd.read_sql(query, conn)
         
+    @locked_store_read
     @retry_store_method
     def load_order_location_models(self) -> pd.DataFrame:
         query = """
@@ -676,6 +679,7 @@ class SQLiteStore:
             return pd.read_sql(query, conn)
 
 
+    @locked_store_read
     @retry_store_method
     def load_dispersion_resolution_stats(self) -> pd.DataFrame:
         query = """
@@ -688,6 +692,7 @@ class SQLiteStore:
             return pd.read_sql(query, conn)
 
 
+    @locked_store_read
     @retry_store_method
     def load_order_location_meta(self) -> pd.DataFrame:
         query = """
@@ -699,6 +704,7 @@ class SQLiteStore:
         with closing(self._connect()) as conn, conn:
             return pd.read_sql(query, conn)
 
+    @locked_store_read
     @retry_store_method
     def load_detector_linearity_measurements(self) -> pd.DataFrame:
         query = """
@@ -710,6 +716,7 @@ class SQLiteStore:
         with closing(self._connect()) as conn, conn:
             return pd.read_sql(query, conn)
 
+    @locked_store_read
     @retry_store_method
     def load_detector_linearity_results(self) -> pd.DataFrame:
         query = """

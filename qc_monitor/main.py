@@ -1,10 +1,16 @@
+# The module invocation must guard startup before loading application modules.
+if __name__ == "__main__":
+    import sys
+    from qc_monitor.bootstrap import main as guarded_main
+    sys.exit(guarded_main())
+
 import qc_monitor
 import logging
 import argparse
 import os
 import sys
 import sqlite3
-from contextlib import closing
+from contextlib import closing, ExitStack
 from pathlib import Path
 import pandas as pd
 
@@ -39,7 +45,8 @@ from qc_monitor.detector_linearity import (
 from qc_monitor.config import (
     ConfigurationError, load_config, load_plot_includes, normalize_runtime_config, resolve_project_path,
 )
-from qc_monitor.locking import locked_coordinator
+from qc_monitor.locking import locked_coordinator, _archive_lease
+from qc_monitor.coordination import leases, runtime_requests, project_requests, config_resources, configuration_requests, CoordinationBusyError
 from qc_monitor.rebuild import acquisition_store
 from qc_monitor.storage import qc_identity
 from qc_monitor.storage import validate_schema, SchemaError
@@ -398,7 +405,7 @@ def run_preflight(cfg: dict, project_root: Path, *, dry_run: bool = False, no_pl
     return True
 
 
-def consolidate(
+def _consolidate_impl(
     upstream_db_path: Path,
     config_path: Path = Path("configs/qc_monitor.yaml"),
     force: bool = False,
@@ -458,6 +465,15 @@ def consolidate(
     validate_path_collisions(cfg, config_path, paths, no_plots=True)
     with acquisition_store(qc_database_path, dry_run=dry_run) as qc_database:
         return _consolidate_qc_sources(paths, cfg, qc_database, force, dry_run)
+
+
+def consolidate(upstream_db_path: Path, config_path: Path = Path("configs/qc_monitor.yaml"),
+                force: bool = False, dry_run: bool = False) -> int:
+    if dry_run:
+        return _consolidate_impl(upstream_db_path, config_path, force, dry_run)
+    path = Path(config_path).expanduser().resolve()
+    with leases(runtime_requests() + project_requests(path.parent.parent)):
+        return _consolidate_impl(upstream_db_path, path, force, dry_run)
 
 
 def _commit_batch(batch, family, qc_database, dry_run, already_closed, force, counts=None):
@@ -685,6 +701,13 @@ def _run_main(args, run):
             args.summary_json = None
             raise ConfigurationError(f"Summary destination overlaps protected data/config/artifacts: {target}")
 
+    if not (args.dry_run or args.preflight):
+        args._operation_stack.enter_context(leases(config_resources(
+            cfg, no_plots=args.no_plots, summary=args.summary_json) + configuration_requests(config_path, cfg), run.coordination))
+        checked = normalize_runtime_config(load_config(config_path), project_root, validated=True)
+        if checked != cfg:
+            raise ConfigurationError("Configuration changed during operational coordination")
+
     upstream_root = Path(cfg["paths"]["upstream_root"])
     reduced_root = Path(cfg["paths"]["reduced_root"])
     qc_database_path = Path(cfg["paths"]["qc_database"])
@@ -702,6 +725,8 @@ def _run_main(args, run):
     validate_path_collisions(cfg, config_path, sources, no_plots=args.dry_run or args.no_plots)
     if args.preflight:
         return
+    if not args.dry_run:
+        args._operation_stack.enter_context(_archive_lease(qc_database_path))
     if args.summary_json and not args.dry_run:
         args._summary_allowed = True
     with acquisition_store(qc_database_path, dry_run=args.dry_run, rebuild=args.rebuild_db, run=run) as qc_database:
@@ -863,19 +888,32 @@ def _run_main(args, run):
 
 
 def main():
+    with ExitStack() as operation:
+        return _main(operation)
+
+
+def _main(operation):
     args = parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s")
     log = logging.getLogger("qc-monitor")
     mode = "preflight" if args.preflight else "dry-run" if args.dry_run else "run"
     run = RunResult(mode)
     args._summary_allowed = False
+    args._operation_stack = operation
+    run.coordination = {"operation": "rebuild" if args.rebuild_db else mode, "resources": [], "conflict_resource": None}
     if args.summary_json and (args.dry_run or args.preflight):
         log.warning("--summary-json ignored in dry-run/preflight; summary is log-only")
     try:
+        if not (args.dry_run or args.preflight):
+            config_path = resolve_config_path(args.config)
+            args._operation_stack.enter_context(leases(runtime_requests() + project_requests(config_path.parent.parent), run.coordination))
         with collect_sqlite_events(run.sqlite_operations), run.phase("execution"):
             _run_main(args, run)
     except Exception as exc:
         log.exception("Dry-run storage error: %s" if isinstance(exc, ReadOnlyStorageError) else "Run failed: %s", exc)
+        if isinstance(exc, CoordinationBusyError):
+            args._summary_allowed = False
+            run.coordination['conflict_resource'] = exc.resource
         failed = [phase["name"] for phase in run.phases if phase["state"] == "failed"]
         error = {"type": type(exc).__name__, "reason": str(exc), "phase": failed[-1] if failed else "execution"}
         run.errors.append(error)

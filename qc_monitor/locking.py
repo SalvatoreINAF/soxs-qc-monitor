@@ -15,7 +15,7 @@ _leases = {}
 
 
 @contextmanager
-def writer_lease(database):
+def _archive_lease(database):
     path = Path(database).expanduser().resolve()
     owner = threading.get_ident()
     with _guard:
@@ -38,7 +38,7 @@ def writer_lease(database):
             entry = [owner, handle, 1]
             _leases[path] = entry
     try:
-        yield
+        yield entry[1].fileno()
     finally:
         with _guard:
             entry[2] -= 1
@@ -46,6 +46,15 @@ def writer_lease(database):
                 del _leases[path]
                 entry[1].close()  # OS also releases flock after process termination.
     # Keep the lock inode: unlinking it would let writers lock different files.
+
+
+@contextmanager
+def writer_lease(database):
+    # Import lazily to keep the bootstrap free of application dependencies.
+    from .coordination import leases, runtime_requests, archive_requests
+    with leases(runtime_requests() + archive_requests(database)):
+        with _archive_lease(database):
+            yield
 
 
 def locked_store_method(method):
@@ -67,4 +76,17 @@ def locked_coordinator(method):
             return method(*args, **kwargs)
         with qc_database.write_session():
             return method(*args, **kwargs)
+    return wrapped
+
+
+def locked_store_read(method):
+    """Operational API reads share guards; explicitly read-only inspections omit them."""
+    @wraps(method)
+    def wrapped(self, *args, **kwargs):
+        if self.read_only:
+            return method(self, *args, **kwargs)
+        from .coordination import leases, runtime_requests, archive_requests
+        requests = archive_requests(self.db_path, exclusive=False)
+        with leases(runtime_requests() + requests):
+            return method(self, *args, **kwargs)
     return wrapped
