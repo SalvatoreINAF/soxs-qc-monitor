@@ -1,7 +1,7 @@
 # D3 — Roadmap delle milestone
 
 **Aggiornamento: 8 ottobre 2026.** D3-0 documentale consegnato; D3-A
-completata e formalmente chiusa; D3-B…F
+completata e formalmente chiusa; D3-B implementata localmente, CI pendente; D3-C…F
 pianificate e non implementate.
 Questo indice è il riferimento versionato per le nuove sessioni. La roadmap e
 la valutazione in `reference_docs/` restano locali e intenzionalmente escluse da Git.
@@ -26,7 +26,10 @@ pacchetto **1.3.0**, schema **1**; [evidenze locali e hosted](../tests/results/d
 [CI D3-A](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37807882167) verde sul candidato
 `be8b3d5202716679de7f46cf73ea984127e3aa8e`, attempt 1: 363 PASS in ciascuno dei quattro
 job, build e installazione isolata riuscite. D3-A chiusa, nessuna verifica pendente.
-Ripresa: pianificazione D3-B soltanto su nuova richiesta; D3-B non avviata.
+D3-B: commit applicativo `98d51d341e4d85bc7e14e6f4abf6273e8e42bc32`,
+pacchetto **1.4.0**, schema **1**. [Evidenze locali](../tests/results/d3-b-validation.md)
+e [ambienti](qa/d3-b-environments.json). CI D3-B pendente sul candidato esatto.
+Ripresa: verifica e chiusura hosted D3-B; D3-C non avviata.
 
 ## Milestone, dipendenze e stime
 
@@ -34,7 +37,7 @@ Ripresa: pianificazione D3-B soltanto su nuova richiesta; D3-B non avviata.
 |---|---|---|---|---|
 | D3-0 | Roadmap, schede e handover | D2 | Consegnata, solo documenti | 2–4 ore |
 | [D3-A](d3/d3-a.md) | Isolamento acquisizione e retry limitati | D3-0 | Formalmente chiusa | 6–8 ore |
-| [D3-B](d3/d3-b.md) | Coordinamento run, rebuild e update | D3-0 | Pianificata | 6–8 ore |
+| [D3-B](d3/d3-b.md) | Coordinamento run, rebuild e update | D3-0 | Consegna locale, CI pendente | 8–12 ore |
 | [D3-C](d3/d3-c.md) | Esiti delle figure e gestione dei renderer | D3-0 | Pianificata | 6–8 ore |
 | [D3-D](d3/d3-d.md) | Motore di pubblicazione atomica, non attivo nella CLI | D3-B, D3-C | Pianificata | 6–10 ore |
 | [D3-E](d3/d3-e.md) | Retention sicura e attivazione nella CLI | D3-D | Pianificata | 6–10 ore |

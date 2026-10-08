@@ -1,0 +1,132 @@
+{
+  "date": "2026-10-08",
+  "baseline": "8892af5",
+  "application_commit": "98d51d341e4d85bc7e14e6f4abf6273e8e42bc32",
+  "package_version": "1.4.0",
+  "schema_version": 1,
+  "hosted_status": "PENDING; not formally closed",
+  "environments": [
+    {
+      "python": "3.12.15",
+      "platform": "macOS-15.8-arm64-arm-64bit",
+      "executable": "/private/tmp/qc-d1-reference/bin/python",
+      "package_path": "/Users/savarese/Documents/GitHub/SOXS/qc_monitor/qc_monitor/__init__.py",
+      "packages": {
+        "qc-monitor": "1.4.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "PyYAML": "6.0.2",
+        "astropy": "6.1.2",
+        "matplotlib": "3.10.8"
+      },
+      "suite": {
+        "passed": 400,
+        "duration_seconds": 191.89,
+        "exit_code": 0,
+        "warnings_as_errors": true
+      },
+      "role": "reference",
+      "wheel_environment": {
+        "python": "3.12.15",
+        "platform": "macOS-15.8-arm64-arm-64bit",
+        "executable": "/private/tmp/qc-d3b-installed312/bin/python",
+        "package_path": "/private/tmp/qc-d3b-installed312/lib/python3.12/site-packages/qc_monitor/__init__.py",
+        "packages": {
+          "qc-monitor": "1.4.0",
+          "numpy": "2.1.0",
+          "pandas": "2.3.3",
+          "PyYAML": "6.0.2",
+          "astropy": "6.1.2",
+          "matplotlib": "3.11.2"
+        },
+        "pip_check": "PASS",
+        "checker": "PASS",
+        "installation": "new separate venv; wheel, isolated imports outside checkout"
+      },
+      "pip_check": "PASS"
+    },
+    {
+      "python": "3.11.17",
+      "platform": "macOS-15.8-arm64-arm-64bit",
+      "executable": "/private/tmp/qc-d1-py311/bin/python",
+      "package_path": "/Users/savarese/Documents/GitHub/SOXS/qc_monitor/qc_monitor/__init__.py",
+      "packages": {
+        "qc-monitor": "1.4.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "PyYAML": "6.0.2",
+        "astropy": "6.1.2",
+        "matplotlib": "3.11.2"
+      },
+      "suite": {
+        "passed": 400,
+        "duration_seconds": 169.61,
+        "exit_code": 0,
+        "warnings_as_errors": true
+      },
+      "role": "compatibility",
+      "wheel_environment": {
+        "python": "3.11.17",
+        "platform": "macOS-15.8-arm64-arm-64bit",
+        "executable": "/private/tmp/qc-d3b-installed311/bin/python",
+        "package_path": "/private/tmp/qc-d3b-installed311/lib/python3.11/site-packages/qc_monitor/__init__.py",
+        "packages": {
+          "qc-monitor": "1.4.0",
+          "numpy": "2.1.0",
+          "pandas": "2.3.3",
+          "PyYAML": "6.0.2",
+          "astropy": "6.1.2",
+          "matplotlib": "3.11.2"
+        },
+        "pip_check": "PASS",
+        "checker": "PASS",
+        "installation": "new separate venv; wheel, isolated imports outside checkout"
+      },
+      "pip_check": "PASS"
+    },
+    {
+      "python": "3.13.16",
+      "platform": "macOS-15.8-arm64-arm-64bit-Mach-O",
+      "executable": "/private/tmp/qc-d1-py313/bin/python",
+      "package_path": "/Users/savarese/Documents/GitHub/SOXS/qc_monitor/qc_monitor/__init__.py",
+      "packages": {
+        "qc-monitor": "1.4.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "PyYAML": "6.0.2",
+        "astropy": "6.1.2",
+        "matplotlib": "3.11.2"
+      },
+      "suite": {
+        "passed": 400,
+        "duration_seconds": 171.44,
+        "exit_code": 0,
+        "warnings_as_errors": true
+      },
+      "role": "compatibility",
+      "wheel_environment": {
+        "python": "3.13.16",
+        "platform": "macOS-15.8-arm64-arm-64bit-Mach-O",
+        "executable": "/private/tmp/qc-d3b-installed313/bin/python",
+        "package_path": "/private/tmp/qc-d3b-installed313/lib/python3.13/site-packages/qc_monitor/__init__.py",
+        "packages": {
+          "qc-monitor": "1.4.0",
+          "numpy": "2.1.0",
+          "pandas": "2.3.3",
+          "PyYAML": "6.0.2",
+          "astropy": "6.1.2",
+          "matplotlib": "3.11.2"
+        },
+        "pip_check": "PASS",
+        "checker": "PASS",
+        "installation": "new separate venv; wheel, isolated imports outside checkout"
+      },
+      "pip_check": "PASS"
+    }
+  ],
+  "wheel": {
+    "path": "/private/tmp/qc-d3b-wheel/qc_monitor-1.4.0-py3-none-any.whl",
+    "sha256": "c2700d2c140ea40ccd4a33214892127d814a59e308b3d24c5f73ac74d137ccc3",
+    "source_template_entries_matching": 18
+  }
+}

@@ -1,3 +1,46 @@
+# Handover D3-B — 8 ottobre 2026
+
+**D3-B consegnata e verificata localmente su `dev`; CI hosted pendente.** Pacchetto **1.4.0**, SQLite **schema 1**. D3-A resta
+formalmente chiusa; **D3-C…F non avviate**.
+
+## Scheda di consegna D3-B
+
+- Baseline `8892af5`, working tree pulito, un commit oltre origin/dev.
+  Verifica di pianificazione: 70 PASS / 36,98 s, Python 3.12.15, `-W error`.
+- Commit applicativo **`98d51d341e4d85bc7e14e6f4abf6273e8e42bc32`**.
+  Il candidato finale comprende questo codice/test più documentazione.
+- Una sola operazione per progetto, compresi progetti annidati; runtime
+  condiviso per run/API, esclusivo per update. Archivio/file laterali, report,
+  include e riepilogo protetti attraverso la conclusione dell’operazione.
+- Registro privato dell’account in `/tmp`, percorsi canonici, lock persistenti,
+  reentrancy senza promozione; conservato `<db>.lock`. API dei writer e letture
+  operative partecipano; le ispezioni esplicitamente read-only restano senza lock.
+- Avvio leggero CLI/modulo, recheck della configurazione, diagnostica JSON v1
+  `coordination`. Update prima del backup, include/provenienza, arresto prima
+  di installare se pull cambia destinazioni; nessun rollback automatico.
+- Descrittori ereditati dai figli, timeout dell’intero gruppo, wrapper run senza
+  contesa con il figlio. Nessuna opzione YAML/CLI aggiunta, niente D3-C.
+- Test: **400 PASS** su macOS Python **3.11.17, 3.12.15 e 3.13.16**, con
+  `-W error`, nessuno skip/XFAIL. 37 nuovi casi D3-B; regressioni scientifiche
+  senza cambi di tolleranze. Wheel in tre venv nuovi: checker e pip check PASS.
+- Risultati e limiti: [evidenze D3-B](../tests/results/d3-b-validation.md),
+  [manifesto](qa/d3-b-environments.json), [scheda](d3/d3-b.md).
+- Protezioni cooperative sullo stesso host/account Linux/macOS. Prima
+  dell’introduzione operativa terminare i processi delle versioni precedenti.
+  Nessun push, merge, deploy, modifica scheduler o rebuild dei dati dell’utente.
+
+## Punto di ripresa
+
+Verificare branch e working tree, poi pubblicare il candidato solo su richiesta.
+Verificare CI sullo SHA esatto (Linux Python 3.11/3.12/3.13, macOS 3.12)
+prima della chiusura formale. Non confondere validazione locale e hosted.
+**Non iniziare D3-C; attendere una nuova richiesta dopo la chiusura D3-B.**
+
+Le sezioni seguenti conservano le consegne storiche; questa apertura prevale
+sulle loro indicazioni di ripresa.
+
+---
+
 # Handover D3-A — 8 ottobre 2026
 
 **D3-A completata e formalmente chiusa su `dev` l’8 ottobre 2026.** Pacchetto **1.3.0**, SQLite **schema 1**. **D3-B…F non avviate**.

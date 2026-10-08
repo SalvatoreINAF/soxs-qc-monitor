@@ -332,12 +332,12 @@ D3-0 è una consegna solo documentale: [risultati](results/d3-0-validation.md).
 L’[indice D3](../docs/d3-roadmap.md) collega le sei schede con test e criteri
 previsti per ciascuna milestone applicativa. Questi test sono pianificati,
 non già implementati o eseguiti. Le evidenze storiche D1/D2 restano distinte.
-Ripresa corrente: D3-A chiusa; pianificazione D3-B solo su nuova richiesta,
+Ripresa corrente: D3-A chiusa; D3-B locale, verifica hosted pendente,
 secondo l’[handover](../docs/handover.md).
 
 ## D3-A — Acquisizione resiliente
 
-Suite corrente: **363 casi**, i 315 D2 più 48 di `test_d3a_resilience.py`.
+Suite alla consegna D3-A: **363 casi**, i 315 D2 più 48 di `test_d3a_resilience.py`.
 I conteggi nelle sezioni storiche restano riferiti alle rispettive consegne.
 Le nuove prove verificano isolamento fit VIS/NIR per sequenza, atomicità
 giorno/braccio, force/recovery/idempotenza, nomi malformati e prosecuzione
@@ -370,4 +370,48 @@ Python 3.12 fissato; compatibilità 3.11/3.13, matrice hosted Linux/macOS invari
 [CI 37807882167](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37807882167), attempt 1, sullo SHA
 `be8b3d5202716679de7f46cf73ea984127e3aa8e`. Linux 3.11/3.12/3.13 e macOS 3.12:
 363 PASS ciascuno, build/installazione isolata verdi. Nessuna verifica D3-A
-pendente; D3-B non avviata, pianificabile solo su nuova richiesta.
+pendente; D3-B consegnata localmente, CI pendente.
+
+
+## D3-B — Coordinamento operativo (1.4.0, schema 1)
+
+Suite corrente: **400 casi**, inclusi 37 nuovi test D3-B. **400 PASS** per
+macOS Python 3.11.17/3.12.15/3.13.16 con `-W error`; wheel/checker/pip check
+verificati in tre nuovi venv. [Evidenze](results/d3-b-validation.md).
+
+Una sola operazione per cartella operativa; conflitto immediato con uscita 2.
+Progetti separati procedono se non condividono archivio o report incompatibili.
+Run e API usano ambiente Python e sorgenti con lease condivise, update esclusive.
+Le protezioni comprendono directory annidate e percorsi risolti tramite symlink,
+e durano fino a HTML/riepilogo, oppure al termine del log di update.
+Il JSON v1 aggiunge `coordination`; il supervisore registra `COORDINATION` JSON.
+
+Il registro privato `/tmp/soxs-qc-monitor-locks-<uid>` e `<db>.lock` mantengono
+file persistenti: non cancellarli per risolvere una contesa. Verificare il
+processo proprietario e riprovare quando è terminato. Sono protezioni
+cooperative sullo stesso host/account Linux/macOS; prima di introdurre 1.4.0
+terminare i processi operativi delle versioni precedenti.
+
+Update salva configurazioni/include/provenienza e usa i percorsi normalizzati.
+Se dopo pull cambiano archivio o destinazioni dei report si ferma prima di
+installare: conservare backup/log, rivedere la configurazione e riprovare.
+Non viene eseguito alcun rollback automatico. I controlli preflight/dry-run
+figli restano senza lock; anche quelli autonomi non garantiscono una fotografia
+atomica durante update. Il wrapper run lascia le lease al monitor figlio.
+
+Per verificare in un ambiente di test, senza operare sui dati dell’utente:
+
+```sh
+python -m pytest tests/test_d3b_coordination.py -ra --tb=short -W error
+python -m pytest -ra --tb=short -W error
+python -m build --wheel --no-isolation --outdir /tmp/qc-d3b-wheel
+/path/to/installed-env/bin/python scripts/check_installation.py
+/path/to/installed-env/bin/python -m pip check
+```
+
+Eseguire le suite in sequenza: le prove di update prendono lease esclusive
+sull’ambiente e sui sorgenti usati dai processi di test. Pull/installazione sono
+simulati, backup e controlli figli eseguiti su fixture temporanee reali.
+Vedere [scheda D3-B](../docs/d3/d3-b.md).
+Implementazione locale e chiusura formale sono distinte: CI D3-B pendente,
+D3-C non avviata. Questa nota aggiorna le precedenti indicazioni di ripresa.
