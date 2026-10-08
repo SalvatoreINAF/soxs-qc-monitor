@@ -332,7 +332,8 @@ D3-0 è una consegna solo documentale: [risultati](results/d3-0-validation.md).
 L’[indice D3](../docs/d3-roadmap.md) collega le sei schede con test e criteri
 previsti per ciascuna milestone applicativa. Questi test sono pianificati,
 non già implementati o eseguiti. Le evidenze storiche D1/D2 restano distinte.
-Ripresa corrente: verifica hosted D3-A secondo l’[handover](../docs/handover.md).
+Ripresa corrente: D3-A chiusa; pianificazione D3-B solo su nuova richiesta,
+secondo l’[handover](../docs/handover.md).
 
 ## D3-A — Acquisizione resiliente
 
@@ -365,5 +366,8 @@ fuori checkout e verifica entry point, template, idempotenza, dry-run, config e
 rebuild. Il nuovo modulo interno deve essere incluso nella wheel. Riferimento
 Python 3.12 fissato; compatibilità 3.11/3.13, matrice hosted Linux/macOS invariata.
 
-[Evidenze D3-A](results/d3-a-validation.md) distinguono verifiche locali e CI
-pendente sul candidato esatto. Non iniziare D3-B o usare CI D2 come chiusura D3-A.
+[Evidenze D3-A](results/d3-a-validation.md): chiusura formale completata con
+[CI 37807882167](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37807882167), attempt 1, sullo SHA
+`be8b3d5202716679de7f46cf73ea984127e3aa8e`. Linux 3.11/3.12/3.13 e macOS 3.12:
+363 PASS ciascuno, build/installazione isolata verdi. Nessuna verifica D3-A
+pendente; D3-B non avviata, pianificabile solo su nuova richiesta.

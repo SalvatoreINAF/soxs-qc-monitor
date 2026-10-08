@@ -1,7 +1,6 @@
 # Handover D3-A — 8 ottobre 2026
 
-**D3-A implementata e consegnata localmente su `dev`; chiusura formale hosted
-pendente.** Pacchetto **1.3.0**, SQLite **schema 1**. **D3-B…F non avviate**.
+**D3-A completata e formalmente chiusa su `dev` l’8 ottobre 2026.** Pacchetto **1.3.0**, SQLite **schema 1**. **D3-B…F non avviate**.
 Questa apertura prevale sulle precedenti istruzioni di ripresa, conservate sotto
 come storia di D3-0/D2. D2 rimane formalmente chiuso.
 
@@ -10,9 +9,10 @@ come storia di D3-0/D2. D2 rimane formalmente chiuso.
 - Baseline `957aa968578613612477e00f34998f72ea2977a3`, dev un commit oltre
   origin/dev; modifiche documentali locali D3-0 preservate. Prima dello sviluppo:
   315 PASS in 127,38 s, Python 3.12.15, warning come errori, uscita 0.
-- Commit applicativo/candidato locale **`64d787d035b134f4eaed9f7f8935964ec156c73e`**.
-  La registrazione successiva delle evidenze è documentale: identificarne SHA
-  con git log, senza attribuirle una CI non eseguita.
+- Commit applicativo **`64d787d035b134f4eaed9f7f8935964ec156c73e`**;
+  candidato hosted **`be8b3d5202716679de7f46cf73ea984127e3aa8e`** (`be8b3d5`, solo
+  documenti oltre il codice applicativo). Il successivo commit di chiusura è
+  documentale e si identifica con git log; nessuna nuova CI gli è attribuita.
 - Consegnati: isolamento del calcolo DETLIN per sequenza, diagnosi strutturate,
   retry SQLite limitati nelle letture e transazioni, contatori corretti dopo
   errori successivi. Schema/scienza/firme e ritorni pubblici invariati.
@@ -30,21 +30,23 @@ come storia di D3-0/D2. D2 rimane formalmente chiuso.
 - Limiti: retry per operazione, non deadline dell'intero batch; backup, rename
   e drop_all non sono rilanciati. Renderer, update/pubblicazione, generazioni,
   retention/riuso restano da sviluppare nelle rispettive milestone.
-- **Hosted pendente:** matrice Linux 3.11/3.12/3.13 e macOS 3.12 sul candidato
-  esatto. Non attribuire a D3-A la CI D2 o verifiche locali come prove Linux.
-  Nessun push, merge, deploy, modifica scheduler o rebuild dei dati dell'utente.
+- **Hosted PASS:** [run 37807882167](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37807882167), attempt 1;
+  Linux 3.11/3.12/3.13 e macOS 3.12, **363 PASS per job**, build wheel e
+  installazione isolata riuscite. Nessuna verifica D3-A pendente.
+  L'utente ha pubblicato il candidato; questa chiusura non esegue nuovi push,
+  merge, deploy, modifiche scheduler o rebuild dei dati dell'utente.
 - Stima concordata 6–8 ore inclusi test/documentazione; attese CI escluse.
   È una stima di sviluppo, non un tempo misurato o un benchmark del batch.
 
 ## Punto di ripresa vincolante
 
 Verificare branch/HEAD/working tree e leggere scheda A, evidenze e istruzioni test.
-La prossima attività è **completare soltanto la verifica hosted D3-A** dopo che
-l'utente autorizza/pubblica il candidato. Il commit documentale successivo non
-cambia il codice: distinguere SHA applicativo, SHA effettivamente eseguito dalla
-CI e documentazione di chiusura. Se CI fallisce, correggere e riverificare D3-A.
-Solo dopo esiti verdi registrarne la chiusura formale.
-**Non iniziare D3-B o qualsiasi step successivo senza una nuova richiesta.**
+D3-A è chiusa senza verifiche pendenti. La prossima milestone è la
+**pianificazione dettagliata D3-B**, soltanto su una nuova richiesta: leggere
+[scheda B](d3/d3-b.md), ricontrollare il codice effettivo e chiarire le decisioni
+aperte. Il commit documentale di chiusura non cambia il codice: distinguere SHA
+applicativo, candidato effettivamente eseguito dalla CI e registrazione finale.
+**D3-B non avviata; nessun avanzamento automatico o merge/deploy implicito.**
 
 ## Handover storico D3-0 — 8 ottobre 2026
 

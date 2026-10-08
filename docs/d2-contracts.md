@@ -203,4 +203,5 @@ Counts advance only after commit, including family totals when a later unit fail
 Exhausted archive reads are not hidden by legacy missing-table fallbacks. See
 [operations](operations.md) for the exact diagnostic fields and exit-code behavior,
 [D3-A](d3/d3-a.md) and [evidence](../tests/results/d3-a-validation.md) for delivery.
-D2 historical results remain unchanged; D3-A hosted closure is separate.
+D2 historical results remain unchanged; D3-A is formally closed with its own
+hosted evidence, recorded in the linked D3-A results.

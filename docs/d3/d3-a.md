@@ -1,7 +1,6 @@
 # D3-A — Acquisizione resiliente
 
-**Implementata e consegnata localmente l'8 ottobre 2026 su `dev`; chiusura
-formale pendente per matrice hosted sul candidato esatto.** Dipendenza D3-0
+**Completata e formalmente chiusa l'8 ottobre 2026 su `dev`.** Dipendenza D3-0
 soddisfatta; D2 resta formalmente chiuso. Pacchetto **1.3.0**, SQLite **schema 1**.
 Stima concordata **6–8 ore**, incluse verifiche/documentazione, escluse attese CI;
 non è consuntivo. Politiche comuni: [indice D3](../d3-roadmap.md).
@@ -75,21 +74,24 @@ verificano anche dry-run/WAL, lease reali e risultati scientifici.
 Evidenze di suite complete Python 3.11/3.12/3.13, wheel isolata, pip check,
 ambiente e limiti in [risultati D3-A](../../tests/results/d3-a-validation.md).
 Nessuna tolleranza allargata, XFAIL o sostituzione della verifica numerica con
-confronti pixel. Hosted Linux/macOS richiesto per chiusura formale, non eseguito
-implicitamente né sostituito dalle prove locali macOS.
+confronti pixel. [Matrice hosted](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37807882167) verde, attempt 1,
+su `be8b3d5202716679de7f46cf73ea984127e3aa8e`: Linux 3.11/3.12/3.13 e macOS 3.12,
+363 PASS ciascuno, build/installazione isolata riuscite. Nessuna verifica pendente.
 
 ## Consegna e ripresa
 
 Commit applicativo/candidato locale:
 **`64d787d035b134f4eaed9f7f8935964ec156c73e`**. La successiva registrazione delle
 evidenze modifica soltanto documentazione e conserva i documenti D3-0 preesistenti.
+Candidato hosted verificato: **`be8b3d5202716679de7f46cf73ea984127e3aa8e`** (`be8b3d5`).
+La chiusura successiva è solo documentale, senza una nuova CI attribuita.
 Scheda sintetica, limiti e punto di ripresa: [handover](../handover.md).
 
 Aggiornati indice/scheda, README, contratti, operazioni, istruzioni test,
 risultati/ambiente e roadmap/valutazione locali (reference_docs ancora ignorata).
 
 Prossima sessione: leggere handover/evidenze, verificare dev/HEAD/working tree,
-completare esclusivamente la verifica hosted D3-A dopo pubblicazione autorizzata
-del candidato. Nessun push/merge/deploy o rebuild operativo implicito.
-**Non iniziare D3-B o altri step.** Nessuna decisione progettuale D3-A aperta;
-la pendenza è di verifica hosted, non una scelta implementativa.
+D3-A è chiusa. La prossima attività è pianificare D3-B soltanto su una nuova
+richiesta, leggendo la sua scheda e chiarendo le questioni aperte. Nessun nuovo
+push/merge/deploy o rebuild operativo in questa chiusura. D3-B non avviata;
+nessun avanzamento automatico. Nessuna decisione o verifica D3-A pendente.

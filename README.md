@@ -536,11 +536,11 @@ is started automatically.
 **D3-0 documentale consegnato l’8 ottobre 2026** su `dev`: consultare
 [l’indice D3](docs/d3-roadmap.md) per ordine, dipendenze, decisioni e stime,
 e le sei schede collegate per pianificare una milestone alla volta.
-D3-A è implementata localmente nel pacchetto **1.3.0**, con schema SQLite **1**
+D3-A è **completata e formalmente chiusa**, pacchetto **1.3.0**, schema SQLite **1**
 invariato. D3-B…F restano pianificate e non implementate.
 [Verifiche D3-0](tests/results/d3-0-validation.md) e
 [handover](docs/handover.md) identificano la baseline e il punto di ripresa:
-**verifica hosted del candidato D3-A**, senza avanzamento automatico.
+**pianificazione D3-B soltanto su nuova richiesta**, senza avanzamento automatico.
 
 ### D3-A — Acquisizione resiliente
 
@@ -559,6 +559,8 @@ Il JSON v1 espone diagnosi di sequenza e `sqlite_operations`, compresi i retry
 risolti. Errori input/fit danno 1; errori bloccanti dell'archivio danno 2.
 
 Vedere [scheda D3-A](docs/d3/d3-a.md), [procedure](docs/operations.md) e
-[verifiche D3-A](tests/results/d3-a-validation.md). La consegna locale non
-sostituisce la matrice CI sul candidato esatto. Update/pubblicazione, grafici,
-generazioni e retention restano negli step successivi.
+[verifiche D3-A](tests/results/d3-a-validation.md).
+[CI D3-A verde](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37807882167), attempt 1, sul commit `be8b3d5`:
+363 PASS per job Linux 3.11/3.12/3.13 e macOS 3.12, build wheel e installazione
+isolata riuscite. Update/pubblicazione, grafici, generazioni e retention restano
+negli step successivi; D3-B non avviata.

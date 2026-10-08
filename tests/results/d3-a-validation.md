@@ -1,7 +1,6 @@
-# D3-A — Verifica e consegna locale, 8 ottobre 2026
+# D3-A — Verifica e chiusura formale, 8 ottobre 2026
 
-**D3-A implementata e verificata localmente su `dev`; chiusura formale hosted
-pendente.** Pacchetto **1.3.0**, SQLite **schema 1**. D2 rimane formalmente chiuso;
+**D3-A completata e formalmente chiusa su `dev` l’8 ottobre 2026.** Pacchetto **1.3.0**, SQLite **schema 1**. D2 rimane formalmente chiuso;
 D3-B…F non implementate. Riferimenti: [scheda A](../../docs/d3/d3-a.md),
 [indice](../../docs/d3-roadmap.md), [handover](../../docs/handover.md).
 
@@ -15,7 +14,10 @@ uscita 0. Pacchetto iniziale 1.2.0/schema 1. git diff --check verde.
 Commit applicativo e candidato verificato:
 **`64d787d035b134f4eaed9f7f8935964ec156c73e`**. Suite e wheel corrispondono al
 codice di questo commit; i successivi aggiornamenti sono esclusivamente
-documentali. Il candidato non è stato pubblicato né eseguito in CI hosted.
+documentali. L'utente ha pubblicato `dev`; la CI ha verificato il candidato
+**`be8b3d5202716679de7f46cf73ea984127e3aa8e`**, commit documentale `be8b3d5`.
+Confronto Git tra `64d787d` e `be8b3d5`: codice, test Python, packaging, script e
+workflow identici; le differenze sono esclusivamente documentali.
 
 ## Verifiche locali effettive
 
@@ -110,7 +112,33 @@ registrato nel log del checker. Versioni/runtime osservati nel manifesto D3-A.
 Non modificati workflow o tolleranze; lo smoke grafico/HTML scientifico rimane
 nella suite completa. Nessun cambiamento ai renderer richiede nuova QA pixel.
 
-## Consegna e pendenze
+## Matrice hosted verificata — chiusura D3-A
+
+[GitHub Actions run 37807882167](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37807882167), **attempt 1**, conclusione **success**,
+SHA esatto **`be8b3d5202716679de7f46cf73ea984127e3aa8e`**. API e log verificati direttamente
+l'8 ottobre 2026. Quattro job completati con successo:
+
+| Runner | Python | Suite | Durata pytest | Wheel 1.3.0 | Checker isolato |
+|---|---|---:|---:|---|---|
+| ubuntu-latest | 3.11 | 363 PASS | 203,39 s | PASS | PASS |
+| ubuntu-latest | 3.12 | 363 PASS | 190,85 s | PASS | PASS |
+| ubuntu-latest | 3.13 | 363 PASS | 181,58 s | PASS | PASS |
+| macos-latest | 3.12 | 363 PASS | 256,35 s | PASS | PASS |
+
+Nessuno skip nella suite; warning come errori. Lo step di installazione tcsh
+è correttamente escluso su macOS, non è uno skip di test. Build wheel e verifica
+installazione isolata sono riuscite in ogni job. Il `pip check` è provato negli
+ambienti locali sopra; non è attribuito come step separato a questa CI.
+Log scaricato in `/private/tmp/qc-d3a-hosted-37807882167.log`; durate dal
+riepilogo pytest, non dai tempi complessivi dei job. Il log temporaneo non è una
+dipendenza del progetto: il link hosted e questa tabella conservano l'evidenza.
+
+La chiusura è esclusivamente documentale; nessuna nuova suite locale richiesta
+per codice invariato. Verifiche di chiusura **PASS**: git diff --check,
+**75 collegamenti locali** nei documenti aggiornati, manifesto CI coerente con
+SHA/quattro job, nessuna modifica a codice, configurazione, test o schema.
+
+## Consegna e limiti
 
 Documentazione: scheda/indice D3, handover, README, contratti/operazioni,
 istruzioni test, queste evidenze e manifesto ambiente. Roadmap/valutazione
@@ -120,11 +148,9 @@ Verifiche documentali **PASS**: git diff --check, whitespace dei nuovi file,
 **108 collegamenti locali** senza target mancanti; sorgenti/test/versione identici
 al candidato applicativo. Documenti storici D1/D2 e schema identici alla baseline.
 
-**Matrice hosted D3-A pendente**: Linux 3.11/3.12/3.13 e macOS 3.12 sullo SHA
-esatto pubblicato dall'utente. Nessuna CI D2 attribuita a D3-A; le prove locali
-non costituiscono evidenze Linux. Quando disponibile, registrare URL, attempt,
-SHA effettivo e risultati di suite/build/installazione, distinguendo eventuali
-commit documentali; solo allora dichiarare la chiusura formale.
+La matrice hosted seguente completa la chiusura D3-A. Le prove locali e la CI
+D2 restano evidenze distinte. Il successivo commit di chiusura modifica soltanto
+la documentazione e non ha una propria esecuzione CI attribuita.
 
 Limiti: retry per operazione e timeout per attesa SQLite, non deadline globale;
 backup/replace/drop_all non riprovati; lease di update/pubblicazione, figure,
@@ -133,5 +159,6 @@ l'accettazione scientifica operativa né il completamento del produttore.
 Stima concordata 6–8 ore inclusi test/documentazione; non è consuntivo.
 
 Nessun push, merge, deploy, modifica scheduler, archivio operativo o rebuild
-dell'utente. Punto di ripresa: **solo verifica/chiusura hosted D3-A**.
-**Non iniziare D3-B o qualsiasi step successivo senza una nuova richiesta.**
+dell'utente. Nessuna verifica D3-A pendente. Punto di ripresa: leggere stato,
+evidenze e [scheda D3-B](../../docs/d3/d3-b.md), poi pianificare D3-B soltanto
+su una nuova richiesta. D3-B non avviata; nessun avanzamento automatico.

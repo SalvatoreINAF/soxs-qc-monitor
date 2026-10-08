@@ -3,7 +3,7 @@
   "application_commit": "64d787d035b134f4eaed9f7f8935964ec156c73e",
   "package_version": "1.3.0",
   "schema_version": 1,
-  "hosted_status": "pending; no candidate published",
+  "hosted_status": "PASS; D3-A formally closed",
   "environments": [
     {
       "python": "3.12.15",
@@ -125,5 +125,47 @@
         "checker_exit_code": 0
       }
     }
-  ]
+  ],
+  "hosted": {
+    "url": "https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37807882167",
+    "run_id": 37807882167,
+    "attempt": 1,
+    "head_sha": "be8b3d5202716679de7f46cf73ea984127e3aa8e",
+    "conclusion": "success",
+    "verified_date": "2026-10-08",
+    "jobs": [
+      {
+        "runner": "ubuntu-latest",
+        "python": "3.11",
+        "passed": 363,
+        "pytest_seconds": 203.39,
+        "wheel": "PASS",
+        "installed_checker": "PASS"
+      },
+      {
+        "runner": "ubuntu-latest",
+        "python": "3.12",
+        "passed": 363,
+        "pytest_seconds": 190.85,
+        "wheel": "PASS",
+        "installed_checker": "PASS"
+      },
+      {
+        "runner": "ubuntu-latest",
+        "python": "3.13",
+        "passed": 363,
+        "pytest_seconds": 181.58,
+        "wheel": "PASS",
+        "installed_checker": "PASS"
+      },
+      {
+        "runner": "macos-latest",
+        "python": "3.12",
+        "passed": 363,
+        "pytest_seconds": 256.35,
+        "wheel": "PASS",
+        "installed_checker": "PASS"
+      }
+    ]
+  }
 }

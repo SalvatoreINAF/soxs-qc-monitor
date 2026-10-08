@@ -1,7 +1,7 @@
 # D3 — Roadmap delle milestone
 
 **Aggiornamento: 8 ottobre 2026.** D3-0 documentale consegnato; D3-A
-implementata e consegnata localmente, chiusura hosted pendente; D3-B…F
+completata e formalmente chiusa; D3-B…F
 pianificate e non implementate.
 Questo indice è il riferimento versionato per le nuove sessioni. La roadmap e
 la valutazione in `reference_docs/` restano locali e intenzionalmente escluse da Git.
@@ -22,16 +22,18 @@ e [handover](handover.md). La verifica durante la pianificazione D3 ha dato
 esecuzione hosted né una verifica di funzionalità D3.
 
 D3-A: commit applicativo **`64d787d035b134f4eaed9f7f8935964ec156c73e`**,
-pacchetto **1.3.0**, schema **1**; [verifiche locali](../tests/results/d3-a-validation.md).
-La chiusura hosted D2 non viene attribuita a D3-A. Ripresa: pubblicazione del
-candidato da parte dell'utente e matrice CI D3-A, senza iniziare D3-B.
+pacchetto **1.3.0**, schema **1**; [evidenze locali e hosted](../tests/results/d3-a-validation.md).
+[CI D3-A](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37807882167) verde sul candidato
+`be8b3d5202716679de7f46cf73ea984127e3aa8e`, attempt 1: 363 PASS in ciascuno dei quattro
+job, build e installazione isolata riuscite. D3-A chiusa, nessuna verifica pendente.
+Ripresa: pianificazione D3-B soltanto su nuova richiesta; D3-B non avviata.
 
 ## Milestone, dipendenze e stime
 
 | Milestone | Risultato | Dipendenze | Stato | Stima |
 |---|---|---|---|---|
 | D3-0 | Roadmap, schede e handover | D2 | Consegnata, solo documenti | 2–4 ore |
-| [D3-A](d3/d3-a.md) | Isolamento acquisizione e retry limitati | D3-0 | Consegna locale; CI pendente | 6–8 ore |
+| [D3-A](d3/d3-a.md) | Isolamento acquisizione e retry limitati | D3-0 | Formalmente chiusa | 6–8 ore |
 | [D3-B](d3/d3-b.md) | Coordinamento run, rebuild e update | D3-0 | Pianificata | 6–8 ore |
 | [D3-C](d3/d3-c.md) | Esiti delle figure e gestione dei renderer | D3-0 | Pianificata | 6–8 ore |
 | [D3-D](d3/d3-d.md) | Motore di pubblicazione atomica, non attivo nella CLI | D3-B, D3-C | Pianificata | 6–10 ore |
