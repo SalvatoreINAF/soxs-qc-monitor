@@ -7,12 +7,13 @@ The monitor is designed to run periodically in batch mode and maintain an indepe
 - QC metrics extracted from the SOXS Pipeline upstream database (`soxspipe.db`)
 - Dispersion solution products
 - Order localization products
+- Detector linearity raw sequences
 
 and produces:
 
 - Historical trend plots
 - Diagnostic plots
-- A self-contained HTML report suitable for publication on the web
+- A static HTML report referencing PNG images suitable for publication on the web
 
 ## Example HTML Report
 
@@ -39,7 +40,7 @@ cd ~/git_repos/soxs-qc-monitor/
 
 conda activate soxspipe
 
-pip install .
+python -m pip install .
 ```
 
 The installation creates the command-line executable in the environment bin folder:
@@ -131,7 +132,7 @@ with at least two, uses all pair differences for noise. With one bias noise is
 unavailable; with none it shows raw signals. Counts other than three are reported.
 
 The standalone `utils/analyze_detector_linearity.py --config <config.yaml>`
-uses the same signal threshold. It divides signals and ADU thresholds by
+uses the same default signal threshold (`saturation_fraction: 0.60`); explicit YAML values override it. It divides signals and ADU thresholds by
 `BINX * BINY` to compare different binning factors in equivalent 1x1 ADU.
 Its extrapolated maximum exposure uses the normalized nominal saturation, so
 the reported time refers to the binning actually acquired, not a hypothetical
@@ -250,8 +251,12 @@ qc-monitor --rebuild-db
 ```
 
 ```bash
-qc-monitor --force-date YYYY-MM-DD
+qc-monitor --no-plots
+qc-monitor --summary-json logs/latest.json
 ```
+
+There is no `--force-date` CLI option. See [batch operation and recovery](docs/operations.md)
+for exit codes 0/1/2, JSON diagnostics, exact reference dependencies and scheduler checks.
 
 
 ## Dry-run
@@ -367,8 +372,9 @@ The monitor is intended to run periodically through cron or another scheduler.
 An example tcsh wrapper is provided in the file `run_SOXS_QC_Monitor.sh`.
 
 The wrapper resolves the repository root from its own location, exports
-`QC_MONITOR_ROOT`, runs a preflight check, and only then starts the normal QC
-Monitor execution.
+`QC_MONITOR_ROOT` and starts the monitor, which performs its own preflight.
+Set `QC_PYTHON` to the desired interpreter. The supervisor applies configurable
+timeout and log retention; see [operations](docs/operations.md).
 
 ---
 
@@ -380,9 +386,10 @@ An update helper is provided:
 ./update_QC_Monitor.sh
 ```
 
-The script backs up `configs/qc_monitor.yaml`, runs `git pull --ff-only`,
-reinstalls the package with `pip install .`, then runs preflight and dry-run
-checks. It does not rebuild or delete the historical QC database.
+The helper preserves configuration, revision, environment requirements and a
+consistent SQLite backup, runs `git pull --ff-only`, installs with the selected
+interpreter and checks preflight/dry-run. Prepare a candidate environment and
+stop the scheduler first; see [update and rollback](docs/operations.md#update-and-rollback).
 
 ---
 
@@ -408,7 +415,7 @@ checks. It does not rebuild or delete the historical QC database.
 │   │   └── template.html
 │   ├── schema.py
 │   ├── storage.py
-│   └── upstream.py
+│   └── run_result.py
 ├── README.md
 ├── pyproject.toml
 └── run_SOXS_QC_Monitor.sh
@@ -438,7 +445,7 @@ Acquires data from:
 
 ### `processing.py`
 
-Performs transformations and aggregation of acquired data.
+Placeholder containing only a docstring; it is not an operational processing layer.
 
 ### `storage.py`
 
@@ -456,9 +463,10 @@ Generates the final HTML report.
 
 Database schema definitions.
 
-### `upstream.py`
+### `run_result.py`
 
-Utilities used to access the SOXS Pipeline upstream database.
+Versioned run diagnostics, phase timing and optional atomic JSON summary.
+Upstream access is implemented in `acquisition.py`; there is no `upstream.py` module.
 
 ---
 
@@ -467,3 +475,16 @@ Utilities used to access the SOXS Pipeline upstream database.
 The QC Monitor maintains its own SQLite database and does not modify any SOXS Pipeline products or databases.
 
 The monitor is designed to be re-run safely and incrementally as new reduction sessions become available.
+
+
+# Development verification and handover
+
+The Python 3.12 reference dependencies are fixed in
+`requirements/reference-py312.txt`. The D1 workflow tests `dev` pushes and pull
+requests on Linux Python 3.11–3.13 and macOS Python 3.12, builds the wheel and
+checks its isolated installation. See [test instructions](tests/README.md),
+[operations](docs/operations.md) and [session handover](docs/handover.md).
+
+The report currently requires the standard HTML/`plots/` layout. Missing/stale
+figure handling and coherent publication remain D3 work. No P0 dry-run or
+whole-unit transaction guarantees are relaxed by these limitations.

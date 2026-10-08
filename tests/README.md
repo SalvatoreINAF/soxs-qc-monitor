@@ -1,4 +1,14 @@
-# H0–H2 — Regressioni, dry-run e completezza delle acquisizioni
+# D1 — Verifica batch, scientifica e di installazione
+
+Suite corrente su `dev`: 216 casi (177 di baseline e 39 nuovi D1).
+I risultati storici H0/H1/H2 sotto riportati restano evidenze delle rispettive
+revisioni; non descrivono il conteggio corrente. La correzione DETLIN `8d44c9d`
+aveva già introdotto tre bias VIS e i confronti standalone.
+
+Vedere [handover](../docs/handover.md) per gli esiti D1 e
+[guida operativa](../docs/operations.md) per il contratto JSON e i codici 0/1/2.
+
+## Evidenze storiche H0–H2
 
 Suite su `main`: H0 (`314441f`) introduce le fixture e le regressioni sulla
 baseline applicativa `96f18e3`; H1 corregge P0-A e aggiunge i casi read-only.
@@ -15,7 +25,7 @@ python -m pytest -ra
 python -m pytest --runxfail
 ```
 
-Dopo H2 entrambi i comandi devono avere **113 PASS**, senza FAIL, XFAIL o
+La verifica storica dopo H2 aveva **113 PASS**, senza FAIL, XFAIL o
 XPASS. I 63 casi H0/H1 rimangono verdi; H2 aggiunge 50 casi di completezza e
 recupero. Soltanto la prova H1 dei permessi può essere saltata quando i privilegi
 del processo rendono non significativo il controllo.
@@ -57,8 +67,8 @@ DSOL: due righe nello stesso ordine, coordinate/identità complete e `R_pin`
 1000/1200; media attesa 1100 e deviazione standard campionaria `sqrt(20000)`.
 OLOC: modello costante `cent_00=2`, HDU 1 dei coefficienti e HDU 2 dei metadati.
 DETLIN: ROI 2×2, pattern a media nulla con varianza nonzero, nomi e header IMGNAME
-riconosciuti; bias/dark medio 10 e segnale corretto `100 × tempo`. VIS usa due
-bias e due flat per tempo per ciascuna delle quattro modalità; NIR usa un dark
+riconosciuti; bias/dark medio 10 e segnale corretto `100 × tempo`. VIS usa ora tre
+bias (due nella baseline H2) e due flat per tempo per ciascuna delle quattro modalità; NIR usa un dark
 e due flat per tempo. Due tempi distinti consentono il fit nominale, mentre
 un solo tempo deve lasciare l'unità aperta. Il retry VIS ripara il terzo tempo
 SHG con segnale corretto 360, rendendo il nuovo fit diverso dal precedente.
@@ -159,7 +169,7 @@ di retry eliminano deliberatamente il registro per simulare dati sperimentali
 rimasti aperti. I nuovi casi esercitano la stessa acquisizione e le stesse
 transazioni utilizzate dai coordinatori.
 
-Le fixture DETLIN ora hanno TPL START/ID coerenti e NEXP/EXPNO assegnati
+Le fixture DETLIN H2 avevano TPL START/ID coerenti e NEXP/EXPNO assegnati
 all'inventario sintetico. La riparazione di un frame mantiene i suoi identificativi;
 le cardinalità descrivono la fixture, non un conteggio universale del produttore.
 
@@ -214,3 +224,55 @@ concorrenti; non sono un benchmark del monitor operativo.
 
 Nessun dato operativo è stato usato come destinazione dei test. Nessuna
 ricostruzione degli archivi sperimentali o modifica al codice standalone.
+
+
+## D1 — Matrice aggiuntiva
+
+| Gruppo | Casi | Verifica |
+|---|---:|---|
+| Riepilogo e acquisizione | 17 | JSON/file identici, UUID, UTC, conteggi, retry, deduplicazione, esiti 0/1/2, dry-run/preflight invariati, SQL lock reale, rollback, collisioni e configurazione malformata |
+| Scientificità, configurazione e rendering | 8 | Polinomio analitico, media/std DSOL, soglia esatta e fit, include duplicati, query assente, tutti i renderer, 12 riferimenti HTML, dati vuoti ed errore di salvataggio reale, standalone default/override |
+| Wrapper e supervisione | 14 | tcsh reale, interprete richiesto, percorsi con spazi, codici, timeout di un processo reale, retention sicura, ultimo tentativo e freschezza, errore supervisore dominante |
+
+Nessun nuovo XFAIL. I due test CLI legacy di sorgente QC fallita attendono ora 1;
+i test API conservano gli interi precedenti e gli invarianti di storage.
+Le simulazioni dello script update riguardano solo il dispatch del wrapper:
+nessun pull o aggiornamento reale viene eseguito durante la suite.
+
+### Ambiente pulito
+
+```sh
+python3.12 -m venv /tmp/qc-reference
+/tmp/qc-reference/bin/python -m pip install -c requirements/reference-py312.txt '.[test]' build setuptools wheel
+PYTHONDONTWRITEBYTECODE=1 /tmp/qc-reference/bin/python -m pytest -ra --tb=short
+/tmp/qc-reference/bin/python -m build --wheel --no-isolation --outdir /tmp/qc-wheel
+```
+
+Usare un secondo ambiente per installare la wheel e verificare:
+
+```sh
+/path/to/installed-env/bin/python scripts/check_installation.py
+```
+
+La CI esegue questi controlli su Linux 3.11/3.12/3.13 e macOS 3.12. `tcsh` è
+necessario anche localmente. `Agg`, cache Matplotlib e cache Fontconfig/XDG
+sono impostate in directory temporanee prima degli import scientifici.
+I test non dipendono dal vecchio percorso `/private/tmp/qc-monitor-h0-test-deps`.
+
+La [tavola di controllo visivo](../docs/qa/d1-reference.png) mostra i dodici
+grafici sintetici ispezionati; non è una golden image pixel per pixel.
+Lo smoke HTML usa il layout standard. Il difetto sui riferimenti fuori da
+`plots/` e sulle immagini mancanti/stale rimane esplicitamente rinviato a D3.
+
+La baseline scientifica è analitica: polinomio `1+2y+3o+4oy`, fit `10t+5`,
+media DSOL 1100 e deviazione campionaria `sqrt(20000)`. Tolleranze dove
+pertinente `rel=1e-10`, `abs=1e-8`; nessuna certificazione di dati operativi.
+
+
+### Esito finale D1 — 8 ottobre 2026
+
+Sul codice candidato `7732ddb`: **216 PASS in 483,91 s**, Python 3.12.15
+e ambiente fissato. Nessun FAIL/XFAIL/XPASS, warning o skip. Wheel e compatibilità
+macOS 3.11/3.13 verificate come descritto nei
+[risultati completi](results/d1-validation.md). La matrice hosted resta pendente;
+non dichiarare D1 completato e non avviare D2 prima di una nuova richiesta.
