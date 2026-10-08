@@ -6,7 +6,7 @@ import pandas as pd
 @dataclass(frozen=True)
 class InputOutcome:
     source: str
-    state: str  # acquired, foreign, unusable, failed
+    state: str  # acquired, foreign, unusable, failed, skipped
     unit: tuple[str, ...] | None = None
     reason: str = ""
     arm: str | None = None
@@ -16,6 +16,9 @@ class InputOutcome:
 class AcquisitionBatch:
     frames: dict[str, pd.DataFrame]
     outcomes: list[InputOutcome] = field(default_factory=list)
+
+    # Counts of rows removed by loaders; unknown counts are explicitly omitted.
+    discarded_rows: dict[str, int] = field(default_factory=dict)
 
     def failures(self, unit: tuple[str, ...]) -> list[InputOutcome]:
         return [outcome for outcome in self.outcomes if outcome.state == "failed"

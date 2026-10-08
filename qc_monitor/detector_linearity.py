@@ -412,6 +412,7 @@ def _load_detector_linearity_batch(
                 if date:
                     unit = (_obs_day_from_date(date), configured_arm)
                 if not force and unit in processed_obs_days:
+                    outcomes.append(InputOutcome(str(path), "skipped", unit))
                     continue
                 entry = {"unit": unit, "path": str(path), "start": header.get("ESO TPL START"),
                          "id": header.get("ESO TPL ID"), "nexp": header.get("ESO TPL NEXP"),

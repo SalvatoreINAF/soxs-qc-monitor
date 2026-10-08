@@ -88,12 +88,12 @@ class SQLiteStore:
         except sqlite3.Error as exc:
             raise ReadOnlyStorageError(f"Cannot open SQLite archive {self.db_path}: {exc}") from exc
 
-    def _read_registry(self, query: str) -> list[tuple]:
+    def _read_registry(self, query: str, parameters=()) -> list[tuple]:
         if self.read_only and self._missing_database:
             return []
         try:
             with closing(self._connect()) as conn:
-                return conn.execute(query).fetchall()
+                return conn.execute(query, parameters).fetchall()
         except sqlite3.Error as exc:
             if not self.read_only:
                 raise
@@ -868,6 +868,31 @@ class SQLiteStore:
         with self._connect() as conn:
             conn.executemany(query, rows)
             conn.commit()
+
+    def unit_row_counts(self, family: str, unit: tuple) -> dict:
+        """Count historical rows preserved by a closed-unit skip; no input comparison."""
+        counts = {}
+        day_column = "night start date" if family == "qc" else "obs_day"
+        for table, _, _ in _UNIT_TABLES[family]:
+            where = f'"{day_column}" = ?'
+            if family == "detlin":
+                where += ' AND "eso seq arm" = ?'
+            try:
+                result = self._read_registry(f'SELECT count(*) FROM "{table}" WHERE {where}', unit)
+                counts[table] = result[0][0] if result else 0
+            except ReadOnlyStorageError:
+                # Legacy read-only archives need not expose every data table.
+                counts[table] = None
+        return counts
+
+    def latest_data_utc(self, family: str) -> str | None:
+        """Timestamp of latest persisted data, distinct from the batch execution time."""
+        table = _UNIT_TABLES[family][0][0]
+        try:
+            result = self._read_registry(f'SELECT MAX("obs_date_utc") FROM "{table}"')
+        except ReadOnlyStorageError:
+            return None
+        return result[0][0] if result else None
 
     # Metrics load
 

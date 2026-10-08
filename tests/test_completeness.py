@@ -165,7 +165,7 @@ def test_upstream_read_error_returns_schema_without_closing_day(lab):
     assert rows(lab.db, 'SELECT * FROM processed_obs_days') == []
     # A failed QC read must not certify or prevent an independent family.
     lab.dsol()
-    lab.cli("--no-plots")
+    lab.cli("--no-plots", expected=1)
     assert rows(lab.db, 'SELECT * FROM processed_obs_days') == []
     assert rows(lab.db, 'SELECT obs_day FROM processed_dispersion_obs_days') == [(DAY,)]
 

@@ -94,7 +94,7 @@ def test_empty_source_differs_from_failed_source_and_other_family_proceeds(lab, 
     assert batch.frames["metrics"].empty
     assert batch.outcomes[0].state == ("acquired" if source_state == "empty" else "failed")
     lab.dsol()
-    lab.cli("--no-plots")
+    lab.cli("--no-plots", expected=1 if source_state == "failed" else 0)
     assert rows(lab.db, 'SELECT count(*) FROM qc_metrics') == [(1 if source_state == "empty" else 0,)]
     assert rows(lab.db, 'SELECT count(*) FROM processed_obs_days') == [(1 if source_state == "empty" else 0,)]
     assert rows(lab.db, 'SELECT obs_day FROM processed_dispersion_obs_days') == [(DAY,)]

@@ -15,6 +15,7 @@ _collection_cache = tempfile.TemporaryDirectory(prefix="qc-h0-mpl-")
 atexit.register(_collection_cache.cleanup)
 os.environ["MPLBACKEND"] = "Agg"
 os.environ["MPLCONFIGDIR"] = _collection_cache.name
+os.environ["XDG_CACHE_HOME"] = _collection_cache.name
 
 import numpy as np
 from astropy.io import fits
@@ -141,7 +142,7 @@ class Lab:
 
     def cli(self, *flags, expected=0):
         env = os.environ.copy()
-        env.update(MPLBACKEND="Agg", MPLCONFIGDIR=str(self.cache),
+        env.update(MPLBACKEND="Agg", MPLCONFIGDIR=str(self.cache), XDG_CACHE_HOME=str(self.cache),
                    PYTHONDONTWRITEBYTECODE="1")
         # Exercise this checkout, even when cwd is the temporary project.
         repo = str(Path(__file__).resolve().parents[1])

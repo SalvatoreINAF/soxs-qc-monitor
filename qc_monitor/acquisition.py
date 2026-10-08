@@ -299,7 +299,7 @@ def _load_qc_batch(
 
     if df.empty:
         log.info("No QC rows found in session database %s", session_db_path)
-        return AcquisitionBatch({"metrics": _empty_qc_dataframe()}, [InputOutcome(str(session_db_path), "acquired", reason="Empty source")])
+        return AcquisitionBatch({"metrics": _empty_qc_dataframe()}, [InputOutcome(str(session_db_path), "acquired", reason="Empty source")], {"metrics": 0})
 
     # Normalize / validate values, keeping upstream column names
     df["eso seq arm"] = df["eso seq arm"].apply(normalize_arm)
@@ -340,7 +340,7 @@ def _load_qc_batch(
         session_db_path,
     )
 
-    return AcquisitionBatch({"metrics": df}, outcomes)
+    return AcquisitionBatch({"metrics": df}, outcomes, {"metrics": int(invalid.sum())})
 
 
 def find_dispersion_solution_fits_files(
