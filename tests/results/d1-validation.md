@@ -55,10 +55,10 @@ nascondere difetti e nessun XFAIL è stato aggiunto.
 
 ## CI hosted
 
-Workflow valido per quattro job: Linux 3.11/3.12/3.13, macOS 3.12. Configurati
-suite, build e installazione separata. **Esecuzione hosted ancora pendente**:
-nessun push autorizzato e nessun runtime Linux locale attivo. D1 non è dichiarato
-formalmente completato finché questa matrice non sarà verificata.
+Workflow configurato per quattro job: Linux 3.11/3.12/3.13, macOS 3.12. Configurati
+suite, build e installazione separata. Alla consegna iniziale l’esecuzione hosted
+era pendente. La successiva prima esecuzione è descritta nell’aggiornamento sotto;
+D1 non è dichiarato formalmente completato finché la matrice non sarà verde.
 
 
 ## Verifiche supplementari di compatibilità
@@ -94,3 +94,39 @@ La consegna documentale successiva modifica soltanto README, istruzioni,
 handover ed evidenze; il codice applicativo e i test sono quelli verificati.
 `git diff --check`, sintassi Python e struttura del workflow sono verdi.
 La matrice hosted rimane l’unico criterio di chiusura D1 ancora pendente.
+
+
+## Correzione della validazione hosted del workflow
+
+Dopo il push eseguito dall’utente di `dev` (`c689c8b`), GitHub ha rifiutato il
+workflow prima dell’avvio dei job: `runner.temp` non è consentito nel blocco
+`jobs.tests.env`. Le righe 25/26 producevano `Unrecognized named-value: runner`.
+La precedente verifica della struttura YAML non verificava la disponibilità dei
+contesti Actions e non costituiva validazione semantica del workflow.
+
+Fix: `MPLCONFIGDIR` e `XDG_CACHE_HOME` vengono ora creati e scritti in
+`GITHUB_ENV` da uno step Bash, usando `$RUNNER_TEMP`, prima dell’installazione
+scientifica e dei test. Gli altri riferimenti a `runner.temp` nei comandi degli
+step rimangono validi. Matrice, dipendenze e codice applicativo sono invariati.
+
+Verifiche effettive:
+
+- `actionlint` **1.7.12**, binario della release ufficiale con SHA-256 verificato:
+  workflow precedente **FAIL**, riproduzione dei due errori sui contesti;
+  workflow corretto **PASS**, uscita 0.
+- Esecuzione dello step cache in ambiente temporaneo: **PASS** per directory
+  e valori esportati in `GITHUB_ENV`, anche con spazi nel percorso.
+- `git diff --check`: **PASS**. Nessuna modifica al codice applicativo o ai test
+  Python; non è necessario ripetere la suite scientifica per questo fix.
+
+Comando di validazione (controlli di espressioni e struttura Actions; delegati
+ShellCheck/Pyflakes disabilitati):
+
+```sh
+actionlint -shellcheck= -pyflakes= .github/workflows/tests.yml
+```
+
+Fonte: [disponibilità dei contesti GitHub Actions](https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#context-availability).
+**Stato: nuovo candidato da pubblicare e verificare nei quattro job hosted.**
+Un rerun del vecchio SHA non applica il fix; serve una nuova esecuzione sul
+commit contenente la correzione. Nessun nuovo push eseguito da questa attività.

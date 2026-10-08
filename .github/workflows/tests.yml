@@ -22,14 +22,20 @@ jobs:
     timeout-minutes: 30
     env:
       MPLBACKEND: Agg
-      MPLCONFIGDIR: ${{ runner.temp }}/qc-mpl
-      XDG_CACHE_HOME: ${{ runner.temp }}/qc-cache
       PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
+      - name: Configure temporary scientific caches
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/qc-mpl" "$RUNNER_TEMP/qc-cache"
+          {
+            echo "MPLCONFIGDIR=$RUNNER_TEMP/qc-mpl"
+            echo "XDG_CACHE_HOME=$RUNNER_TEMP/qc-cache"
+          } >> "$GITHUB_ENV"
       - name: Install tcsh on Linux
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y tcsh
