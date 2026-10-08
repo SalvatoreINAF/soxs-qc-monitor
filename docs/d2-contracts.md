@@ -1,6 +1,6 @@
 # D2 — Configuration and storage contracts
 
-Package 1.2.0; SQLite schema version 1. D2 is developed on `dev`. D1 remains
+D2 package 1.2.0; current D3-A package 1.3.0; SQLite schema version 1. D2 is developed on `dev`. D1 remains
 formally closed on its previously verified candidate. D2 delivery and current
 verification evidence are recorded in [handover](handover.md) and
 [test results](../tests/results/d2-validation.md).
@@ -182,3 +182,25 @@ Restore only with schedulers stopped and all writers/readers closed: preserve
 the failed archive, verify the chosen backup, restore it with the matching
 software/schema version and rerun inspection. Never rebuild automatically after
 an update failure. D2 does not perform production migration, push, merge or D3.
+
+## D3-A additive acquisition contract — 8 October 2026
+
+The D2 scientific identities, day/arm atomicity, public function signatures and
+DataFrame/integer return contracts remain unchanged. Batch-only DETLIN calculation
+now catches an exception per sequence, discards its computed results and records
+sequence/unit/phase/type/reason. The public compute helper still raises calculation
+errors. A failed sequence leaves the entire day/arm open; independent units proceed.
+
+SQLite reads and whole acquisition transactions have explicit 5-second connection
+timeouts and two additional attempts after 0.25/0.5 seconds for numeric busy/locked
+codes only. Rollback and connection closure precede replay; the writer lease stays
+held. Wrapped pandas/storage causes are recognized. Rebuild validation/coverage
+reads use the same policy; backup/replacement and drop_all are not replayed.
+
+JSON v1 has additive sequence error fields, family source-read retry records and
+run-wide `sqlite_operations`; direct stores retain these records on the instance.
+Counts advance only after commit, including family totals when a later unit fails.
+Exhausted archive reads are not hidden by legacy missing-table fallbacks. See
+[operations](operations.md) for the exact diagnostic fields and exit-code behavior,
+[D3-A](d3/d3-a.md) and [evidence](../tests/results/d3-a-validation.md) for delivery.
+D2 historical results remain unchanged; D3-A hosted closure is separate.

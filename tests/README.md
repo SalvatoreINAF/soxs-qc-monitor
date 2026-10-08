@@ -324,3 +324,46 @@ un’esecuzione hosted né Linux.
 [Matrice hosted](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37793731551), attempt 1, sul commit `9f666b0`:
 315 PASS per ciascuno dei quattro job, wheel e installazione isolata riuscite.
 Nessuna verifica D2 pendente; non avviare D3 senza nuova richiesta.
+
+
+## D3-0 — Documentazione per le prossime verifiche
+
+D3-0 è una consegna solo documentale: [risultati](results/d3-0-validation.md).
+L’[indice D3](../docs/d3-roadmap.md) collega le sei schede con test e criteri
+previsti per ciascuna milestone applicativa. Questi test sono pianificati,
+non già implementati o eseguiti. Le evidenze storiche D1/D2 restano distinte.
+Ripresa corrente: verifica hosted D3-A secondo l’[handover](../docs/handover.md).
+
+## D3-A — Acquisizione resiliente
+
+Suite corrente: **363 casi**, i 315 D2 più 48 di `test_d3a_resilience.py`.
+I conteggi nelle sezioni storiche restano riferiti alle rispettive consegne.
+Le nuove prove verificano isolamento fit VIS/NIR per sequenza, atomicità
+giorno/braccio, force/recovery/idempotenza, nomi malformati e prosecuzione
+famiglie; contesa SQLite di un processo esterno con rilascio sincronizzato,
+letture/preflight/init/rebuild, rollback di scrittura e di commit, cause numeriche
+avvolte da pandas, errori permanenti, contatori dopo trigger SQL su una seconda
+unità, JSON e codici CLI 0/1/2. Nessun input/output operativo è usato.
+
+Un test usa timeout/attese reali (5 s, 0,25/0,5 s, circa 15,75 s per blocco
+persistente). Gli altri casi di contesa riducono solo il timeout nelle fixture,
+registrando le attese programmate: nessuna impostazione produttiva modificata.
+Il processo esterno usa stdin/stdout per segnalare il lock e il rilascio;
+non dipende da un ritardo presunto per acquisire il lock. Le prove numeriche
+mantengono le tolleranze D2, senza XFAIL o confronti pixel introdotti.
+
+```sh
+python -m pytest tests/test_d3a_resilience.py -ra --tb=short -W error
+python -m pytest -ra --tb=short -W error
+python -m build --wheel --no-isolation --outdir /tmp/qc-d3a-wheel
+/path/to/installed-env/bin/python scripts/check_installation.py
+/path/to/installed-env/bin/python -m pip check
+```
+
+Installare la wheel 1.3.0 in un ambiente separato; il checker usa processi -I
+fuori checkout e verifica entry point, template, idempotenza, dry-run, config e
+rebuild. Il nuovo modulo interno deve essere incluso nella wheel. Riferimento
+Python 3.12 fissato; compatibilità 3.11/3.13, matrice hosted Linux/macOS invariata.
+
+[Evidenze D3-A](results/d3-a-validation.md) distinguono verifiche locali e CI
+pendente sul candidato esatto. Non iniziare D3-B o usare CI D2 come chiusura D3-A.

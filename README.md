@@ -509,7 +509,7 @@ successiva conserva i limiti D2/D3 e non avvia automaticamente nuove fasi.
 
 **D2 formalmente chiuso l’8 ottobre 2026**: [CI hosted verde](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37793731551)
 su `9f666b0`, 315 PASS in ciascuno dei quattro job Linux/macOS; build e
-installazione isolata della wheel riuscite. D3 non avviato.
+installazione isolata della wheel riuscite. Le funzionalità successive sono descritte sotto.
 
 Version **1.2.0** validates YAML, includes, query references, renderer parameters,
 ROIs and path collisions before acquisition. Relative operational paths retain
@@ -529,3 +529,36 @@ See [D2 contracts and recovery](docs/d2-contracts.md),
 [verification evidence](tests/results/d2-validation.md) and
 [handover and delivery](docs/handover.md) for status. No next development step
 is started automatically.
+
+
+## D3 — Roadmap e handover per milestone
+
+**D3-0 documentale consegnato l’8 ottobre 2026** su `dev`: consultare
+[l’indice D3](docs/d3-roadmap.md) per ordine, dipendenze, decisioni e stime,
+e le sei schede collegate per pianificare una milestone alla volta.
+D3-A è implementata localmente nel pacchetto **1.3.0**, con schema SQLite **1**
+invariato. D3-B…F restano pianificate e non implementate.
+[Verifiche D3-0](tests/results/d3-0-validation.md) e
+[handover](docs/handover.md) identificano la baseline e il punto di ripresa:
+**verifica hosted del candidato D3-A**, senza avanzamento automatico.
+
+### D3-A — Acquisizione resiliente
+
+Un calcolo DETLIN fallito è isolato alla sua sequenza: le altre vengono calcolate,
+ma il giorno/braccio si salva solo quando tutte le sue sequenze sono complete.
+Un nuovo tentativo dopo la riparazione conserva l'idempotenza; un tentativo
+forzato fallito conserva i dati precedenti. I nomi malformati senza giorno
+riconoscibile impediscono la chiusura delle unità potenzialmente coinvolte della
+famiglia, senza fermare le altre famiglie.
+
+Letture SQLite, preflight e transazioni di acquisizione hanno timeout esplicito
+di 5 secondi e due retry aggiuntivi, con attese di 0,25 e 0,5 secondi, soltanto
+per codici busy/locked. Prima di riprovare si annulla l'intera transazione e si
+chiude la connessione. La politica è fissa, senza nuove opzioni YAML/CLI.
+Il JSON v1 espone diagnosi di sequenza e `sqlite_operations`, compresi i retry
+risolti. Errori input/fit danno 1; errori bloccanti dell'archivio danno 2.
+
+Vedere [scheda D3-A](docs/d3/d3-a.md), [procedure](docs/operations.md) e
+[verifiche D3-A](tests/results/d3-a-validation.md). La consegna locale non
+sostituisce la matrice CI sul candidato esatto. Update/pubblicazione, grafici,
+generazioni e retention restano negli step successivi.

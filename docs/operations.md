@@ -1,4 +1,4 @@
-# Batch operation and recovery — D2
+# Batch operation and recovery — D3-A
 
 Run only after the pipeline has finished reduction. An inventory of present FITS
 files does not certify producer completion. Closed observing days are normally
@@ -73,6 +73,55 @@ and preflight ignore this flag with a warning and never write the summary file.
 If configuration loading fails before the destination can be checked, the
 summary is log-only. Summary atomicity does not imply atomic HTML/PNG publication.
 
+## Acquisition failures and bounded SQLite retries — D3-A
+
+Package 1.3.0 retains schema 1, loader DataFrame returns and coordinator integer
+returns. A failed DETLIN calculation records `sequence_id`, `phase=fit`, exception
+`type` and `reason` in the family's `errors`; its partial results are discarded.
+Other sequences are calculated, but every sequence in a day/arm must be complete
+before that entire unit is replaced. A failed forced attempt preserves the prior
+unit. Repair the source/cause and rerun normally for open units; no automatic fit
+retry or new scientific normalization is introduced.
+
+A selected DSOL/OLOC filename with no recognizable day conservatively prevents
+closure of all potentially affected units in its family. Other families continue.
+No day is guessed from a directory or header. Preflight still rejects incompatible
+source/archive schemas before acquisition; a source failure arising later is
+partial acquisition, whereas a failed QC archive operation blocks dependent phases.
+
+SQLite operations use an explicit connection timeout of **5 seconds** and at most
+**three attempts**, with **0.25 and 0.5 seconds** between attempts. Only numeric
+`SQLITE_BUSY`/`SQLITE_LOCKED` codes (including extended variants and wrapped causes)
+are retried. Each failed connection is closed and each transaction is rolled back
+before the complete operation is repeated, while retaining the writer lease.
+Schema, integrity, permission, I/O and full-disk failures are not retried. The
+monitor's own `WriterBusyError` is still rejected immediately.
+
+This policy covers source reads, preflight, archive initialization, registry and
+historical reads, acquisition writers, and read-only rebuild validation/coverage.
+Backup, archive replacement and explicit low-level `drop_all()` maintenance are
+not replayed. There are no YAML/CLI retry settings. A single persistent lock at
+one SQL statement normally costs about **15.75 seconds** of waiting; the policy
+is a per-operation attempt limit, not an overall batch deadline. Multiple SQL
+statements or separate operations can each wait. Keep the supervisor timeout.
+
+The additive JSON v1 `sqlite_operations` list records contended operations across
+preflight, acquisition and historical reads: `operation`, `source`, `attempts`,
+`state` (`recovered`, `exhausted`, or `failed` after a retry followed by a permanent
+error), and `failures` with numeric SQLite code/name, exception type/reason and
+scheduled wait. Uncontended operations are omitted. QC families also carry their
+source-read records; exhausted source errors include `sqlite_retry`. Direct store
+callers can inspect `SQLiteStore.sqlite_operations`; an internal acquisition batch
+retains source-read diagnostics. Logs are explanatory, not the source of state.
+
+A recovered contention does not change a successful exit code. Exhausted runtime
+source reads give partial acquisition (1), exhausted preflight or QC archive reads/
+writes give blocking error (2). Legacy tables that are absent may still yield
+unknown counts, but an exhausted read never becomes a false empty/unknown result.
+Family and table `persisted` counters reflect only completed commits, even if a
+later unit fails. Earlier commits remain available; failed rebuild candidates are
+still reported as staged according to D2.
+
 ## Scheduler, timeout, logs and missing jobs
 
 The tcsh wrappers dispatch `scripts/batch.py` through `QC_PYTHON`; that interpreter
@@ -128,7 +177,7 @@ suite before re-enabling execution. Never run rebuild as an automatic recovery.
 
 ## Schema transition and protected rebuild
 
-Version 1.2.0 requires SQLite schema version 1 for ordinary writes. An old
+Versions 1.2.0 and 1.3.0 require SQLite schema version 1 for ordinary writes. An old
 unversioned archive causes ordinary preflight to fail, preventing the update
 helper from reporting a usable deployment prematurely. Dry-run can still inspect
 recognized legacy registers. Verify source availability and stop all jobs before

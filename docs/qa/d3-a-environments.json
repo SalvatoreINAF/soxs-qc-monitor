@@ -1,0 +1,129 @@
+{
+  "date": "2026-10-08",
+  "application_commit": "64d787d035b134f4eaed9f7f8935964ec156c73e",
+  "package_version": "1.3.0",
+  "schema_version": 1,
+  "hosted_status": "pending; no candidate published",
+  "environments": [
+    {
+      "python": "3.12.15",
+      "platform": "macOS-15.8-arm64-arm-64bit",
+      "executable": "/private/tmp/qc-d1-reference/bin/python",
+      "package_path": "/Users/savarese/Documents/GitHub/SOXS/qc_monitor/qc_monitor/__init__.py",
+      "packages": {
+        "qc-monitor": "1.3.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "PyYAML": "6.0.2",
+        "astropy": "6.1.2",
+        "matplotlib": "3.10.8"
+      },
+      "role": "reference",
+      "suite": {
+        "passed": 363,
+        "duration_seconds": 183.28,
+        "exit_code": 0,
+        "warnings_as_errors": true
+      },
+      "pip_check": "PASS",
+      "wheel_environment": {
+        "python": "3.12.15",
+        "platform": "macOS-15.8-arm64-arm-64bit",
+        "executable": "/private/tmp/qc-d3a-installed312/bin/python",
+        "package_path": "/private/tmp/qc-d3a-installed312/lib/python3.12/site-packages/qc_monitor/__init__.py",
+        "packages": {
+          "qc-monitor": "1.3.0",
+          "numpy": "2.1.0",
+          "pandas": "2.3.3",
+          "PyYAML": "6.0.2",
+          "astropy": "6.1.2",
+          "matplotlib": "3.10.8"
+        },
+        "pip_check": "PASS",
+        "installation": "wheel in separate clean venv; isolated imports outside checkout",
+        "checker": "PASS",
+        "checker_exit_code": 0
+      }
+    },
+    {
+      "python": "3.11.17",
+      "platform": "macOS-15.8-arm64-arm-64bit",
+      "executable": "/private/tmp/qc-d1-py311/bin/python",
+      "package_path": "/Users/savarese/Documents/GitHub/SOXS/qc_monitor/qc_monitor/__init__.py",
+      "packages": {
+        "qc-monitor": "1.3.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "PyYAML": "6.0.2",
+        "astropy": "6.1.2",
+        "matplotlib": "3.11.2"
+      },
+      "role": "compatibility",
+      "suite": {
+        "passed": 363,
+        "duration_seconds": 165.56,
+        "exit_code": 0,
+        "warnings_as_errors": true
+      },
+      "pip_check": "PASS",
+      "wheel_environment": {
+        "python": "3.11.17",
+        "platform": "macOS-15.8-arm64-arm-64bit",
+        "executable": "/private/tmp/qc-d3a-installed311/bin/python",
+        "package_path": "/private/tmp/qc-d3a-installed311/lib/python3.11/site-packages/qc_monitor/__init__.py",
+        "packages": {
+          "qc-monitor": "1.3.0",
+          "numpy": "2.1.0",
+          "pandas": "2.3.3",
+          "PyYAML": "6.0.2",
+          "astropy": "6.1.2",
+          "matplotlib": "3.11.2"
+        },
+        "pip_check": "PASS",
+        "installation": "wheel in separate clean venv; isolated imports outside checkout",
+        "checker": "PASS",
+        "checker_exit_code": 0
+      }
+    },
+    {
+      "python": "3.13.16",
+      "platform": "macOS-15.8-arm64-arm-64bit-Mach-O",
+      "executable": "/private/tmp/qc-d1-py313/bin/python",
+      "package_path": "/Users/savarese/Documents/GitHub/SOXS/qc_monitor/qc_monitor/__init__.py",
+      "packages": {
+        "qc-monitor": "1.3.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "PyYAML": "6.0.2",
+        "astropy": "6.1.2",
+        "matplotlib": "3.11.2"
+      },
+      "role": "compatibility",
+      "suite": {
+        "passed": 363,
+        "duration_seconds": 168.85,
+        "exit_code": 0,
+        "warnings_as_errors": true
+      },
+      "pip_check": "PASS",
+      "wheel_environment": {
+        "python": "3.13.16",
+        "platform": "macOS-15.8-arm64-arm-64bit-Mach-O",
+        "executable": "/private/tmp/qc-d3a-installed313/bin/python",
+        "package_path": "/private/tmp/qc-d3a-installed313/lib/python3.13/site-packages/qc_monitor/__init__.py",
+        "packages": {
+          "qc-monitor": "1.3.0",
+          "numpy": "2.1.0",
+          "pandas": "2.3.3",
+          "PyYAML": "6.0.2",
+          "astropy": "6.1.2",
+          "matplotlib": "3.11.2"
+        },
+        "pip_check": "PASS",
+        "installation": "wheel in separate clean venv; isolated imports outside checkout",
+        "checker": "PASS",
+        "checker_exit_code": 0
+      }
+    }
+  ]
+}
