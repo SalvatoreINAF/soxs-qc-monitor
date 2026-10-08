@@ -2,8 +2,10 @@
 
 **D2 implementato e verificato localmente su `dev`**, pacchetto **1.2.0**,
 SQLite **schema 1**. Baseline `30a8914`, inizialmente pulita e un commit oltre
-`origin/dev`. Il codice verificato viene registrato nel commit di consegna;
-consultare [handover](../../docs/handover.md) per identificare il commit esatto.
+`origin/dev`. Commit applicativo verificato: `7f0f657c3727aed5221fa9fb3ab5a3ca5c4d04ed`. Le suite e la wheel
+verificano lo stesso codice archiviato in questo commit; il successivo commit
+documentale registra il riferimento senza ulteriori modifiche di codice/test.
+Consultare [handover](../../docs/handover.md) per lo stato di consegna.
 La matrice hosted D2 resta pendente: nessun push/merge effettuato. I risultati
 CI D1 appartengono a `fb37d9e`, non a D2.
 

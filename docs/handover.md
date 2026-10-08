@@ -8,6 +8,12 @@ Non attribuire al candidato D2 i risultati CI di D1 e non iniziare D3.
 
 ## Baseline e scheda di consegna
 
+Commit applicativo **`7f0f657`** (`7f0f657c3727aed5221fa9fb3ab5a3ca5c4d04ed`),
+successivo alla baseline `30a8914`. Suite, wheel e controllo visivo verificano
+il codice archiviato in tale commit. Il successivo incremento è soltanto
+la registrazione documentale di queste evidenze; identificare HEAD con
+`git log -2 --oneline`. `main` rimane a `8d44c9d` e `origin/dev` a `fb37d9e`.
+
 Baseline: `30a8914`, working tree pulito, `dev` un commit oltre `origin/dev`.
 D1 formalmente chiuso sul codice `fb37d9e`, 216 PASS in ciascuno dei quattro job
 [hosted 37772436524](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37772436524).
