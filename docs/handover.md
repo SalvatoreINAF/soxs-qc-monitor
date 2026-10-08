@@ -1,8 +1,14 @@
 # Handover D1 — 8 ottobre 2026
 
-D1 è implementato su `dev`, versione pacchetto **1.1.0**. La chiusura formale
-resta subordinata alla matrice hosted Linux/macOS. **Non iniziare D2**.
-Nessun push, merge, pubblicazione o utilizzo dei dati operativi è stato eseguito.
+**D1 completato e formalmente chiuso l’8 ottobre 2026**, su `dev`, versione
+pacchetto **1.1.0**. La matrice hosted è verde sul commit `fb37d9efa4407db5dcb1552591edef7122dd3710`:
+[run 37772436524, attempt 1](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37772436524). Tutti i quattro job hanno
+216 PASS e hanno verificato build e installazione isolata della wheel.
+
+La chiusura documentale segue il commit verificato senza modificare codice,
+workflow o test. I push del candidato sono stati eseguiti dall’utente; il commit
+locale di chiusura non viene pubblicato automaticamente. Nessun merge o avvio
+di D2, nessun rilascio operativo o utilizzo dei dati dell’utente.
 
 ## Stato Git e incrementi
 
@@ -12,7 +18,8 @@ Nessun push, merge, pubblicazione o utilizzo dei dati operativi è stato eseguit
 - `c61c6d6`: CI, wheel, ambiente fissato, supervisione tcsh/Python, timeout/log
   retention/freschezza, standalone default 0,60 e baseline analitica.
 - `7732ddb`: gli errori di git/pip durante update sono bloccanti, con due regressioni aggiuntive.
-- La consegna documentale segue questi incrementi; leggere `git log -4 --oneline`
+- `fb37d9e`: correzione dei contesti CI/cache; candidato verificato dalla matrice hosted.
+- La consegna documentale e il commit di chiusura seguono questi incrementi; leggere `git log -4 --oneline`
   e `git status --short --branch` per identificarne HEAD e modifiche successive.
 - `main` rimane a `8d44c9d`; `reference_docs` resta locale e ignorata da Git.
 
@@ -36,6 +43,12 @@ esterne e usa default 0,60 preservando gli override e le differenze intenzionali
 
 ## Verifiche e riproduzione
 
+Verifica hosted conclusa l’8 ottobre 2026 alle **12:02:00 UTC**:
+Linux Python 3.11.16, 3.12.14, 3.13.15 e macOS Python 3.12.10;
+**216 PASS per job**, nessun FAIL/XFAIL/XPASS, warning pytest o test saltato.
+Wheel 1.1.0 costruita e verificata in isolamento in tutti i job. Su macOS è
+saltato soltanto lo step di installazione tcsh riservato a Linux, come previsto.
+
 Verifica finale locale sul codice `7732ddb`: **216 PASS in 483,91 s**,
 Python 3.12.15, senza FAIL, XFAIL, XPASS, warning o skip. Compatibilità macOS:
 212 PASS completi più 37 casi D1 e 14 casi supervisore rieseguiti su entrambe
@@ -55,13 +68,15 @@ Nel browser sono state ispezionate entrambe le schede VIS/NIR del report sinteti
 
 ## Limiti e punto di ripresa
 
-1. Completare esclusivamente la verifica D1 hosted. Il workflow è configurato,
-   ma non è stato eseguito su GitHub: il push richiede una richiesta esplicita.
-   Non è disponibile un daemon Docker/runtime Linux locale; i risultati macOS
-   non certificano Linux. Non dichiarare D1 completato finché la matrice non è verde.
-2. Confermare job 3.11/3.12/3.13 Linux e 3.12 macOS sul candidato pubblicato.
-   Astropy 6.1.2 su Python 3.13 è stato compilato da sorgente nel test locale;
-   in CI è necessario il normale toolchain del runner.
+Seguire la [procedura di chiusura formale D1](d1-closure.md) per pubblicazione
+autorizzata del candidato, verifica della matrice e registrazione delle evidenze.
+
+1. D1 è chiuso: nessuna verifica D1 rimane pendente sul candidato `fb37d9e`.
+   La prima action su `c689c8b` era stata rifiutata per workflow invalido;
+   il successivo fix è stato verificato da `actionlint` e dai quattro job hosted.
+2. La CI prova il commit pubblicato `fb37d9e`, non il successivo commit
+   documentale di chiusura. Se l’utente pubblicherà quest’ultimo, controllare
+   il workflow relativo senza attribuirgli preventivamente risultati precedenti.
 3. Nessuna modifica allo schema, al supporto multisequenza o alla discovery.
    Lock e isolamento dei guasti per figura restano D3. Un rendering fallito dà 2.
 4. HTML continua a usare `plots/` relativo alla pagina; immagini mancanti/stale,
@@ -70,5 +85,6 @@ Nel browser sono state ispezionate entrambe le schede VIS/NIR del report sinteti
 5. La validazione su dati rappresentativi reali e l’eventuale segnale di fine
    riduzione restano nel collaudo operativo. Non eseguire rebuild per verificare D1.
 
-Riprendere da questo file e dalla sezione 12 della roadmap locale. Fermarsi a D1
-anche dopo la matrice verde; nessun passaggio automatico allo step successivo.
+Riprendere da questo file e dalla sezione 13 della roadmap locale. D1 è chiuso;
+attendere una nuova richiesta prima di pianificare o implementare D2. Nessun
+passaggio automatico allo step successivo e nessun merge finale autorizzato.

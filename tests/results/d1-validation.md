@@ -1,5 +1,10 @@
 # D1 — evidenze di verifica, 8 ottobre 2026
 
+**Stato finale: D1 completato e formalmente chiuso.** Matrice hosted verde su
+`fb37d9efa4407db5dcb1552591edef7122dd3710`: [run 37772436524](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37772436524), attempt 1.
+I paragrafi precedenti alla sezione «Chiusura hosted» conservano le evidenze
+storiche delle verifiche locali e del primo workflow rifiutato.
+
 Codice candidato: `7732ddb` su `dev`, dopo `aa46773` e `c61c6d6`; package 1.1.0.
 Baseline iniziale `8d44c9d`: 177 PASS, 306,57 s.
 La suite finale raccoglie 216 casi, senza marker XFAIL.
@@ -93,7 +98,8 @@ PYTHONDONTWRITEBYTECODE=1 /private/tmp/qc-d1-reference/bin/python -m pytest -ra 
 La consegna documentale successiva modifica soltanto README, istruzioni,
 handover ed evidenze; il codice applicativo e i test sono quelli verificati.
 `git diff --check`, sintassi Python e struttura del workflow sono verdi.
-La matrice hosted rimane l’unico criterio di chiusura D1 ancora pendente.
+Alla consegna locale la matrice hosted era l’unico criterio ancora pendente;
+è ora soddisfatto dalla verifica finale riportata sotto.
 
 
 ## Correzione della validazione hosted del workflow
@@ -127,6 +133,47 @@ actionlint -shellcheck= -pyflakes= .github/workflows/tests.yml
 ```
 
 Fonte: [disponibilità dei contesti GitHub Actions](https://docs.github.com/en/actions/reference/workflows-and-actions/contexts#context-availability).
-**Stato: nuovo candidato da pubblicare e verificare nei quattro job hosted.**
+**Stato al momento del fix: candidato ancora da pubblicare e verificare.**
+La verifica successiva è riportata nella sezione di chiusura.
 Un rerun del vecchio SHA non applica il fix; serve una nuova esecuzione sul
 commit contenente la correzione. Nessun nuovo push eseguito da questa attività.
+
+
+## Chiusura hosted — 8 ottobre 2026
+
+- Commit verificato: `fb37d9efa4407db5dcb1552591edef7122dd3710` (`dev`, versione 1.1.0).
+- Run: **37772436524**, attempt **1**, stato **completed**, conclusione **success**.
+- URL: [GitHub Actions — matrice D1](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37772436524).
+- Avvio run: **2026-10-08 11:47:53 UTC**; conclusione: **12:02:00 UTC**.
+- Risultati e log verificati tramite `gh run view`, non soltanto dalla dichiarazione
+  dell’utente. `HEAD` e `origin/dev` coincidevano con il commit verificato.
+
+| Job | Python effettivo | Pytest | Durata suite | Durata job | Wheel / installazione |
+|---|---|---|---:|---:|---|
+| Ubuntu, job 113295039011 | 3.11.16 | 216 PASS | 84,99 s | 144 s | PASS / PASS |
+| Ubuntu, job 113295039453 | 3.12.14 | 216 PASS | 69,18 s | 126 s | PASS / PASS |
+| Ubuntu, job 113295039525 | 3.13.15 | 216 PASS | 79,82 s | 210 s | PASS / PASS |
+| macOS, job 113295039426 | 3.12.10 | 216 PASS | 764,65 s | 836 s | PASS / PASS |
+
+Nessun FAIL, XFAIL, XPASS, warning pytest o test saltato nei quattro job.
+Le differenze di durata non sono benchmark operativi. Lo step `Install tcsh on
+Linux` è correttamente saltato su macOS; nessuna fase richiesta è stata omessa.
+Ogni job ha creato `qc_monitor-1.1.0-py3-none-any.whl` e concluso con successo il
+checker dell’entry point, import isolati, template, configurazione e idempotenza.
+
+Comandi di consultazione:
+
+```sh
+gh run view 37772436524 --repo SalvatoreINAF/soxs-qc-monitor --json attempt,headSha,status,conclusion,url,jobs
+gh run view 37772436524 --repo SalvatoreINAF/soxs-qc-monitor --log
+```
+
+I log grezzi sono stati conservati localmente in
+`/private/tmp/qc-d1-hosted-37772436524.log`; non sono una dipendenza dell’handover
+né vengono versionati. La fonte permanente è il run GitHub collegato.
+
+**D1 è chiuso.** Il successivo commit documentale registra la chiusura senza
+modificare codice, workflow o test; non gli vengono attribuiti risultati CI
+ottenuti su `fb37d9e`. Nessun nuovo push, merge, rilascio o D2 è stato eseguito
+da questa attività. Restano validi i limiti D2/D3 e la validazione scientifica
+operativa descritti nell’handover.

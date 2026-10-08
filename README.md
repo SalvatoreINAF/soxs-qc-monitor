@@ -488,3 +488,9 @@ checks its isolated installation. See [test instructions](tests/README.md),
 The report currently requires the standard HTML/`plots/` layout. Missing/stale
 figure handling and coherent publication remain D3 work. No P0 dry-run or
 whole-unit transaction guarantees are relaxed by these limitations.
+
+
+D1 è formalmente chiuso l’8 ottobre 2026: [matrice hosted verde](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37772436524)
+sul commit `fb37d9e`, con 216 PASS per job (Linux 3.11/3.12/3.13 e macOS 3.12),
+build della wheel e installazione isolata verificate. La chiusura documentale
+successiva conserva i limiti D2/D3 e non avvia automaticamente nuove fasi.

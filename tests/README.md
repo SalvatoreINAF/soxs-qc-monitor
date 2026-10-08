@@ -274,5 +274,7 @@ pertinente `rel=1e-10`, `abs=1e-8`; nessuna certificazione di dati operativi.
 Sul codice candidato `7732ddb`: **216 PASS in 483,91 s**, Python 3.12.15
 e ambiente fissato. Nessun FAIL/XFAIL/XPASS, warning o skip. Wheel e compatibilità
 macOS 3.11/3.13 verificate come descritto nei
-[risultati completi](results/d1-validation.md). La matrice hosted resta pendente;
-non dichiarare D1 completato e non avviare D2 prima di una nuova richiesta.
+[risultati completi](results/d1-validation.md). La matrice hosted sul successivo
+candidato `fb37d9e` è verde: **216 PASS in ciascuno dei quattro job**, wheel e
+installazione isolata verificate. [Run 37772436524](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37772436524).
+**D1 completato e formalmente chiuso.** Non avviare D2 senza una nuova richiesta.
