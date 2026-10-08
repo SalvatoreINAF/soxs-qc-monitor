@@ -1,0 +1,59 @@
+name: D1 verification
+on:
+  push:
+    branches: [dev]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: '3.11'
+          - os: ubuntu-latest
+            python: '3.12'
+          - os: ubuntu-latest
+            python: '3.13'
+          - os: macos-latest
+            python: '3.12'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    env:
+      MPLBACKEND: Agg
+      MPLCONFIGDIR: ${{ runner.temp }}/qc-mpl
+      XDG_CACHE_HOME: ${{ runner.temp }}/qc-cache
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install tcsh on Linux
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y tcsh
+      - name: Install build and test dependencies
+        shell: bash
+        run: |
+          mkdir -p "$MPLCONFIGDIR"
+          if [ '${{ matrix.python }}' = '3.12' ]; then
+            python -m pip install -c requirements/reference-py312.txt '.[test]' build setuptools wheel
+          else
+            python -m pip install '.[test]' build setuptools wheel
+          fi
+      - name: Scientific and application regressions
+        run: python -m pytest -ra --tb=short
+      - name: Build wheel
+        run: python -m build --wheel --no-isolation --outdir "${{ runner.temp }}/qc-wheel"
+      - name: Isolated installed-package verification
+        shell: bash
+        run: |
+          python -m venv '${{ runner.temp }}/qc-installed'
+          PY='${{ runner.temp }}/qc-installed/bin/python'
+          if [ '${{ matrix.python }}' = '3.12' ]; then
+            "$PY" -m pip install -c requirements/reference-py312.txt '${{ runner.temp }}'/qc-wheel/*.whl
+          else
+            "$PY" -m pip install '${{ runner.temp }}'/qc-wheel/*.whl
+          fi
+          "$PY" scripts/check_installation.py

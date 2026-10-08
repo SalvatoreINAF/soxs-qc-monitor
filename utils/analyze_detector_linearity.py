@@ -106,7 +106,7 @@ def load_config(path):
     if str(det.get("statistic", "mean")).lower() not in ("mean", "median"):
         raise ValueError("statistic must be mean or median")
     level = float(det.get("saturation_level", 65536))
-    fraction = float(det.get("saturation_fraction", 0.20))
+    fraction = float(det.get("saturation_fraction", 0.60))
     if not math.isfinite(level) or level <= 0 or not 0 < fraction <= 1:
         raise ValueError("invalid saturation_level or saturation_fraction")
     for arm, settings in det["arms"].items():

@@ -1,0 +1,27 @@
+# D1 reference environment, Python 3.12. Exact dependencies from the verified baseline.
+astropy==6.1.2
+astropy-iers-data==0.2026.1.26.0.43.56
+contourpy==1.3.3
+cycler==0.12.1
+fonttools==4.61.1
+kiwisolver==1.4.9
+matplotlib==3.10.8
+numpy==2.1.0
+packaging==26.0
+pandas==2.3.3
+pillow==12.1.0
+pyerfa==2.0.1.5
+pyparsing==3.3.2
+python-dateutil==2.9.0.post0
+pytz==2026.2
+PyYAML==6.0.2
+six==1.17.0
+tzdata==2026.2
+pytest==8.4.2
+iniconfig==2.3.0
+pluggy==1.6.0
+Pygments==2.21.0
+setuptools==80.10.1
+wheel==0.46.3
+build==1.3.0
+pyproject-hooks==1.2.0
