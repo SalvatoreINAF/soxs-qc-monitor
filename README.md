@@ -140,7 +140,7 @@ the reported time refers to the binning actually acquired, not a hypothetical
 
 Existing processed days in the monitor database are not refitted automatically
 when this setting changes. Recalculate from the original FITS in a separate
-database if historical fits need the new threshold; the database rebuild option
+database if historical fits need the new threshold; the protected rebuild option
 recreates the entire QC database.
 
 ## Default Configuration Resolution
@@ -247,7 +247,8 @@ qc-monitor --preflight --config configs/qc_monitor.yaml --verbose
 ```
 
 ```bash
-qc-monitor --rebuild-db
+qc-monitor --preflight --rebuild-db
+qc-monitor --rebuild-db --no-plots
 ```
 
 ```bash
@@ -321,14 +322,14 @@ Closed units are skipped normally. Forced acquisition replaces an older closed
 unit only after full validation; failure preserves the previous data and register.
 Consequently a failed forced attempt must be retried explicitly with force.
 
-QC reads all selected session databases before closing any day. A source with
-an unreadable/missing view or schema blocks all new QC units when its affected
-days cannot be identified; a valid empty source does not. Invalid required QC
-identifiers, arms or numeric values block their day. Other acquisition families
-continue independently. Equivalent duplicate rows, including nullable identities,
+QC reads all selected session databases before closing any day. Preflight now
+rejects incompatible upstream schemas before any family writes (CLI 2). Runtime
+read failures still block new QC units when their affected days cannot be
+identified; valid empty sources do not. Invalid required QC identifiers, arms or
+numeric values block their day. Independent family API calls remain available. Equivalent duplicate rows, including nullable identities,
 are deduplicated; conflicting rows sharing an existing identity keep the unit open.
-Logs distinguish selected rows from persisted rows; general batch summaries and
-new partial-run exit codes are deferred to D1.
+Logs and JSON summaries distinguish selected rows from persisted rows; CLI
+codes are 0 completed, 1 partial acquisition and 2 blocking failure.
 
 A DSOL product requires usable line identifiers and resolution statistics for
 every order actually present. Nonfinite individual `R_pin` samples are excluded
@@ -345,10 +346,12 @@ flats per selected exposure time. Each mode must have a finite fit using at leas
 two distinct usable times under the existing saturation selection. Saturated
 exposures remain in the results when a fit is available from other exposures.
 
-H2 intentionally keeps the existing SQLite schema: more than one sequence per
-day/arm, missing sequence metadata, or a sequence spanning dates remains open
-with a diagnostic. Persistent multisequence identities and report adaptations
-are deferred to D2. Recognizable DETLIN files with unreadable headers block their
+D2 introduces schema version 1 and separate DETLIN sequence identities and fits.
+Multiple sequences per day/arm are supported, but all must be complete before
+the day/arm is committed. Missing metadata or sequences spanning dates remain
+open with a diagnosis. Binning and geometry are explicit; missing binning assumes
+1 per axis, and ROI/signal conventions remain those of the acquired image.
+The latest plot selects one complete sequence by TPL START. Recognizable DETLIN files with unreadable headers block their
 arm's open units when no day can be established. Foreign files do not block
 acquisition. `DATE-OBS` still supplies the DETLIN day; H2 introduces no new
 observing-night definition.
@@ -407,6 +410,9 @@ stop the scheduler first; see [update and rollback](docs/operations.md#update-an
 ├── plots
 ├── qc_monitor
 │   ├── acquisition.py
+│   ├── config.py
+│   ├── locking.py
+│   ├── rebuild.py
 │   ├── generate_html.py
 │   ├── main.py
 │   ├── plotting.py
@@ -429,7 +435,7 @@ Application entry point.
 
 Responsibilities:
 
-- configuration loading
+- validated configuration and acquisition orchestration
 - acquisition orchestration
 - database consolidation
 - plot generation
@@ -449,7 +455,10 @@ Placeholder containing only a docstring; it is not an operational processing lay
 
 ### `storage.py`
 
-Manages the QC Monitor SQLite database.
+Manages the QC Monitor SQLite database, schema checks and atomic family units.
+`locking.py` coordinates storage writers; `rebuild.py` validates and publishes
+replacement databases while retaining backups. `config.py` owns declarative
+loading, defaults, validation and path normalization.
 
 ### `plotting.py`
 
@@ -480,7 +489,7 @@ The monitor is designed to be re-run safely and incrementally as new reduction s
 # Development verification and handover
 
 The Python 3.12 reference dependencies are fixed in
-`requirements/reference-py312.txt`. The D1 workflow tests `dev` pushes and pull
+`requirements/reference-py312.txt`. The verification workflow tests `dev` pushes and pull
 requests on Linux Python 3.11–3.13 and macOS Python 3.12, builds the wheel and
 checks its isolated installation. See [test instructions](tests/README.md),
 [operations](docs/operations.md) and [session handover](docs/handover.md).
@@ -494,3 +503,25 @@ D1 è formalmente chiuso l’8 ottobre 2026: [matrice hosted verde](https://gith
 sul commit `fb37d9e`, con 216 PASS per job (Linux 3.11/3.12/3.13 e macOS 3.12),
 build della wheel e installazione isolata verificate. La chiusura documentale
 successiva conserva i limiti D2/D3 e non avvia automaticamente nuove fasi.
+
+
+## D2 — Configuration and storage
+
+Version **1.2.0** validates YAML, includes, query references, renderer parameters,
+ROIs and path collisions before acquisition. Relative operational paths retain
+`config_path.parent.parent`; includes remain relative to the YAML directory.
+Recursive discovery now includes both direct and nested session databases,
+subject to the configured multisource consent.
+
+Writable archives require SQLite **schema version 1**. Unversioned experimental
+archives require an explicit backed-up rebuild; no automatic migrations occur.
+Dry-run retains legacy-register inspection and its no-write/WAL contract. The
+rebuild verifies source completeness and coverage of previous product identities,
+then atomically replaces the archive; a failure keeps the previous database.
+CLI/API writers share a per-archive lease. Update and publication coordination
+remain D3, so scheduled jobs must still be stopped for updates.
+
+See [D2 contracts and recovery](docs/d2-contracts.md),
+[verification evidence](tests/results/d2-validation.md) and
+[handover and delivery](docs/handover.md) for status. No next development step
+is started automatically.

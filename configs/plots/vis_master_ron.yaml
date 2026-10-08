@@ -1,6 +1,8 @@
 figures:
 
   - name: vis_master_ron
+    arm: VIS
+    section: Bias
     type: time_series
     title: VIS Master RON
     filename: vis_master_ron.png

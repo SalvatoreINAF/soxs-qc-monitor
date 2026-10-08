@@ -56,7 +56,36 @@ cfg = {"paths": {"upstream_root": str(root / "upstream"), "reduced_root": str(ro
             summaries.append(json.loads(lines[0]))
         assert summaries[1]["families"]["qc"]["tables"]["qc_metrics"]["persisted"] == 1
         assert summaries[2]["families"]["qc"]["tables"]["qc_metrics"]["preserved"] == 1
-    print("Installed wheel: entry point, isolated imports, bundled template, config and idempotent acquisition verified")
+        before = (root / 'qc.sqlite').read_bytes()
+        inspect = subprocess.run([str(entry), '--dry-run'], cwd=root, env=env,
+                                 capture_output=True, text=True, timeout=60)
+        assert inspect.returncode == 0, inspect.stderr
+        assert (root / 'qc.sqlite').read_bytes() == before
+        original = json.loads((root / 'configs/qc_monitor.yaml').read_text())
+        invalid = dict(original, plots=dict(original['plots'], show='false'))
+        (root / 'configs/invalid.yaml').write_text(json.dumps(invalid))
+        rejected = subprocess.run([str(entry), '--config', str(root / 'configs/invalid.yaml')],
+                                  cwd=root, env=env, capture_output=True, text=True, timeout=60)
+        assert rejected.returncode == 2, rejected.stderr
+        assert (root / 'qc.sqlite').read_bytes() == before
+        rebuilt = subprocess.run([str(entry), '--rebuild-db', '--no-plots'], cwd=root, env=env,
+                                 capture_output=True, text=True, timeout=60)
+        assert rebuilt.returncode == 0, rebuilt.stderr
+        backups = list(root.glob('qc.sqlite.backup-*.sqlite'))
+        assert len(backups) == 1
+        checked = subprocess.run([sys.executable, '-I', '-c', '''
+import sqlite3
+from contextlib import closing
+from pathlib import Path
+with closing(sqlite3.connect('qc.sqlite')) as connection:
+    assert connection.execute('PRAGMA user_version').fetchone() == (1,)
+    assert connection.execute('PRAGMA integrity_check').fetchone() == ('ok',)
+    assert connection.execute('SELECT count(*) FROM qc_metrics').fetchone() == (1,)
+with closing(sqlite3.connect(str(next(Path('.').glob('qc.sqlite.backup-*.sqlite'))))) as backup:
+    assert backup.execute('SELECT count(*) FROM qc_metrics').fetchone() == (1,)
+'''], cwd=root, env=env, capture_output=True, text=True, timeout=60)
+        assert checked.returncode == 0, checked.stderr
+    print("Installed wheel: isolated imports, entry point, template, validated config, idempotence, immutable dry-run and protected rebuild verified")
 
 
 if __name__ == "__main__":

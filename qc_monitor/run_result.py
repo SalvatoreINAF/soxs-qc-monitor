@@ -24,6 +24,7 @@ class RunResult:
     families: dict = field(default_factory=dict)
     phases: list = field(default_factory=list)
     errors: list = field(default_factory=list)
+    storage: dict = field(default_factory=dict)
     exit_code: int = 0
     ended_utc: str | None = None
     duration_seconds: float | None = None
@@ -63,6 +64,7 @@ class RunResult:
                 "started_utc": self.started_utc, "ended_utc": self.ended_utc,
                 "duration_seconds": self.duration_seconds, "versions": versions,
                 "families": self.families, "phases": self.phases,
+                "storage": self.storage,
                 "errors": self.errors, "exit_code": self.exit_code}
 
     def to_json(self):

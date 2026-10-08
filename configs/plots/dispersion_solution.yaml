@@ -1,6 +1,7 @@
 figures:
 
   - name: vis_dispersion_resolution
+    section: Dispersion Solution
     type: dispersion_resolution
     title: Last VIS Dispersion Solution
     filename: vis_dispersion_resolution.png
@@ -10,6 +11,7 @@ figures:
     arm: VIS
 
   - name: vis_dispersion_resolution_timeseries
+    section: Dispersion Solution
     type: dispersion_resolution_timeseries
     title: VIS Dispersion Solution Mean Over Time
     filename: vis_dispersion_resolution_timeseries.png
@@ -22,6 +24,7 @@ figures:
     legend_ncol: 4
 
   - name: nir_dispersion_resolution
+    section: Dispersion Solution
     type: dispersion_resolution
     title: Last NIR Dispersion Solution
     filename: nir_dispersion_resolution.png
@@ -31,6 +34,7 @@ figures:
     arm: NIR
 
   - name: nir_dispersion_resolution_timeseries
+    section: Dispersion Solution
     type: dispersion_resolution_timeseries
     title: NIR Dispersion Solution Mean Over Time
     filename: nir_dispersion_resolution_timeseries.png
@@ -43,6 +47,7 @@ figures:
     legend_ncol: 5
 
   - name: vis_dispersion_residual_xy
+    section: Dispersion Solution
     type: dispersion_residual_xy
     title: VIS Dispersion Solution - Residual X vs Y
     filename: vis_dispersion_residual_xy.png
@@ -50,6 +55,7 @@ figures:
     arm: VIS
 
   - name: nir_dispersion_residual_xy
+    section: Dispersion Solution
     type: dispersion_residual_xy
     title: NIR Dispersion Solution - Residual X vs Y
     filename: nir_dispersion_residual_xy.png
@@ -57,6 +63,7 @@ figures:
     arm: NIR
 
   - name: vis_dispersion_residual_xy_histogram
+    section: Dispersion Solution
     type: dispersion_residual_histogram
     title: VIS Dispersion Solution - Residual XY Histogram
     filename: vis_dispersion_residual_xy_histogram.png
@@ -66,6 +73,7 @@ figures:
     figsize: [7, 7.2]
 
   - name: nir_dispersion_residual_xy_histogram
+    section: Dispersion Solution
     type: dispersion_residual_histogram
     title: NIR Dispersion Solution - Residual XY Histogram
     filename: nir_dispersion_residual_xy_histogram.png

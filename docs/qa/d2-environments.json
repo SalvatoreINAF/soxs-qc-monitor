@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-08",
+  "schema_version": 1,
+  "environments": [
+    {
+      "python": "3.12.15",
+      "platform": "macOS-15.8-arm64-arm-64bit",
+      "executable": "/private/tmp/qc-d1-reference/bin/python",
+      "packages": {
+        "qc-monitor": "1.2.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "PyYAML": "6.0.2",
+        "astropy": "6.1.2",
+        "matplotlib": "3.10.8",
+        "pytest": "8.4.2"
+      },
+      "role": "reference",
+      "pip_check": "PASS"
+    },
+    {
+      "python": "3.11.17",
+      "platform": "macOS-15.8-arm64-arm-64bit",
+      "executable": "/private/tmp/qc-d1-py311/bin/python",
+      "packages": {
+        "qc-monitor": "1.2.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "PyYAML": "6.0.2",
+        "astropy": "6.1.2",
+        "matplotlib": "3.11.2",
+        "pytest": "8.4.2"
+      },
+      "role": "compatibility",
+      "pip_check": "PASS"
+    },
+    {
+      "python": "3.13.16",
+      "platform": "macOS-15.8-arm64-arm-64bit-Mach-O",
+      "executable": "/private/tmp/qc-d1-py313/bin/python",
+      "packages": {
+        "qc-monitor": "1.2.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "PyYAML": "6.0.2",
+        "astropy": "6.1.2",
+        "matplotlib": "3.11.2",
+        "pytest": "8.4.2"
+      },
+      "role": "compatibility",
+      "pip_check": "PASS"
+    }
+  ]
+}

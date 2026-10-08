@@ -70,7 +70,12 @@ def test_inspection_summary_is_log_only(lab, mode, existing):
 def test_empty_vs_failure_and_independent_family(lab, failed):
     execute(lab.upstream, "DROP TABLE quality_control_plus_lite" if failed else "DELETE FROM quality_control_plus_lite")
     lab.dsol()
-    value = summary(lab.cli("--no-plots", expected=1 if failed else 0))
+    value = summary(lab.cli("--no-plots", expected=2 if failed else 0))
+    if failed:
+        assert value['errors'][0]['phase'] == 'preflight'
+        assert value['families'] == {}
+        assert not lab.db.exists()
+        return
     family = value["families"]["qc"]
     assert family["state"] == ("partial" if failed else "no_data")
     assert bool(family["errors"]) == failed

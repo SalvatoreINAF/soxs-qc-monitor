@@ -94,7 +94,10 @@ def test_empty_source_differs_from_failed_source_and_other_family_proceeds(lab, 
     assert batch.frames["metrics"].empty
     assert batch.outcomes[0].state == ("acquired" if source_state == "empty" else "failed")
     lab.dsol()
-    lab.cli("--no-plots", expected=1 if source_state == "failed" else 0)
+    # D2 rejects an incompatible upstream schema before writing any family.
+    lab.cli("--no-plots", expected=2 if source_state == "failed" else 0)
+    if source_state == 'failed':
+        consolidate_dispersion_solution(lab.reduced, SQLiteStore(lab.db))
     assert rows(lab.db, 'SELECT count(*) FROM qc_metrics') == [(1 if source_state == "empty" else 0,)]
     assert rows(lab.db, 'SELECT count(*) FROM processed_obs_days') == [(1 if source_state == "empty" else 0,)]
     assert rows(lab.db, 'SELECT obs_day FROM processed_dispersion_obs_days') == [(DAY,)]
@@ -187,7 +190,7 @@ def test_detlin_invalid_metadata_or_measurement_keeps_day_open(lab, damage):
     assert rows(lab.db, 'SELECT * FROM detector_linearity_results') == []
 
 
-def test_detlin_multiple_sequences_are_rejected_without_mixing(lab):
+def test_detlin_multiple_sequences_are_persisted_without_mixing(lab):
     lab.detlin()
     other_root = lab.raw / "second"
     other_root.mkdir()
@@ -197,8 +200,8 @@ def test_detlin_multiple_sequences_are_rejected_without_mixing(lab):
         edit_header(copy, **{"ESO TPL START": DAY + "T10:00:00"})
     store = SQLiteStore(lab.db)
     consolidate_detector_linearity(lab.cfg, store)
-    assert rows(lab.db, 'SELECT * FROM processed_detector_linearity_obs_days') == []
-    assert rows(lab.db, 'SELECT * FROM detector_linearity_results') == []
+    assert rows(lab.db, 'SELECT obs_day,arm FROM processed_detector_linearity_obs_days') == [(DAY, 'VIS')]
+    assert rows(lab.db, 'SELECT count(DISTINCT sequence_id),count(*) FROM detector_linearity_results') == [(2, 16)]
 
 
 def test_nir_missing_pair_blocks_closure_even_with_a_fit(lab):

@@ -43,7 +43,8 @@ def test_config_includes_duplicates_and_environment_root(tmp_path, monkeypatch):
     included = config.parent / "plots.yaml"
     included.write_text("datapoint_queries: {sample: {filters: {}}}\nfigures: [{name: included}]\n")
     config.write_text("plots: {include: [plots.yaml]}\n")
-    cfg = load_config(config)
+    from qc_monitor.config import load_plot_includes
+    cfg = load_plot_includes({'plots': {'include': ['plots.yaml']}}, config.parent)
     assert cfg["plots"]["figures"] == [{"name": "included"}]
     monkeypatch.setenv("QC_MONITOR_ROOT", str(tmp_path))
     assert default_config_path() == config

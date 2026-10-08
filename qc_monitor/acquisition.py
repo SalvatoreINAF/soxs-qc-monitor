@@ -10,7 +10,7 @@ from pathlib import Path
 from astropy.io import fits
 from astropy.table import Table
 
-from qc_monitor.schema import TABLE_SCHEMA
+from qc_monitor.schema import TABLE_SCHEMA, quote
 from qc_monitor._outcomes import AcquisitionBatch, InputOutcome
 
 log = logging.getLogger(__name__)
@@ -18,104 +18,12 @@ log = logging.getLogger(__name__)
 TABLE_COLUMNS = list(TABLE_SCHEMA.keys())
 OBS_DAY_DIR_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
-DISPERSION_SOLUTION_COLUMNS = [
-    "obs_day",
-    "obs_date_utc",
-    "eso seq arm",
-    "soxspipe_recipe",
-    "source_file",
-    "filepath",
-    "wavelength",
-    "order",
-    "slit_index",
-    "slit_position",
-    "detector_x",
-    "detector_y",
-    "observed_x",
-    "observed_y",
-    "x_diff",
-    "y_diff",
-    "fit_x",
-    "fit_y",
-    "residuals_x",
-    "residuals_y",
-    "residuals_xy",
-    "sigma_clipped",
-    "sharpness",
-    "roundness1",
-    "roundness2",
-    "npix",
-    "sky",
-    "peak",
-    "flux",
-    "fwhm_pin_px",
-    "R_pin",
-    "pixelScaleNm",
-    "detector_x_shifted",
-    "detector_y_shifted",
-    "R_slit",
-    "fwhm_slit_px",
-]
-
-DISPERSION_RESOLUTION_STATS_COLUMNS = [
-    "obs_day",
-    "obs_date_utc",
-    "eso seq arm",
-    "soxspipe_recipe",
-    "source_file",
-    "filepath",
-    "order",
-    "mean_R_pin",
-    "std_R_pin",
-    "n_points",
-]
-
-ORDER_LOCATION_META_COLUMNS = [
-    "obs_day",
-    "obs_date_utc",
-    "eso seq arm",
-    "soxspipe_recipe",
-    "source_file",
-    "filepath",
-    "slit",
-    "slitmask",
-    "lamp",
-    "binning",
-    "rospeed",
-    "order",
-    "xmin",
-    "xmax",
-    "ymin",
-    "ymax",
-    "maxThreshold",
-    "minThreshold",
-    "maxvalue",
-]
-
-ORDER_LOCATION_COEFF_COLUMNS = [
-    "degorder_cent",
-    "degy_cent",
-    "degx_cent",
-    *[f"cent_{i}{j}" for i in range(7) for j in range(6)],
-
-    "degorder_std",
-    "degy_std",
-    "degx_std",
-    *[f"std_{i}{j}" for i in range(7) for j in range(6)],
-
-    "degorder_edgelow",
-    "degorder_edgeup",
-    "degy_edgelow",
-    "degy_edgeup",
-    "degx_edgelow",
-    "degx_edgeup",
-    *[f"edgelow_c{i}{j}" for i in range(7) for j in range(6)],
-    *[f"edgeup_c{i}{j}" for i in range(7) for j in range(6)],
-]
-
-ORDER_LOCATION_MODEL_COLUMNS = (
-    ORDER_LOCATION_META_COLUMNS
-    + ORDER_LOCATION_COEFF_COLUMNS
+from qc_monitor.schema import (
+    DISPERSION_SOLUTION_COLUMNS,
+    DISPERSION_RESOLUTION_STATS_COLUMNS,
+    ORDER_LOCATION_META_COLUMNS,
+    ORDER_LOCATION_COEFF_COLUMNS,
+    ORDER_LOCATION_MODEL_COLUMNS
 )
 
 
@@ -131,16 +39,13 @@ def find_session_databases(
 
     direct_path = upstream_root / database_name
 
-    if direct_path.is_file():
-        return [direct_path]
-
     if search_mode == "direct":
-        return []
+        return [direct_path] if direct_path.is_file() else []
 
     if search_mode != "recursive":
         raise ValueError(f"Unsupported upstream database search mode: {search_mode}")
 
-    return sorted(upstream_root.rglob(database_name))
+    return sorted({path.resolve() for path in upstream_root.rglob(database_name) if path.is_file()})
 
 
 def find_observing_day_directories(reduced_root: Path) -> list[Path]:
@@ -222,20 +127,20 @@ def _get_table_columns(conn: sqlite3.Connection, table_name: str) -> set[str]:
     """
     Return column names for a SQLite table or view.
     """
-    rows = conn.execute(f'PRAGMA table_info("{table_name}")').fetchall()
+    rows = conn.execute(f'PRAGMA table_info({quote(table_name)})').fetchall()
     return {row[1] for row in rows}
 
 
 def _build_select_query(upstream_table: str) -> str:
     columns_sql = ",\n                ".join(
-        f'`{col}`'
+        quote(col)
         for col in TABLE_COLUMNS
     )
 
     return f"""
             SELECT
                 {columns_sql}
-            FROM `{upstream_table}`
+            FROM {quote(upstream_table)}
             """
 
 
@@ -333,6 +238,7 @@ def _load_qc_batch(
     df = df.loc[~invalid].copy()
 
     df = df[TABLE_COLUMNS].reset_index(drop=True)
+    df.attrs['source_database'] = str(session_db_path.resolve())
 
     log.info(
         "Loaded %d QC datapoints from session database %s",
@@ -438,7 +344,7 @@ def load_dispersion_solution_fits_table(fits_path: Path) -> pd.DataFrame:
     df["eso seq arm"] = arm
     df["soxspipe_recipe"] = "soxs-disp-solution"
     df["source_file"] = fits_path.name
-    df["filepath"] = str(fits_path)
+    df["filepath"] = str(fits_path.resolve())
 
     for col in DISPERSION_SOLUTION_COLUMNS:
         if col not in df.columns:
@@ -747,7 +653,7 @@ def parse_order_location_filename(path: Path) -> dict[str, str | None]:
         "eso seq arm": arm,
         "soxspipe_recipe": _infer_order_location_recipe(path),
         "source_file": path.name,
-        "filepath": str(path),
+        "filepath": str(path.resolve()),
         "slit": slit,
         "slitmask": slitmask,
         "lamp": lamp,

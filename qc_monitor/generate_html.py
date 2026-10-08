@@ -82,6 +82,8 @@ def _infer_section_name(figure: dict) -> str:
 
 
 def _infer_arm(figure: dict) -> str:
+    if 'arm' in figure:
+        return figure['arm']
     name = figure.get("name", "").lower()
     title = figure.get("title", "")
 

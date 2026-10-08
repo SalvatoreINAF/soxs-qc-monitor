@@ -1,9 +1,10 @@
 import qc_monitor
 import logging
-import yaml
 import argparse
 import os
 import sys
+import sqlite3
+from contextlib import closing
 from pathlib import Path
 import pandas as pd
 
@@ -22,11 +23,11 @@ from qc_monitor.acquisition import (
     load_order_location_meta,
 )
 from qc_monitor.storage import SQLiteStore, ReadOnlyStorageError, validate_readonly_sqlite_path, _prepare_unit_frames
-from qc_monitor.schema import TABLE_SCHEMA
+from qc_monitor.schema import TABLE_SCHEMA, SCHEMA_VERSION
 from qc_monitor._outcomes import AcquisitionBatch, InputOutcome
 from qc_monitor.run_result import RunResult, write_summary
 from qc_monitor.plotting import generate_order_location_plots_from_config, generate_plots_from_config
-from qc_monitor.generate_html import generate_html_report
+from qc_monitor.generate_html import generate_html_report, _load_template
 from qc_monitor.detector_linearity import (
     VIS_MODE_ORDER,
     _load_detector_linearity_batch,
@@ -35,8 +36,39 @@ from qc_monitor.detector_linearity import (
 )
 
 
-class ConfigurationError(RuntimeError):
-    pass
+from qc_monitor.config import (
+    ConfigurationError, load_config, load_plot_includes, normalize_runtime_config, resolve_project_path,
+)
+from qc_monitor.locking import locked_coordinator
+from qc_monitor.rebuild import acquisition_store
+from qc_monitor.storage import qc_identity
+from qc_monitor.storage import validate_schema, SchemaError
+
+
+def validate_path_collisions(cfg, config_path, databases, *, no_plots=False):
+    """Protect selected input files while permitting QC below reduced_root."""
+    protected = {Path(config_path).resolve(), *[Path(path).resolve() for path in databases]}
+    protected.update(Path(path) for path in cfg.get('_origins', {}).get('includes', []))
+    roots = [Path(cfg['paths']['reduced_root'])]
+    roots.extend(Path(arm['root']) for arm in cfg['detector_linearity']['arms'].values())
+    for root in roots:
+        if root.is_dir():
+            protected.update(path.resolve() for path in root.rglob('*.fits'))
+    targets = [Path(cfg['paths']['qc_database']).resolve()]
+    protected.update(Path(str(targets[0]) + suffix) for suffix in ('.lock', '-wal', '-shm', '-journal'))
+    protected.update(targets[0].parent.glob(targets[0].name + '.backup-*.sqlite'))
+    if not no_plots:
+        output = Path(cfg['plots']['output_dir']).resolve()
+        targets.append(Path(cfg['plots']['html_output']).resolve())
+        for figure in cfg['plots']['figures']:
+            target = (output / figure['filename']).resolve()
+            if not target.is_relative_to(output):
+                raise ConfigurationError(f"Figure filename escapes output directory: {target}")
+            targets.append(target)
+        if output in targets or output in protected:
+            raise ConfigurationError(f'Output directory collides with a file: {output}')
+    if len(targets) != len(set(targets)) or protected & set(targets):
+        raise ConfigurationError('Output paths collide with each other or protected input/configuration files')
 
 
 def parse_args():
@@ -72,7 +104,7 @@ def parse_args():
     parser.add_argument(
         "--rebuild-db",
         action="store_true",
-        help="Rebuild the QC database from scratch",
+        help="Build a verified replacement database, retaining historical coverage and a backup",
     )
 
     parser.add_argument(
@@ -132,53 +164,6 @@ def resolve_config_path(config_arg: Path | None) -> Path:
     return default_config_path()
 
 
-def resolve_project_path(path: str | Path, project_root: Path) -> Path:
-    path = Path(path)
-    if path.is_absolute():
-        return path
-    return project_root / path
-
-
-def load_plot_includes(cfg: dict, config_dir: Path) -> dict:
-    plots_cfg = cfg.get("plots", {})
-    include_files = plots_cfg.get("include", [])
-
-    figures = list(plots_cfg.get("figures", []))
-    datapoint_queries = dict(plots_cfg.get("datapoint_queries", {}))
-
-    for include_file in include_files:
-        include_path = config_dir / include_file
-
-        with open(include_path) as f:
-            included_cfg = yaml.safe_load(f) or {}
-
-        figures.extend(included_cfg.get("figures", []))
-
-        included_queries = included_cfg.get("datapoint_queries", {})
-        duplicate_queries = set(datapoint_queries) & set(included_queries)
-
-        if duplicate_queries:
-            raise ValueError(
-                f"Duplicate datapoint query names in {include_path}: "
-                f"{sorted(duplicate_queries)}"
-            )
-
-        datapoint_queries.update(included_queries)
-
-    plots_cfg["figures"] = figures
-    plots_cfg["datapoint_queries"] = datapoint_queries
-    cfg["plots"] = plots_cfg
-
-    return cfg
-
-
-def load_config(config_path: Path = Path("configs/qc_monitor.yaml")):
-    with open(config_path) as f:
-        cfg = yaml.safe_load(f)
-
-    return load_plot_includes(cfg, config_path.parent)
-
-
 def _nearest_existing_parent(path: Path) -> Path | None:
     for candidate in (Path(path), *Path(path).parents):
         if candidate.exists():
@@ -203,59 +188,15 @@ def _path_contains_suspicious_token(path: Path, tokens: list[str]) -> str | None
     return None
 
 
-def normalize_runtime_config(cfg: dict, project_root: Path) -> dict:
-    cfg = dict(cfg)
-    paths_cfg = dict(cfg.get("paths", {}))
-
-    for key in ("upstream_root", "reduced_root", "qc_database"):
-        if key in paths_cfg:
-            paths_cfg[key] = str(resolve_project_path(paths_cfg[key], project_root))
-
-    cfg["paths"] = paths_cfg
-
-    plots_cfg = dict(cfg.get("plots", {}))
-
-    plots_cfg["output_dir"] = str(
-        resolve_project_path(
-            plots_cfg.get("output_dir", "plots"),
-            project_root,
-        )
-    )
-
-    plots_cfg["html_output"] = str(
-        resolve_project_path(
-            plots_cfg.get("html_output", "index.html"),
-            project_root,
-        )
-    )
-
-    if plots_cfg.get("template"):
-        plots_cfg["template"] = str(
-            resolve_project_path(
-                plots_cfg["template"],
-                project_root,
-            )
-        )
-
-    cfg["plots"] = plots_cfg
-
-    detlin_cfg = dict(cfg.get("detector_linearity", {}))
-    arms_cfg = dict(detlin_cfg.get("arms", {}))
-
-    for arm, arm_cfg in arms_cfg.items():
-        arm_cfg = dict(arm_cfg)
-        if arm_cfg.get("root"):
-            arm_cfg["root"] = str(resolve_project_path(arm_cfg["root"], project_root))
-        arms_cfg[arm] = arm_cfg
-
-    detlin_cfg["arms"] = arms_cfg
-    cfg["detector_linearity"] = detlin_cfg
-
-    return cfg
-
-
-def run_preflight(cfg: dict, project_root: Path, *, dry_run: bool = False) -> bool:
+def run_preflight(cfg: dict, project_root: Path, *, dry_run: bool = False, no_plots: bool = False,
+                  inspection: bool = False, config_validated: bool = False, rebuild: bool = False) -> bool:
     log = logging.getLogger("qc-monitor")
+    if not config_validated:
+        try:
+            cfg = normalize_runtime_config(cfg, project_root)
+        except ConfigurationError as exc:
+            log.error('Preflight failed: %s', exc)
+            return False
     errors = []
     warnings = []
 
@@ -299,7 +240,7 @@ def run_preflight(cfg: dict, project_root: Path, *, dry_run: bool = False) -> bo
         ("plots.output_dir", output_dir),
         ("plots.html_output", html_output),
     ):
-        if dry_run and label != "qc_database":
+        if (dry_run or no_plots) and label != "qc_database":
             continue
 
         if label == "qc_database" and path.exists() and not path.is_file():
@@ -321,10 +262,17 @@ def run_preflight(cfg: dict, project_root: Path, *, dry_run: bool = False) -> bo
         if not _is_writable_path(target):
             errors.append(f"{label} parent is not writable or cannot be reached: {path}")
 
-    if template_path and not dry_run:
+    if template_path and not (dry_run or no_plots):
         template_path = Path(template_path).expanduser()
         if not template_path.is_file():
             errors.append(f"plots.template is not an existing file: {template_path}")
+    if not (dry_run or no_plots) and plots_cfg.get('figures'):
+        try:
+            template = _load_template(Path(template_path) if template_path else None)
+            if '{{ sections }}' not in template:
+                errors.append('HTML template is missing {{ sections }}')
+        except OSError as exc:
+            errors.append(str(exc))
 
     if bool(detlin_cfg.get("enabled", False)):
         arms_cfg = detlin_cfg.get("arms", {})
@@ -336,7 +284,7 @@ def run_preflight(cfg: dict, project_root: Path, *, dry_run: bool = False) -> bo
             for fig in plots_cfg.get("figures", [])
             if fig.get("type") == "detector_linearity"
         ]
-        if not detlin_figures and not dry_run:
+        if not detlin_figures and not (dry_run or no_plots):
             warnings.append(
                 "detector_linearity enabled but no detector_linearity plots configured"
             )
@@ -363,35 +311,14 @@ def run_preflight(cfg: dict, project_root: Path, *, dry_run: bool = False) -> bo
         )
 
     if upstream_root.is_dir():
-        direct_db = upstream_root / upstream_database_name
-        recursive_dbs = sorted(upstream_root.rglob(upstream_database_name))
+        databases = find_session_databases(upstream_root, upstream_database_name, upstream_search_mode)
+        if not databases:
+            errors.append(f'Upstream database not found: {upstream_root / upstream_database_name}')
+        elif len(databases) > 1 and not allow_multiple_upstream:
+            errors.append(f'Found {len(databases)} upstream databases; set allow_multiple_upstream_databases only if intentional')
 
-        if upstream_search_mode == "direct":
-            if not direct_db.is_file():
-                if recursive_dbs:
-                    errors.append(
-                        f"{upstream_database_name} was not found directly under "
-                        f"{upstream_root}, but {len(recursive_dbs)} nested database(s) "
-                        "exist. Refusing to guess the production database."
-                    )
-                else:
-                    errors.append(f"Upstream database not found: {direct_db}")
-            elif len(recursive_dbs) > 1:
-                warnings.append(
-                    f"Nested {upstream_database_name} files were found but ignored "
-                    "because upstream_database_search is 'direct'."
-                )
-        elif recursive_dbs:
-            if len(recursive_dbs) > 1 and not allow_multiple_upstream:
-                errors.append(
-                    f"Found {len(recursive_dbs)} upstream databases under "
-                    f"{upstream_root}; set allow_multiple_upstream_databases only "
-                    "if this is intentional."
-                )
-        else:
-            errors.append(f"No upstream database named {upstream_database_name} found")
 
-    if dry_run:
+    if dry_run or inspection:
         # Inspect every selected header before any acquisition opens SQLite.
         databases = find_session_databases(
             upstream_root, upstream_database_name, search_mode=upstream_search_mode
@@ -401,6 +328,26 @@ def run_preflight(cfg: dict, project_root: Path, *, dry_run: bool = False) -> bo
                 validate_readonly_sqlite_path(database)
             except ReadOnlyStorageError as exc:
                 errors.append(str(exc))
+
+    if not errors:
+        databases = find_session_databases(upstream_root, upstream_database_name, upstream_search_mode)
+        for database in databases:
+            try:
+                with closing(sqlite3.connect(database.as_uri() + '?mode=ro', uri=True)) as conn:
+                    table = acquisition_cfg['upstream_table'].replace('"', '""')
+                    columns = {row[1] for row in conn.execute(f'PRAGMA table_info("{table}")')}
+                    missing = set(TABLE_SCHEMA) - columns
+                    if missing:
+                        errors.append(f'{database}: upstream {table} missing required columns: {sorted(missing)}')
+            except sqlite3.Error as exc:
+                errors.append(f'{database}: cannot inspect upstream schema: {exc}')
+    if not errors and qc_database_path.is_file() and not dry_run:
+        with closing(sqlite3.connect(qc_database_path.resolve().as_uri() + '?mode=ro', uri=True)) as conn:
+            if rebuild:
+                if conn.execute('PRAGMA user_version').fetchone()[0] not in (0, SCHEMA_VERSION):
+                    raise SchemaError(f'{qc_database_path}: unsupported schema for rebuild')
+            else:
+                validate_schema(conn)
 
     if reduced_root.is_dir():
         day_dirs = find_observing_day_directories(reduced_root)
@@ -477,6 +424,7 @@ def consolidate(
     cfg = load_config(config_path)
 
     project_root = config_path.parent.parent
+    cfg = normalize_runtime_config(cfg, project_root, validated=True)
 
     qc_database_path = resolve_project_path(
         cfg["paths"]["qc_database"],
@@ -485,8 +433,7 @@ def consolidate(
 
     paths = [upstream_db_path]
     if cfg.get("acquisition", {}).get("allow_multiple_upstream_databases", False):
-        normalized = normalize_runtime_config(cfg, project_root)
-        paths = find_session_databases(Path(normalized["paths"]["upstream_root"]),
+        paths = find_session_databases(Path(cfg["paths"]["upstream_root"]),
                                        cfg["acquisition"]["upstream_database_name"],
                                        cfg["acquisition"].get("upstream_database_search", "direct"))
         if upstream_db_path.resolve() not in {path.resolve() for path in paths}:
@@ -494,8 +441,9 @@ def consolidate(
     if dry_run:
         for path in paths:
             validate_readonly_sqlite_path(path)
-    qc_database = SQLiteStore(qc_database_path, read_only=dry_run)
-    return _consolidate_qc_sources(paths, cfg, qc_database, force, dry_run)
+    validate_path_collisions(cfg, config_path, paths, no_plots=True)
+    with acquisition_store(qc_database_path, dry_run=dry_run) as qc_database:
+        return _consolidate_qc_sources(paths, cfg, qc_database, force, dry_run)
 
 
 def _commit_batch(batch, family, qc_database, dry_run, already_closed, force, counts=None):
@@ -553,6 +501,8 @@ def _commit_batch(batch, family, qc_database, dry_run, already_closed, force, co
                 for name, before, after in zip(names, subset, prepared):
                     report["tables"][name]["duplicates"] += len(before) - len(after)
                 subset = prepared
+                if family == 'qc':
+                    subset[0].attrs['provenance'] = frames[0].attrs.get('provenance', {})
             except ValueError as exc:
                 reason = str(exc)
             if reason is None and not all(not frame.empty for frame in subset):
@@ -580,6 +530,9 @@ def _commit_batch(batch, family, qc_database, dry_run, already_closed, force, co
     report.update(selected=selected, persisted=persisted)
     report["state"] = "partial" if report["errors"] or report["open_units"] else (
         "completed" if units else "no_data")
+    if family == 'detlin':
+        metadata = frames[0][['sequence_id', 'tpl_start', 'tpl_id', 'obs_day', 'eso seq arm']].drop_duplicates()
+        report['sequences'] = metadata.to_dict(orient='records')
     for error in report["errors"]:
         log.error("%s acquisition: %s: %s", family, error["source"], error["reason"])
     log.info("%s selected %d rows; persisted %d rows", family, selected, persisted)
@@ -596,6 +549,11 @@ def _consolidate_qc_sources(paths, cfg, qc_database, force=False, dry_run=False,
     batch = AcquisitionBatch({"metrics": metrics}, [outcome for item in batches for outcome in item.outcomes],
                              {"metrics": sum(item.discarded_rows["metrics"] for item in batches)}
                              if all("metrics" in item.discarded_rows for item in batches) else {})
+    provenance = {}
+    for path, item in zip(paths, batches):
+        for _, row in item.frames['metrics'].iterrows():
+            provenance.setdefault(qc_identity(row), set()).add(str(Path(path).resolve()))
+    metrics.attrs['provenance'] = provenance
     has_units = not metrics.empty or any(outcome.unit is not None for outcome in batch.outcomes)
     closed = qc_database.get_processed_obs_days() if has_units else set()
     return _commit_batch(batch, "qc", qc_database, dry_run, closed, force, counts)
@@ -617,6 +575,7 @@ def _selected_product_files(paths, parser, closed, force, skipped=None):
     return selected
 
 
+@locked_coordinator
 def consolidate_dispersion_solution(reduced_root: Path, qc_database: SQLiteStore,
                                     dry_run: bool = False, force: bool = False,
                                     search_mode: str = "observing_day_dirs", *, _result=None) -> int:
@@ -630,6 +589,7 @@ def consolidate_dispersion_solution(reduced_root: Path, qc_database: SQLiteStore
     return _commit_batch(batch, "dsol", qc_database, dry_run, closed, force, _result)
 
 
+@locked_coordinator
 def consolidate_order_location_models(reduced_root: Path, qc_database: SQLiteStore,
                                       dry_run: bool = False, force: bool = False,
                                       search_mode: str = "observing_day_dirs", *, _result=None) -> int:
@@ -643,6 +603,7 @@ def consolidate_order_location_models(reduced_root: Path, qc_database: SQLiteSto
     return _commit_batch(batch, "oloc", qc_database, dry_run, closed, force, _result)
 
 
+@locked_coordinator
 def consolidate_detector_linearity(cfg: dict, qc_database: SQLiteStore,
                                    dry_run: bool = False, force: bool = False, *, _result=None) -> int:
     if not detector_linearity_enabled(cfg):
@@ -686,7 +647,7 @@ def _run_main(args, run):
     config_dir = config_path.parent
     project_root = config_dir.parent
 
-    cfg = normalize_runtime_config(cfg, project_root)
+    cfg = normalize_runtime_config(cfg, project_root, validated=True)
 
     if args.summary_json and not (args.dry_run or args.preflight):
         target = args.summary_json.expanduser().resolve()
@@ -695,13 +656,15 @@ def _run_main(args, run):
         input_roots.extend(Path(arm["root"]).resolve() for arm in cfg.get("detector_linearity", {}).get("arms", {}).values() if arm.get("root"))
         protected = {Path(cfg["paths"]["qc_database"]).resolve(),
                      Path(cfg["plots"]["html_output"]).resolve()}
+        database = Path(cfg['paths']['qc_database']).resolve()
+        protected.update(Path(str(database) + suffix) for suffix in ('.lock', '-wal', '-shm', '-journal'))
+        protected.update(database.parent.glob(database.name + '.backup-*.sqlite'))
         protected.update((Path(cfg["plots"]["output_dir"]) / figure["filename"]).resolve()
                          for figure in cfg["plots"].get("figures", []) if figure.get("filename"))
         if target in protected or any(target.is_relative_to(root) for root in input_roots):
             # Do not attempt this destination even while reporting the failure.
             args.summary_json = None
             raise ConfigurationError(f"Summary destination overlaps protected data/config/artifacts: {target}")
-        args._summary_allowed = True
 
     upstream_root = Path(cfg["paths"]["upstream_root"])
     reduced_root = Path(cfg["paths"]["reduced_root"])
@@ -712,83 +675,83 @@ def _run_main(args, run):
     reduced_search_mode = acquisition_cfg.get("reduced_products_search", "observing_day_dirs")
 
     with run.phase("preflight"):
-        if not run_preflight(cfg, project_root, dry_run=args.dry_run):
+        if not run_preflight(cfg, project_root, dry_run=args.dry_run, no_plots=args.no_plots,
+                             inspection=args.preflight, config_validated=True, rebuild=args.rebuild_db):
             raise ConfigurationError("Preflight failed; see preceding diagnostics")
 
+    sources = find_session_databases(upstream_root, upstream_database_name, upstream_search_mode)
+    validate_path_collisions(cfg, config_path, sources, no_plots=args.dry_run or args.no_plots)
     if args.preflight:
         return
+    if args.summary_json and not args.dry_run:
+        args._summary_allowed = True
+    with acquisition_store(qc_database_path, dry_run=args.dry_run, rebuild=args.rebuild_db, run=run) as qc_database:
 
-    qc_database = SQLiteStore(qc_database_path, read_only=args.dry_run)
+        plots_cfg = cfg.get("plots", {})
 
-    if args.rebuild_db:
-        log.warning("Rebuilding QC database from scratch")
-        qc_database.drop_all()
+        ####################################################
+        ############### Scanning step ######################
+        ####################################################
 
-    plots_cfg = cfg.get("plots", {})
-
-    ####################################################
-    ############### Scanning step ######################
-    ####################################################
-
-    # assumes more than one pipeline database can be present in the path
-    session_databases = find_session_databases(
-        upstream_root=upstream_root,
-        database_name=upstream_database_name,
-        search_mode=upstream_search_mode,
-    )
-
-    log.info("Found %d upstream session databases", len(session_databases))
-
-    qc_counts = run.families.setdefault("qc", {})
-    with run.phase("qc"):
-        total_points = _consolidate_qc_sources(session_databases, cfg, qc_database,
-                                              force=args.rebuild_db, dry_run=args.dry_run, counts=qc_counts)
-
-    log.info("Total consolidated QC datapoints: %d%s",
-             total_points if args.dry_run else qc_counts["persisted"],
-             " (dry-run selection; no writes)" if args.dry_run else "")
-
-    with run.phase("dsol"):
-        dsol_points = consolidate_dispersion_solution(
-            reduced_root=reduced_root,
-            qc_database=qc_database,
-            dry_run=args.dry_run,
-            force=args.rebuild_db,
-            search_mode=reduced_search_mode,
-            _result=run.families.setdefault("dsol", {}),
+        # assumes more than one pipeline database can be present in the path
+        session_databases = find_session_databases(
+            upstream_root=upstream_root,
+            database_name=upstream_database_name,
+            search_mode=upstream_search_mode,
         )
 
+        log.info("Found %d upstream session databases", len(session_databases))
 
-    log.info("Total selected dispersion-solution rows: %d", dsol_points)
+        qc_counts = run.families.setdefault("qc", {})
+        with run.phase("qc"):
+            total_points = _consolidate_qc_sources(session_databases, cfg, qc_database,
+                                                  force=args.rebuild_db, dry_run=args.dry_run, counts=qc_counts)
 
-    with run.phase("oloc"):
-        oloc_points = consolidate_order_location_models(
-            reduced_root=reduced_root,
-            qc_database=qc_database,
-            dry_run=args.dry_run,
-            force=args.rebuild_db,
-            search_mode=reduced_search_mode,
-            _result=run.families.setdefault("oloc", {}),
-        )
+        log.info("Total consolidated QC datapoints: %d%s",
+                 total_points if args.dry_run else qc_counts["persisted"],
+                 " (dry-run selection; no writes)" if args.dry_run else "")
 
-
-    log.info("Total selected order-location model rows: %d", oloc_points)
-
-    with run.phase("detlin"):
-        detlin_points = consolidate_detector_linearity(
-            cfg=cfg,
-            qc_database=qc_database,
-            dry_run=args.dry_run,
-            force=args.rebuild_db,
-            _result=run.families.setdefault("detlin", {}),
-        )
+        with run.phase("dsol"):
+            dsol_points = consolidate_dispersion_solution(
+                reduced_root=reduced_root,
+                qc_database=qc_database,
+                dry_run=args.dry_run,
+                force=args.rebuild_db,
+                search_mode=reduced_search_mode,
+                _result=run.families.setdefault("dsol", {}),
+            )
 
 
-    log.info("Total selected detector-linearity rows: %d", detlin_points)
+        log.info("Total selected dispersion-solution rows: %d", dsol_points)
 
-    for family, result in run.families.items():
-        if result["state"] != "disabled":
-            result["latest_data_utc"] = qc_database.latest_data_utc(family)
+        with run.phase("oloc"):
+            oloc_points = consolidate_order_location_models(
+                reduced_root=reduced_root,
+                qc_database=qc_database,
+                dry_run=args.dry_run,
+                force=args.rebuild_db,
+                search_mode=reduced_search_mode,
+                _result=run.families.setdefault("oloc", {}),
+            )
+
+
+        log.info("Total selected order-location model rows: %d", oloc_points)
+
+        with run.phase("detlin"):
+            detlin_points = consolidate_detector_linearity(
+                cfg=cfg,
+                qc_database=qc_database,
+                dry_run=args.dry_run,
+                force=args.rebuild_db,
+                _result=run.families.setdefault("detlin", {}),
+            )
+
+
+        log.info("Total selected detector-linearity rows: %d", detlin_points)
+
+        for family, result in run.families.items():
+            if result["state"] != "disabled":
+                result["latest_data_utc"] = qc_database.latest_data_utc(family)
 
     if args.dry_run:
         log.info("Dry-run enabled, skipping plot generation")

@@ -1,4 +1,5 @@
 import logging
+import json
 from itertools import combinations
 import re
 from pathlib import Path
@@ -7,58 +8,16 @@ import numpy as np
 import pandas as pd
 from astropy.io import fits
 from qc_monitor._outcomes import AcquisitionBatch, InputOutcome
+from qc_monitor.config import validate_detector_linearity_config, DETLIN_DEFAULTS
 
 log = logging.getLogger(__name__)
 
 VIS_MODE_ORDER = ["SHG", "FLG", "SLG", "FHG"]
-DEFAULT_DETLIN_TOKEN = "DETLIN"
-DEFAULT_SATURATION_LEVEL = 2**16
-DEFAULT_SATURATION_FRACTION = 0.60
+DEFAULT_DETLIN_TOKEN = DETLIN_DEFAULTS["filename_token"]
+DEFAULT_SATURATION_LEVEL = DETLIN_DEFAULTS["saturation_level"]
+DEFAULT_SATURATION_FRACTION = DETLIN_DEFAULTS["saturation_fraction"]
 
-DETECTOR_LINEARITY_MEASUREMENT_COLUMNS = [
-    "obs_day",
-    "obs_date_utc",
-    "eso seq arm",
-    "detector_mode",
-    "frame_type",
-    "exptime",
-    "source_file",
-    "sequence_image_name",
-    "filepath",
-    "roi_name",
-    "roi_y1",
-    "roi_y2",
-    "roi_x1",
-    "roi_x2",
-    "statistic",
-    "signal_raw",
-]
-
-DETECTOR_LINEARITY_RESULT_COLUMNS = [
-    "obs_day",
-    "obs_date_utc",
-    "eso seq arm",
-    "detector_mode",
-    "exptime",
-    "pair_index",
-    "file1",
-    "file2",
-    "signal",
-    "fit_signal",
-    "residual",
-    "residual_percent",
-    "fit_used",
-    "saturation_limit",
-    "slope",
-    "intercept",
-    "mean_bias_roi",
-    "rms_bias_adu",
-    "cf",
-    "rms_bias_e",
-    "dark_file",
-    "flat_files",
-    "n_flat_frames",
-]
+from qc_monitor.schema import DETECTOR_LINEARITY_MEASUREMENT_COLUMNS, DETECTOR_LINEARITY_RESULT_COLUMNS, SEQUENCE_COLUMNS
 
 
 def detector_linearity_enabled(cfg: dict) -> bool:
@@ -299,18 +258,14 @@ def _measure_frame(
         or parsed["arm"]
     ).upper()
 
-    if arm == "NIR":
-        exptime = _safe_float(
-            _header_value(header, "ESO DET SEQ1 DIT", "HIERARCH ESO DET SEQ1 DIT"),
-            default=float(parsed["filename_exptime"]),
-        )
-        frame_type = str(parsed["frame_type"])
-    else:
-        exptime = _safe_float(
-            _header_value(header, "ESO DET UIT1", "HIERARCH ESO DET UIT1"),
-            default=float(parsed["filename_exptime"]),
-        )
-        frame_type = str(parsed["frame_type"])
+    time_key = 'ESO DET SEQ1 DIT' if arm == 'NIR' else 'ESO DET UIT1'
+    value = _header_value(header, time_key, 'HIERARCH ' + time_key)
+    if value is None:
+        value = parsed['filename_exptime']
+    exptime = float(value)
+    frame_type = str(parsed['frame_type'])
+    if isinstance(value, bool) or not np.isfinite(exptime) or exptime < 0 or (frame_type.lower() != 'bias' and exptime == 0):
+        raise ValueError('Invalid exposure time')
 
     if statistic == "mean":
         signal_raw = float(np.mean(roi_data))
@@ -321,7 +276,30 @@ def _measure_frame(
 
     x1, x2, y1, y2 = roi
 
+    tpl_start = str(pd.to_datetime(header.get('ESO TPL START'), utc=True, errors='raise'))
+    tpl_id = str(header.get('ESO TPL ID') or '').strip()
+    if pd.isna(pd.to_datetime(header.get('ESO TPL START'), utc=True)) or not tpl_id:
+        raise ValueError('Missing TPL START/ID')
+    obs_timestamp = pd.to_datetime(str(obs_date_utc), utc=True, errors='raise')
+    if pd.isna(obs_timestamp):
+        raise ValueError('Missing DATE-OBS')
+    bins = []
+    assumed = False
+    for axis in 'XY':
+        value = header.get('ESO DET BIN' + axis)
+        if value is None:
+            value, assumed = 1, True
+        if isinstance(value, bool) or not np.isfinite(float(value)) or float(value) != int(value) or int(value) <= 0:
+            raise ValueError('Invalid BIN' + axis)
+        bins.append(int(value))
+    if assumed:
+        log.warning('%s: missing binning axis/axes assumed to be 1', path)
     row = {
+        "sequence_id": json.dumps([arm, tpl_start, tpl_id], separators=(',', ':')),
+        "tpl_start": tpl_start, "tpl_id": tpl_id,
+        "tpl_nexp": int(header.get('ESO TPL NEXP')), "tpl_expno": int(header.get('ESO TPL EXPNO')),
+        "bin_x": bins[0], "bin_y": bins[1], "binning_assumed": int(assumed),
+        "image_width": int(header['NAXIS1']), "image_height": int(header['NAXIS2']),
         "obs_day": _obs_day_from_date(obs_date_utc),
         "obs_date_utc": str(obs_date_utc),
         "eso seq arm": arm,
@@ -330,7 +308,7 @@ def _measure_frame(
         "exptime": exptime,
         "source_file": path.name,
         "sequence_image_name": sequence_image_name,
-        "filepath": str(path),
+        "filepath": str(path.resolve()),
         "roi_name": roi_name,
         "roi_x1": x1,
         "roi_x2": x2,
@@ -355,7 +333,7 @@ def _load_detector_linearity_batch(
     processed_obs_days: set[tuple[str, str]] | None = None,
     force: bool = False,
 ) -> AcquisitionBatch:
-    detlin_cfg = cfg.get("detector_linearity", {})
+    detlin_cfg = validate_detector_linearity_config(cfg.get("detector_linearity", {}))
 
     if not bool(detlin_cfg.get("enabled", False)):
         return AcquisitionBatch({"measurements": pd.DataFrame(columns=DETECTOR_LINEARITY_MEASUREMENT_COLUMNS),
@@ -450,7 +428,7 @@ def _load_detector_linearity_batch(
                 continue
 
             measurements.append(row)
-            roi_cache[row["source_file"]] = roi_data
+            roi_cache[row["filepath"]] = roi_data
 
     ambiguous = _validate_detlin_inventory(inventory, outcomes)
     if not measurements:
@@ -474,12 +452,15 @@ def _load_detector_linearity_batch(
         len(df_results),
     )
 
-    for unit, group in df_measurements.groupby(["obs_day", "eso seq arm"]):
-        unit = tuple(str(value) for value in unit)
+    for sequence_id, group in df_measurements.groupby('sequence_id'):
+        unit = (str(group['obs_day'].iloc[0]), str(group['eso seq arm'].iloc[0]))
         required_modes = set(VIS_MODE_ORDER) if unit[1] == "VIS" else {"NIR"}
         if set(group["detector_mode"]) != required_modes:
             outcomes.append(InputOutcome("sequence", "failed", unit, "Missing detector modes"))
         for mode, mode_group in group.groupby("detector_mode"):
+            geometry = ['bin_x', 'bin_y', 'image_width', 'image_height', 'roi_x1', 'roi_x2', 'roi_y1', 'roi_y2']
+            if len(mode_group[geometry].drop_duplicates()) != 1:
+                outcomes.append(InputOutcome(sequence_id, 'failed', unit, 'Inconsistent binning/geometry within sequence/mode'))
             flats = mode_group[~mode_group["frame_type"].str.lower().isin(["bias", "dark"])]
             if unit[1] == "VIS" and len(mode_group[mode_group["frame_type"].str.lower() == "bias"]) != 3:
                 outcomes.append(InputOutcome(mode, "failed", unit, "Expected three VIS bias frames"))
@@ -491,7 +472,8 @@ def _load_detector_linearity_batch(
                 darks = mode_group[(mode_group["frame_type"].str.lower() == "dark") & (mode_group["exptime"] == time)]
                 if len(pair) != 2 or (unit[1] == "NIR" and len(darks) != 1):
                     outcomes.append(InputOutcome(mode, "failed", unit, f"Incomplete exposure at time {time}"))
-            fitted = df_results[(df_results["obs_day"] == unit[0]) &
+            fitted = df_results[(df_results["sequence_id"] == sequence_id) &
+                                (df_results["obs_day"] == unit[0]) &
                                 (df_results["eso seq arm"] == unit[1]) &
                                 (df_results["detector_mode"] == mode)]
             if fitted.empty or fitted.loc[fitted["fit_used"] == 1, "exptime"].nunique() < 2 or not np.isfinite(fitted[["slope", "intercept"]].to_numpy(dtype=float)).all():
@@ -506,9 +488,19 @@ def compute_detector_linearity_results(
 ) -> pd.DataFrame:
     rows = []
 
-    group_cols = ["obs_day", "eso seq arm", "detector_mode"]
+    # The old basename-only cache is accepted only when unambiguous for API callers.
+    if not df_measurements.empty and any(path not in roi_cache for path in df_measurements['filepath']):
+        if df_measurements['source_file'].duplicated().any():
+            raise ValueError('Ambiguous basename cache; use canonical filepath keys')
+        roi_cache = {row['filepath']: roi_cache.get(row['filepath'], roi_cache.get(row['source_file']))
+                     for _, row in df_measurements.iterrows()}
+    group_cols = ['sequence_id', 'detector_mode']
 
-    for (obs_day, arm, mode), group in df_measurements.groupby(group_cols):
+    for (_, mode), group in df_measurements.groupby(group_cols):
+        obs_day, arm = str(group['obs_day'].iloc[0]), str(group['eso seq arm'].iloc[0])
+        geometry = ['bin_x', 'bin_y', 'image_width', 'image_height', 'roi_x1', 'roi_x2', 'roi_y1', 'roi_y2']
+        if len(group[geometry].drop_duplicates()) != 1:
+            continue
         if arm == "NIR":
             pair_rows = _compute_nir_detector_linearity_rows(
                 obs_day=obs_day,
@@ -537,6 +529,8 @@ def compute_detector_linearity_results(
             _warn_if_nir_not_monotonic(pair_rows, saturation_limit=saturation_limit)
 
         _fit_detector_linearity_rows(pair_rows, saturation_limit=saturation_limit)
+        for row in pair_rows:
+            row.update({column: group[column].iloc[0] for column in SEQUENCE_COLUMNS})
         rows.extend(pair_rows)
 
     if not rows:
@@ -574,13 +568,15 @@ def _base_result_row(
         "file1": file1,
         "file2": file2,
         "signal": signal,
-        "fit_signal": 0.0,
-        "residual": 0.0,
-        "residual_percent": 0.0,
-        "fit_used": int(signal <= saturation_limit),
+        "fit_signal": None,
+        "residual": None,
+        "residual_percent": None,
+        "fit_used": 0,
+        "fit_state": "unavailable",
+        "fit_reason": "Fewer than two distinct usable exposure times",
         "saturation_limit": saturation_limit,
-        "slope": 0.0,
-        "intercept": 0.0,
+        "slope": None,
+        "intercept": None,
         "mean_bias_roi": mean_bias_roi,
         "rms_bias_adu": rms_bias_adu,
         "cf": cf,
@@ -617,7 +613,7 @@ def _compute_vis_detector_linearity_rows(
         return []
 
     bias_arrays = [
-        roi_cache[row["source_file"]]
+        roi_cache[row["filepath"]]
         for _, row in bias.sort_values("obs_date_utc").iterrows()
     ]
     master_bias = np.mean(bias_arrays, axis=0)
@@ -643,14 +639,14 @@ def _compute_vis_detector_linearity_rows(
             continue
 
         first, second = [row for _, row in flat_group.iterrows()]
-        image1 = roi_cache[first["source_file"]] - master_bias
-        image2 = roi_cache[second["source_file"]] - master_bias
+        image1 = roi_cache[first["filepath"]] - master_bias
+        image2 = roi_cache[second["filepath"]] - master_bias
 
         signal = 0.5 * (_safe_float(np.mean(image1)) + _safe_float(np.mean(image2)))
         diff = image1 - image2
         var_single = _safe_float(np.var(diff) / 2.0)
-        cf = _safe_float(signal / var_single) if var_single > 0 else 0.0
-        rms_bias_e = _safe_float(rms_bias_adu * cf)
+        cf = _safe_float(signal / var_single) if var_single > 0 else None
+        rms_bias_e = _safe_float(rms_bias_adu * cf) if cf is not None else None
 
         rows.append(_base_result_row(
             obs_day=obs_day,
@@ -659,15 +655,15 @@ def _compute_vis_detector_linearity_rows(
             mode=mode,
             exptime=exptime,
             pair_index=1,
-            file1=first["source_file"],
-            file2=second["source_file"],
+            file1=first["filepath"],
+            file2=second["filepath"],
             signal=signal,
             saturation_limit=saturation_limit,
             mean_bias_roi=mean_bias_roi,
             rms_bias_adu=rms_bias_adu,
             cf=cf,
             rms_bias_e=rms_bias_e,
-            flat_files=",".join([first["source_file"], second["source_file"]]),
+            flat_files=",".join([first["filepath"], second["filepath"]]),
             n_flat_frames=2,
         ))
 
@@ -720,12 +716,12 @@ def _compute_nir_detector_linearity_rows(
             )
 
         dark = dark_group.iloc[0]
-        dark_image = roi_cache[dark["source_file"]]
+        dark_image = roi_cache[dark["filepath"]]
         corrected_images = [
-            roi_cache[row["source_file"]] - dark_image
+            roi_cache[row["filepath"]] - dark_image
             for _, row in flat_group.iterrows()
         ]
-        flat_files = [row["source_file"] for _, row in flat_group.iterrows()]
+        flat_files = [row["filepath"] for _, row in flat_group.iterrows()]
 
         signal = _safe_float(np.mean([np.mean(image) for image in corrected_images]))
         mean_bias_roi = _safe_float(np.mean(dark_image))
@@ -734,12 +730,12 @@ def _compute_nir_detector_linearity_rows(
             diff = corrected_images[0] - corrected_images[1]
             rms_bias_adu = _safe_float(np.sqrt(np.var(diff) / 2.0))
             var_single = _safe_float(np.var(diff) / 2.0)
-            cf = _safe_float(signal / var_single) if var_single > 0 else 0.0
-            rms_bias_e = _safe_float(rms_bias_adu * cf)
+            cf = _safe_float(signal / var_single) if var_single > 0 else None
+            rms_bias_e = _safe_float(rms_bias_adu * cf) if cf is not None else None
         else:
             rms_bias_adu = 0.0
-            cf = 0.0
-            rms_bias_e = 0.0
+            cf = None
+            rms_bias_e = None
 
         first_flat = flat_group.iloc[0]
         rows.append(_base_result_row(
@@ -757,7 +753,7 @@ def _compute_nir_detector_linearity_rows(
             rms_bias_adu=rms_bias_adu,
             cf=cf,
             rms_bias_e=rms_bias_e,
-            dark_file=dark["source_file"],
+            dark_file=dark["filepath"],
             flat_files=",".join(flat_files),
             n_flat_frames=len(flat_files),
         ))
@@ -777,7 +773,8 @@ def _fit_detector_linearity_rows(rows: list[dict], saturation_limit: float):
     )
 
     for row in rows:
-        row["fit_used"] = 0
+        row.update(fit_used=0, fit_state='unavailable', fit_reason='Fewer than two distinct usable exposure times',
+                   fit_signal=None, residual=None, residual_percent=None, slope=None, intercept=None)
 
     if len(np.unique(x[good])) < 2:
         log.warning(
@@ -793,6 +790,10 @@ def _fit_detector_linearity_rows(rows: list[dict], saturation_limit: float):
         np.count_nonzero(good), len(rows), saturation_limit,
     )
     y_fit = slope * x + intercept
+    if not np.isfinite([slope, intercept]).all() or not np.isfinite(y_fit).all():
+        for row in rows:
+            row.update(fit_state='unavailable', fit_reason='Nonfinite fit')
+        return
 
     for index, row in enumerate(rows):
         residual = y[index] - y_fit[index]
@@ -800,7 +801,8 @@ def _fit_detector_linearity_rows(rows: list[dict], saturation_limit: float):
 
         row["fit_signal"] = _safe_float(y_fit[index])
         row["residual"] = _safe_float(residual)
-        row["residual_percent"] = _safe_float(residual_percent)
+        row["residual_percent"] = None if y_fit[index] == 0 else float(residual_percent)
+        row['fit_state'], row['fit_reason'] = 'available', ''
         row["fit_used"] = int(bool(good[index]))
         row["slope"] = _safe_float(slope)
         row["intercept"] = _safe_float(intercept)
@@ -832,8 +834,6 @@ def _warn_if_nir_not_monotonic(rows: list[dict], saturation_limit: float):
 def _validate_detlin_inventory(inventory: list[dict], outcomes: list[InputOutcome]) -> set[tuple]:
     ambiguous = set()
     sequences = {}
-    by_unit = {}
-    names = {}
     for entry in inventory:
         unit = entry["unit"]
         if unit is None:
@@ -841,14 +841,16 @@ def _validate_detlin_inventory(inventory: list[dict], outcomes: list[InputOutcom
         try:
             if not str(entry["start"] or "").strip() or not str(entry["id"] or "").strip():
                 raise ValueError("Missing TPL START/ID")
+            if isinstance(entry['nexp'], bool) or isinstance(entry['expno'], bool):
+                raise ValueError('TPL NEXP/EXPNO must be integers, not booleans')
             n, index = int(entry["nexp"]), int(entry["expno"])
             if n <= 0 or index < 1 or index > n or n != float(entry["nexp"]) or index != float(entry["expno"]):
                 raise ValueError("Invalid TPL NEXP/EXPNO")
-            sequence = (unit[1], str(entry["id"]), str(entry["start"]))
+            start = pd.to_datetime(str(entry["start"]), utc=True, errors="raise")
+            if pd.isna(start):
+                raise ValueError("Missing TPL START")
+            sequence = (unit[1], str(entry["id"]).strip(), str(start))
             sequences.setdefault(sequence, []).append(entry)
-            by_unit.setdefault(unit, set()).add(sequence)
-            name = Path(entry["path"]).name
-            names.setdefault(name, []).append(unit)
         except (TypeError, ValueError, OverflowError) as exc:
             outcomes.append(InputOutcome(entry["path"], "failed", unit, str(exc)))
             ambiguous.add(unit)
@@ -865,13 +867,4 @@ def _validate_detlin_inventory(inventory: list[dict], outcomes: list[InputOutcom
             continue
         for unit in units:
             outcomes.append(InputOutcome(str(sequence), "failed", unit, reason))
-    for unit, sequences_for_unit in by_unit.items():
-        if len(sequences_for_unit) > 1:
-            ambiguous.add(unit)
-            outcomes.append(InputOutcome("sequence", "failed", unit, "Multiple sequences for day/arm"))
-    for name, units in names.items():
-        if len(units) > 1:
-            ambiguous.update(units)
-            for unit in set(units):
-                outcomes.append(InputOutcome(name, "failed", unit, "Ambiguous source filename"))
     return ambiguous

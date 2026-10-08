@@ -1,5 +1,7 @@
 """P0-A: observable CLI/API dry-run contracts protected by H0 and fixed in H1."""
 import pytest
+import sqlite3
+from contextlib import closing
 
 from qc_monitor.main import consolidate
 from conftest import database_snapshot, require, rows, tree_snapshot
@@ -81,8 +83,15 @@ def test_ordinary_consolidation_persists_data(lab, interface):
     assert rows(lab.db, 'SELECT obs_day, status FROM processed_obs_days') == [("2026-10-05", "PROCESSED")]
 
 
-def test_ordinary_rebuild_replaces_sentinels(lab):
+def test_ordinary_rebuild_preserves_history_and_adds_new_data(lab):
     lab.seed()
+    before = database_snapshot(lab.db)
+    lab.cli("--rebuild-db", "--no-plots", expected=2)
+    assert database_snapshot(lab.db) == before
+    # D2 requires the old source to be recoverable, not just backed up.
+    with closing(sqlite3.connect(lab.upstream)) as conn, conn:
+        conn.execute('ATTACH DATABASE ? AS seed', (str(lab.root / 'seed.db'),))
+        conn.execute('INSERT INTO quality_control_plus_lite SELECT * FROM seed.quality_control_plus_lite')
     lab.cli("--rebuild-db", "--no-plots")
-    assert rows(lab.db, 'SELECT qc_name FROM qc_metrics') == [("bias_level",)]
-    assert rows(lab.db, 'SELECT obs_day FROM processed_obs_days') == [("2026-10-05",)]
+    assert rows(lab.db, 'SELECT qc_name FROM qc_metrics ORDER BY qc_name') == [("bias_level",), ("sentinel",)]
+    assert rows(lab.db, 'SELECT obs_day FROM processed_obs_days ORDER BY obs_day') == [("2026-10-01",), ("2026-10-05",)]

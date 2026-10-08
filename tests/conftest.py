@@ -3,6 +3,7 @@ import atexit
 from contextlib import closing
 import hashlib
 import os
+import shutil
 from pathlib import Path
 import sqlite3
 import subprocess
@@ -75,6 +76,11 @@ class Lab:
         self.root.mkdir()
         self.cache = tmp_path / "cli-mpl-cache"
         self.cache.mkdir()
+        # Collection builds a fresh font inventory for this environment. Copy it
+        # into each isolated CLI cache rather than rescanning system fonts per case.
+        # Every cache remains outside the monitored project and independently writable.
+        for font_inventory in Path(_collection_cache.name).glob('fontlist-v*.json'):
+            shutil.copyfile(font_inventory, self.cache / font_inventory.name)
         self.upstream = self.root / "upstream" / "soxspipe.db"
         self.reduced = self.root / "reduced"
         self.products = self.reduced / DAY / "soxs-order-centres"

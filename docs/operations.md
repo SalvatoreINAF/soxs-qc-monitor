@@ -1,4 +1,4 @@
-# Batch operation and recovery — D1
+# Batch operation and recovery — D2
 
 Run only after the pipeline has finished reduction. An inventory of present FITS
 files does not certify producer completion. Closed observing days are normally
@@ -42,7 +42,8 @@ Each parsed CLI invocation logs one `RUN_SUMMARY <JSON>` line. Argument parser
 errors retain argparse output and code 2. JSON format version 1 includes UUID,
 mode, UTC start/end, monotonic durations, installed versions, phases, family
 states and errors. Disabled families are explicit. Fatal exceptions dominate
-partial acquisition. Rendering errors remain blocking in D1.
+partial acquisition. Rendering errors remain blocking. D2 adds storage/schema and sequence metadata
+without changing JSON format version 1; see [D2 contracts](d2-contracts.md).
 
 Per-table counters mean:
 
@@ -106,8 +107,9 @@ operational limits, not measured production performance guarantees.
 
 ## Update and rollback
 
-Stop scheduled jobs and ensure no CLI/API acquisition is running. D1 has no
-application lock. Keep the previous environment intact; prepare a candidate
+Stop scheduled jobs and ensure no CLI/API acquisition is running. D2 leases
+coordinate CLI/API storage writers; update and report publication are not yet
+coordinated by that lease. Keep the previous environment intact; prepare a candidate
 virtual environment or clone of the Conda environment. Save the last known good
 wheel/revision and verify source data availability before any DB maintenance.
 
@@ -124,11 +126,32 @@ necessary, first save the failed archive, close all connections and restore the
 backup while the scheduler is stopped. Validate preflight, dry-run and the test
 suite before re-enabling execution. Never run rebuild as an automatic recovery.
 
-## Limits retained for D2/D3
+## Schema transition and protected rebuild
 
-Multiple DETLIN sequences for the same day/arm remain rejected without mixing
-results. D1 fixtures provide an analytical baseline, not scientific acceptance
-on real data. Database schema and sequence identity are unchanged.
+Version 1.2.0 requires SQLite schema version 1 for ordinary writes. An old
+unversioned archive causes ordinary preflight to fail, preventing the update
+helper from reporting a usable deployment prematurely. Dry-run can still inspect
+recognized legacy registers. Verify source availability and stop all jobs before
+explicit maintenance:
+
+```sh
+/path/to/qc-env/bin/python -m qc_monitor.main --config /path/to/clone/configs/qc_monitor.yaml --preflight --rebuild-db
+/path/to/qc-env/bin/python -m qc_monitor.main --config /path/to/clone/configs/qc_monitor.yaml --rebuild-db --no-plots
+```
+
+The first command does not create a backup or replacement. The second preserves
+a verified `<db>.backup-<unique>.sqlite`, builds separately, checks completeness
+and coverage of previous units/products, and replaces only a valid candidate.
+Missing historical inputs, unknown schema or active sidecars block replacement.
+Do not delete the persistent `<db>.lock` to release a writer; OS process exit
+releases the lease. Backups are retained for explicit operator recovery/retention.
+See [full D2 contracts](d2-contracts.md) for failure counters and restore semantics.
+
+## Limits retained for D3 and operational acceptance
+
+Multiple DETLIN sequences now have independent fits and one atomic day/arm
+commit; cross-date sequences remain unsupported. D1/D2 fixtures provide an
+analytical baseline, not scientific acceptance on real instrument data.
 
 HTML still references configured figures in `plots/` relative to the page. A
 skipped figure may be missing or stale; other layouts are not reliable. There is

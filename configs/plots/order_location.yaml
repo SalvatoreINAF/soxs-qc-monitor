@@ -1,6 +1,7 @@
 figures:
 
   - name: vis_order_location_fit
+    section: Dispersion Solution
     type: order_location_fit
     title: VIS Order Location
     filename: vis_order_location_fit.png
@@ -15,6 +16,7 @@ figures:
     aspect: equal
 
   - name: nir_order_location_fit
+    section: Dispersion Solution
     type: order_location_fit
     title: NIR Order Location
     filename: nir_order_location_fit.png

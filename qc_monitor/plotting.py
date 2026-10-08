@@ -110,7 +110,7 @@ def _apply_filters(df: pd.DataFrame, filters: dict[str, object]) -> pd.DataFrame
             log.warning("Filter column %s not found in dataframe", column)
             return out.iloc[0:0]
 
-        out = out[out[column] == value]
+        out = out[out[column].isna() if value is None else out[column] == value]
 
     return out.copy()
 
@@ -913,6 +913,22 @@ def plot_latest_by_order_from_config(
         plt.close(fig)
 
 
+def select_detector_linearity_sequences(df, selection):
+    """Select one complete acquisition, never combine fits from a calendar day."""
+    if 'fit_state' in df:
+        df = df[df['fit_state'] == 'available'].copy()
+    if selection == 'all' or df.empty:
+        return df
+    if selection != 'latest':
+        raise ValueError(f'Unsupported detector-linearity selection: {selection}')
+    sequences = df[['sequence_id', 'tpl_start']].drop_duplicates().copy()
+    sequences['_time'] = pd.to_datetime(sequences['tpl_start'], utc=True, errors='coerce')
+    sequences = sequences.dropna(subset=['_time']).sort_values(['_time', 'sequence_id'])
+    if sequences.empty:
+        return df.iloc[0:0]
+    return df[df['sequence_id'] == sequences['sequence_id'].iloc[-1]].copy()
+
+
 def plot_detector_linearity_from_config(
     df: pd.DataFrame,
     plot_cfg: dict,
@@ -938,20 +954,7 @@ def plot_detector_linearity_from_config(
         log.warning("No detector-linearity data found for arm %s", arm)
         return
 
-    if selection == "latest":
-        times = pd.to_datetime(df_s["obs_date_utc"], errors="coerce")
-        latest_time = times.max()
-
-        if pd.isna(latest_time):
-            log.warning("Cannot select latest detector-linearity data: no valid obs_date_utc")
-            return
-
-        latest_obs_day = df_s.loc[times == latest_time, "obs_day"].iloc[0]
-        df_s = df_s[df_s["obs_day"] == latest_obs_day].copy()
-    elif selection == "all":
-        pass
-    else:
-        raise ValueError(f"Unsupported detector-linearity selection: {selection}")
+    df_s = select_detector_linearity_sequences(df_s, selection)
 
     numeric_columns = [
         "exptime",
@@ -985,52 +988,55 @@ def plot_detector_linearity_from_config(
             ax.grid(True)
             continue
 
-        group = group.sort_values("exptime")
-        used = group["fit_used"].fillna(0).astype(bool)
+        for sequence_id, group in group.groupby('sequence_id', sort=True):
+            prefix = (f"{group['tpl_start'].iloc[0]} {group['tpl_id'].iloc[0]} — "
+                      if selection == 'all' else '')
+            group = group.sort_values("exptime")
+            used = group["fit_used"].fillna(0).astype(bool)
 
-        ax.plot(
-            group["exptime"],
-            group["signal"],
-            marker="o",
-            linestyle="-",
-            label="Measured",
-        )
-
-        if used.any():
-            ax.scatter(
-                group.loc[used, "exptime"],
-                group.loc[used, "signal"],
-                s=28,
-                label="Fit points",
-            )
-
-        if (~used).any():
-            ax.scatter(
-                group.loc[~used, "exptime"],
-                group.loc[~used, "signal"],
-                marker="x",
-                s=45,
-                label="Excluded",
-            )
-
-        fit_group = group.dropna(subset=["fit_signal"])
-
-        if not fit_group.empty and fit_group["fit_signal"].abs().sum() > 0:
             ax.plot(
-                fit_group["exptime"],
-                fit_group["fit_signal"],
-                linestyle="--",
-                label="Linear fit",
+                group["exptime"],
+                group["signal"],
+                marker="o",
+                linestyle="-",
+                label=prefix + "Measured",
             )
 
-        saturation_limit = group["saturation_limit"].dropna()
-        if not saturation_limit.empty:
-            ax.axhline(
-                saturation_limit.iloc[0],
-                linestyle=":",
-                linewidth=1,
-                label="Fit threshold",
-            )
+            if used.any():
+                ax.scatter(
+                    group.loc[used, "exptime"],
+                    group.loc[used, "signal"],
+                    s=28,
+                    label=prefix + "Fit points",
+                )
+
+            if (~used).any():
+                ax.scatter(
+                    group.loc[~used, "exptime"],
+                    group.loc[~used, "signal"],
+                    marker="x",
+                    s=45,
+                    label=prefix + "Excluded",
+                )
+
+            fit_group = group.dropna(subset=["fit_signal"])
+
+            if not fit_group.empty and fit_group["fit_signal"].abs().sum() > 0:
+                ax.plot(
+                    fit_group["exptime"],
+                    fit_group["fit_signal"],
+                    linestyle="--",
+                    label=prefix + "Linear fit",
+                )
+
+            saturation_limit = group["saturation_limit"].dropna()
+            if not saturation_limit.empty:
+                ax.axhline(
+                    saturation_limit.iloc[0],
+                    linestyle=":",
+                    linewidth=1,
+                    label=prefix + "Fit threshold",
+                )
 
         ax.set_title(mode)
         ax.set_xlabel(plot_cfg.get("x_label", "Exposure time [s]"))
@@ -1041,16 +1047,28 @@ def plot_detector_linearity_from_config(
         axes[2].set_ylabel(plot_cfg.get("y_label", "Signal [ADU]"))
 
     handles, labels = axes[0].get_legend_handles_labels()
+    legend = None
     if handles:
-        fig.legend(
+        legend = fig.legend(
             handles,
             labels,
             loc=plot_cfg.get("legend_loc", "lower center"),
             ncol=plot_cfg.get("legend_ncol", 4),
+            fontsize=plot_cfg.get('legend_fontsize', 10),
+            bbox_to_anchor=(0, 0, 1, .94),
         )
 
     fig.suptitle(title, y=0.98)
-    fig.tight_layout(rect=[0, 0.06, 1, 0.95])
+    bottom, top = .06, .95
+    if legend is not None:
+        fig.canvas.draw()
+        bounds = legend.get_window_extent().transformed(fig.transFigure.inverted())
+        location = plot_cfg.get('legend_loc', 'lower center')
+        if location.startswith('lower'):
+            bottom = max(bottom, bounds.y1 + .025)
+        elif location.startswith('upper'):
+            top = min(top, bounds.y0 - .025)
+    fig.tight_layout(rect=[0, bottom, 1, top])
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
     _save_figure(output_file, fig)
@@ -1213,7 +1231,8 @@ def plot_order_location_fit_from_config(
 
     source_file = row["source_file"]
 
-    df_meta_s = df_meta[df_meta["source_file"] == source_file].copy()
+    identity = 'filepath' if 'filepath' in df_meta and pd.notna(row.get('filepath')) else 'source_file'
+    df_meta_s = df_meta[df_meta[identity] == row[identity]].copy()
 
     if df_meta_s.empty:
         log.warning(

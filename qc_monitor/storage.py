@@ -1,42 +1,58 @@
 import logging
 import sqlite3
-from contextlib import closing
+from contextlib import closing, nullcontext
 from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
 
-from qc_monitor.schema import TABLE_SCHEMA, UNIQUE_COLUMNS
-from qc_monitor.acquisition import DISPERSION_SOLUTION_COLUMNS
-from qc_monitor.acquisition import DISPERSION_RESOLUTION_STATS_COLUMNS
-from qc_monitor.acquisition import ORDER_LOCATION_MODEL_COLUMNS
-from qc_monitor.acquisition import ORDER_LOCATION_META_COLUMNS
-from qc_monitor.detector_linearity import DETECTOR_LINEARITY_MEASUREMENT_COLUMNS
-from qc_monitor.detector_linearity import DETECTOR_LINEARITY_RESULT_COLUMNS
+from qc_monitor.schema import (
+    TABLE_SCHEMA, UNIQUE_COLUMNS, SCHEMA_VERSION, UNIT_TABLES as _UNIT_TABLES,
+    REGISTERS as _REGISTERS, schema_statements, quote,
+    DISPERSION_SOLUTION_COLUMNS, DISPERSION_RESOLUTION_STATS_COLUMNS,
+    ORDER_LOCATION_MODEL_COLUMNS, ORDER_LOCATION_META_COLUMNS,
+    DETECTOR_LINEARITY_MEASUREMENT_COLUMNS, DETECTOR_LINEARITY_RESULT_COLUMNS,
+)
+from qc_monitor.locking import writer_lease, locked_store_method
+import json
 
 log = logging.getLogger(__name__)
+TABLE_COLUMNS = list(TABLE_SCHEMA)
 
-TABLE_COLUMNS = list(TABLE_SCHEMA.keys())
 
-# Existing schema identities; these writes deliberately use strict INSERT.
-_UNIT_TABLES = {
-    "qc": [("qc_metrics", TABLE_COLUMNS, ["obs_date_utc", "soxspipe_recipe", "qc_name", "eso seq arm", "qc_order", "file"])],
-    "dsol": [("dispersion_solution_lines", DISPERSION_SOLUTION_COLUMNS, ["source_file", "order", "wavelength", "detector_x", "detector_y"]),
-             ("dispersion_resolution_stats", DISPERSION_RESOLUTION_STATS_COLUMNS, ["source_file", "order"])],
-    "oloc": [("order_location_models", ORDER_LOCATION_MODEL_COLUMNS, ["source_file"]),
-             ("order_location_meta", ORDER_LOCATION_META_COLUMNS, ["source_file", "order"])],
-    "detlin": [("detector_linearity_measurements", DETECTOR_LINEARITY_MEASUREMENT_COLUMNS, ["source_file"]),
-               ("detector_linearity_results", DETECTOR_LINEARITY_RESULT_COLUMNS, ["obs_day", "eso seq arm", "detector_mode", "exptime", "pair_index"])],
-}
-_REGISTERS = {"qc": "processed_obs_days", "dsol": "processed_dispersion_obs_days",
-              "oloc": "processed_order_location_obs_days", "detlin": "processed_detector_linearity_obs_days"}
+def qc_identity(row):
+    return json.dumps([None if pd.isna(row[key]) else str(row[key]) for key in UNIQUE_COLUMNS],
+                      ensure_ascii=True, separators=(',', ':'))
+
+
+class SchemaError(RuntimeError):
+    pass
+
+
+def validate_schema(conn):
+    path = conn.execute('PRAGMA database_list').fetchone()[2]
+    if conn.execute('PRAGMA user_version').fetchone()[0] != SCHEMA_VERSION:
+        raise SchemaError(f'{path}: Incompatible schema; use an explicit backed-up --rebuild-db')
+    # Compare the full structural contract, including unique/check/foreign keys.
+    with closing(sqlite3.connect(':memory:')) as expected:
+        for sql in schema_statements():
+            expected.execute(sql)
+        contract = expected.execute("SELECT type,name,tbl_name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'").fetchall()
+        actual = conn.execute("SELECT type,name,tbl_name,sql FROM sqlite_master WHERE name NOT LIKE 'sqlite_%' AND type != 'trigger'").fetchall()
+        if sorted(contract) != sorted(actual):
+            raise SchemaError(f'{path}: Incompatible schema structure; use an explicit backed-up --rebuild-db')
+
 
 
 def _prepare_unit_frames(family: str, frames: list[pd.DataFrame]) -> list[pd.DataFrame]:
     prepared = []
     for (_, columns, keys), frame in zip(_UNIT_TABLES[family], frames, strict=True):
         normalized = frame[columns].astype(object).where(pd.notna(frame[columns]), None)
+        required = [key for key in keys if not (family == "qc" and key == "file")]
+        if normalized[required].isna().any().any():
+            raise ValueError(f"Missing {family} identity fields: {required}")
         normalized = normalized.drop_duplicates().reset_index(drop=True)
+        normalized.attrs = frame.attrs.copy()
         if normalized.duplicated(subset=keys).any():
             raise ValueError(f"Conflicting {family} rows for existing identity {keys}")
         prepared.append(normalized)
@@ -71,17 +87,25 @@ class SQLiteStore:
         self.db_path = Path(db_path).expanduser().resolve()
         self.read_only = read_only
         self._missing_database = False
+        self.schema_version = None
         if read_only:
             self._missing_database = not validate_readonly_sqlite_path(self.db_path)
             if not self._missing_database:
                 self._read_registry("SELECT name FROM sqlite_master")
+                version = self._read_registry('PRAGMA user_version')[0][0]
+                self.schema_version = version
+                if version not in (0, SCHEMA_VERSION):
+                    raise ReadOnlyStorageError(f'Unsupported schema version {version}: {self.db_path}')
         else:
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
             self._init_db()
+            self.schema_version = SCHEMA_VERSION
 
     def _connect(self):
         if not self.read_only:
-            return sqlite3.connect(self.db_path)
+            conn = sqlite3.connect(self.db_path)
+            conn.execute('PRAGMA foreign_keys = ON')
+            return conn
         validate_readonly_sqlite_path(self.db_path)
         try:
             return sqlite3.connect(self.db_path.as_uri() + "?mode=ro", uri=True)
@@ -102,398 +126,25 @@ class SQLiteStore:
             ) from exc
 
     def _quote(self, name: str) -> str:
-        return f'"{name}"'
+        return quote(name)
 
+    def write_session(self):
+        if self.read_only:
+            return nullcontext()
+        return writer_lease(self.db_path)
+
+    @locked_store_method
     def _init_db(self):
-
-        # QC table columns
-        columns_sql = """
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-        """
-
-        for col in TABLE_COLUMNS:
-            col_type = TABLE_SCHEMA[col]
-            columns_sql += f"""
-                {self._quote(col)} {col_type},
-            """
-
-        unique_sql = ", ".join(self._quote(c) for c in UNIQUE_COLUMNS)
-
-        # Dispersion solution columns
-        dsol_columns_sql = """
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-        """
-
-        dsol_type_map = {
-            "obs_day": "TEXT NOT NULL",
-            "obs_date_utc": "TEXT NOT NULL",
-            "eso seq arm": "TEXT NOT NULL",
-            "soxspipe_recipe": "TEXT NOT NULL",
-            "source_file": "TEXT NOT NULL",
-            "filepath": "TEXT",
-            "wavelength": "REAL",
-            "order": "TEXT",
-            "slit_index": "INTEGER",
-            "slit_position": "REAL",
-            "detector_x": "REAL",
-            "detector_y": "REAL",
-            "observed_x": "REAL",
-            "observed_y": "REAL",
-            "x_diff": "REAL",
-            "y_diff": "REAL",
-            "fit_x": "REAL",
-            "fit_y": "REAL",
-            "residuals_x": "REAL",
-            "residuals_y": "REAL",
-            "residuals_xy": "REAL",
-            "sigma_clipped": "TEXT",
-            "sharpness": "REAL",
-            "roundness1": "REAL",
-            "roundness2": "REAL",
-            "npix": "REAL",
-            "sky": "REAL",
-            "peak": "REAL",
-            "flux": "REAL",
-            "fwhm_pin_px": "REAL",
-            "R_pin": "REAL",
-            "pixelScaleNm": "REAL",
-            "detector_x_shifted": "REAL",
-            "detector_y_shifted": "REAL",
-            "R_slit": "REAL",
-            "fwhm_slit_px": "REAL",
-        }
-
-        for col in DISPERSION_SOLUTION_COLUMNS:
-            col_type = dsol_type_map.get(col, "TEXT")
-            dsol_columns_sql += f"""
-            {self._quote(col)} {col_type},
-            """
-
-        # Dispersion resolution stats columns
-        resolution_stats_columns_sql = """
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-            """
-        
-        resolution_stats_type_map = {
-                "obs_day": "TEXT NOT NULL",
-                "obs_date_utc": "TEXT NOT NULL",
-                "eso seq arm": "TEXT NOT NULL",
-                "soxspipe_recipe": "TEXT NOT NULL",
-                "source_file": "TEXT NOT NULL",
-                "filepath": "TEXT",
-                "order": "TEXT NOT NULL",
-                "mean_R_pin": "REAL",
-                "std_R_pin": "REAL",
-                "n_points": "INTEGER",
-            }
-        
-        for col in DISPERSION_RESOLUTION_STATS_COLUMNS:
-                col_type = resolution_stats_type_map.get(col, "TEXT")
-                resolution_stats_columns_sql += f"""
-                {self._quote(col)} {col_type},
-                """
-
-        # Order localization columns
-        order_location_columns_sql = """
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-            """
-        
-        order_location_type_map = {
-                "obs_day": "TEXT NOT NULL",
-                "obs_date_utc": "TEXT NOT NULL",
-                "eso seq arm": "TEXT NOT NULL",
-                "soxspipe_recipe": "TEXT NOT NULL",
-                "source_file": "TEXT NOT NULL",
-                "filepath": "TEXT",
-                "slit": "TEXT",
-                "slitmask": "TEXT",
-                "lamp": "TEXT",
-                "binning": "TEXT",
-                "rospeed": "TEXT",
-            }
-        
-        for col in ORDER_LOCATION_MODEL_COLUMNS:
-                col_type = order_location_type_map.get(col, "REAL")
-                order_location_columns_sql += f"""
-                {self._quote(col)} {col_type},
-                """
-
-        # Order location meta columns
-        order_location_meta_columns_sql = """
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-        """
-
-        order_location_meta_type_map = {
-            "obs_day": "TEXT NOT NULL",
-            "obs_date_utc": "TEXT NOT NULL",
-            "eso seq arm": "TEXT NOT NULL",
-            "soxspipe_recipe": "TEXT NOT NULL",
-            "source_file": "TEXT NOT NULL",
-            "filepath": "TEXT",
-            "slit": "TEXT",
-            "slitmask": "TEXT",
-            "lamp": "TEXT",
-            "binning": "TEXT",
-            "rospeed": "TEXT",
-            "order": "REAL NOT NULL",
-            "xmin": "REAL",
-            "xmax": "REAL",
-            "ymin": "REAL",
-            "ymax": "REAL",
-            "maxThreshold": "REAL",
-            "minThreshold": "REAL",
-            "maxvalue": "REAL",
-        }
-
-        for col in ORDER_LOCATION_META_COLUMNS:
-            col_type = order_location_meta_type_map.get(col, "REAL")
-            order_location_meta_columns_sql += f"""
-            {self._quote(col)} {col_type},
-            """
-
-        # Detector linearity columns
-        detlin_measurement_columns_sql = """
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-        """
-
-        detlin_measurement_type_map = {
-            "obs_day": "TEXT NOT NULL",
-            "obs_date_utc": "TEXT NOT NULL",
-            "eso seq arm": "TEXT NOT NULL",
-            "detector_mode": "TEXT NOT NULL",
-            "frame_type": "TEXT NOT NULL",
-            "exptime": "REAL NOT NULL",
-            "source_file": "TEXT NOT NULL",
-            "sequence_image_name": "TEXT",
-            "filepath": "TEXT",
-            "roi_name": "TEXT",
-            "roi_y1": "INTEGER",
-            "roi_y2": "INTEGER",
-            "roi_x1": "INTEGER",
-            "roi_x2": "INTEGER",
-            "statistic": "TEXT",
-            "signal_raw": "REAL",
-        }
-
-        for col in DETECTOR_LINEARITY_MEASUREMENT_COLUMNS:
-            col_type = detlin_measurement_type_map.get(col, "TEXT")
-            detlin_measurement_columns_sql += f"""
-            {self._quote(col)} {col_type},
-            """
-
-        detlin_result_columns_sql = """
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-        """
-
-        detlin_result_type_map = {
-            "obs_day": "TEXT NOT NULL",
-            "obs_date_utc": "TEXT NOT NULL",
-            "eso seq arm": "TEXT NOT NULL",
-            "detector_mode": "TEXT NOT NULL",
-            "exptime": "REAL NOT NULL",
-            "pair_index": "INTEGER NOT NULL",
-            "file1": "TEXT NOT NULL",
-            "file2": "TEXT NOT NULL",
-            "signal": "REAL",
-            "fit_signal": "REAL",
-            "residual": "REAL",
-            "residual_percent": "REAL",
-            "fit_used": "INTEGER",
-            "saturation_limit": "REAL",
-            "slope": "REAL",
-            "intercept": "REAL",
-            "mean_bias_roi": "REAL",
-            "rms_bias_adu": "REAL",
-            "cf": "REAL",
-            "rms_bias_e": "REAL",
-            "dark_file": "TEXT",
-            "flat_files": "TEXT",
-            "n_flat_frames": "INTEGER",
-        }
-
-        for col in DETECTOR_LINEARITY_RESULT_COLUMNS:
-            col_type = detlin_result_type_map.get(col, "TEXT")
-            detlin_result_columns_sql += f"""
-            {self._quote(col)} {col_type},
-            """
-
-        with self._connect() as conn:
-            conn.execute(f"""
-            CREATE TABLE IF NOT EXISTS qc_metrics (
-                {columns_sql}
-
-                UNIQUE ({unique_sql})
-            );
-            """)
-
-            conn.execute("""
-            CREATE TABLE IF NOT EXISTS processed_obs_days (
-                obs_day TEXT PRIMARY KEY,
-                processed_at TEXT NOT NULL,
-                status TEXT NOT NULL
-            );
-            """)
-
-            conn.execute(f"""
-            CREATE TABLE IF NOT EXISTS dispersion_solution_lines (
-                {dsol_columns_sql}
-                UNIQUE (
-                    "source_file",
-                    "order",
-                    "wavelength",
-                    "detector_x",
-                    "detector_y"
-                )
-            );
-            """)
-
-            conn.execute("""
-            CREATE TABLE IF NOT EXISTS processed_dispersion_obs_days (
-                obs_day TEXT PRIMARY KEY,
-                processed_at TEXT NOT NULL,
-                status TEXT NOT NULL
-            );
-            """)
-
-            conn.execute(f"""
-            CREATE TABLE IF NOT EXISTS dispersion_resolution_stats (
-                {resolution_stats_columns_sql}
-
-                UNIQUE (
-                    "source_file",
-                    "order"
-                )
-            );
-            """)
-
-            conn.execute(f"""
-            CREATE TABLE IF NOT EXISTS order_location_models (
-                {order_location_columns_sql}
-
-                UNIQUE (
-                    "source_file"
-                )
-            );
-            """)
-
-            conn.execute("""
-            CREATE TABLE IF NOT EXISTS processed_order_location_obs_days (
-                obs_day TEXT PRIMARY KEY,
-                processed_at TEXT NOT NULL,
-                status TEXT NOT NULL
-            );
-            """)
-
-            conn.execute(f"""
-            CREATE TABLE IF NOT EXISTS order_location_meta (
-                {order_location_meta_columns_sql}
-
-                UNIQUE (
-                    "source_file",
-                    "order"
-                )
-            );
-            """)
-
-            conn.execute(f"""
-            CREATE TABLE IF NOT EXISTS detector_linearity_measurements (
-                {detlin_measurement_columns_sql}
-
-                UNIQUE (
-                    "source_file"
-                )
-            );
-            """)
-
-            conn.execute(f"""
-            CREATE TABLE IF NOT EXISTS detector_linearity_results (
-                {detlin_result_columns_sql}
-
-                UNIQUE (
-                    "obs_day",
-                    "eso seq arm",
-                    "detector_mode",
-                    "exptime",
-                    "pair_index"
-                )
-            );
-            """)
-
-            conn.execute("""
-            CREATE TABLE IF NOT EXISTS processed_detector_linearity_obs_days (
-                obs_day TEXT NOT NULL,
-                arm TEXT NOT NULL,
-                processed_at TEXT NOT NULL,
-                status TEXT NOT NULL,
-                PRIMARY KEY (obs_day, arm)
-            );
-            """)
-
-            self._ensure_columns(
-                conn=conn,
-                table="detector_linearity_results",
-                columns=DETECTOR_LINEARITY_RESULT_COLUMNS,
-                type_map=detlin_result_type_map,
-            )
-            self._ensure_columns(
-                conn=conn,
-                table="detector_linearity_measurements",
-                columns=DETECTOR_LINEARITY_MEASUREMENT_COLUMNS,
-                type_map=detlin_measurement_type_map,
-            )
-            self._ensure_detector_linearity_registry_schema(conn)
-
-            conn.commit()
-
-    def _ensure_columns(
-        self,
-        conn: sqlite3.Connection,
-        table: str,
-        columns: list[str],
-        type_map: dict[str, str],
-    ):
-        existing = {
-            row[1]
-            for row in conn.execute(f"PRAGMA table_info({self._quote(table)})").fetchall()
-        }
-
-        for column in columns:
-            if column in existing:
-                continue
-
-            col_type = type_map.get(column, "TEXT")
-            conn.execute(
-                f"ALTER TABLE {self._quote(table)} "
-                f"ADD COLUMN {self._quote(column)} {col_type}"
-            )
-
-    def _ensure_detector_linearity_registry_schema(self, conn: sqlite3.Connection):
-        table = "processed_detector_linearity_obs_days"
-        columns = {
-            row[1]
-            for row in conn.execute(f"PRAGMA table_info({self._quote(table)})").fetchall()
-        }
-
-        if "arm" in columns:
+        # Existing archives are inspected before any writable connection is opened.
+        if self.db_path.exists() and self.db_path.stat().st_size:
+            with closing(sqlite3.connect(self.db_path.as_uri() + '?mode=ro', uri=True)) as conn:
+                validate_schema(conn)
             return
-
-        conn.execute(f"ALTER TABLE {self._quote(table)} RENAME TO {self._quote(table + '_legacy')}")
-        conn.execute("""
-        CREATE TABLE processed_detector_linearity_obs_days (
-            obs_day TEXT NOT NULL,
-            arm TEXT NOT NULL,
-            processed_at TEXT NOT NULL,
-            status TEXT NOT NULL,
-            PRIMARY KEY (obs_day, arm)
-        );
-        """)
-        conn.execute("""
-        INSERT OR IGNORE INTO processed_detector_linearity_obs_days
-        (obs_day, arm, processed_at, status)
-        SELECT obs_day, 'VIS', processed_at, status
-        FROM processed_detector_linearity_obs_days_legacy
-        """)
-        conn.execute("DROP TABLE processed_detector_linearity_obs_days_legacy")
+        with closing(self._connect()) as conn, conn:
+            conn.execute('BEGIN')
+            for statement in schema_statements():
+                conn.execute(statement)
+            conn.execute(f'PRAGMA user_version = {SCHEMA_VERSION}')
 
     # Registry API
 
@@ -508,6 +159,7 @@ class SQLiteStore:
 
         return {r[0] for r in rows}
 
+    @locked_store_method
     def register_processed_obs_day(
         self,
         obs_day: str,
@@ -515,7 +167,7 @@ class SQLiteStore:
     ):
         processed_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             conn.execute(
                 """
                 INSERT OR REPLACE INTO processed_obs_days
@@ -537,6 +189,7 @@ class SQLiteStore:
 
         return {r[0] for r in rows}
 
+    @locked_store_method
     def register_processed_dispersion_obs_day(
         self,
         obs_day: str,
@@ -544,7 +197,7 @@ class SQLiteStore:
     ):
         processed_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             conn.execute(
                 """
                 INSERT OR REPLACE INTO processed_dispersion_obs_days
@@ -567,6 +220,7 @@ class SQLiteStore:
 
         return {r[0] for r in rows}
 
+    @locked_store_method
     def register_processed_order_location_obs_day(
         self,
         obs_day: str,
@@ -574,7 +228,7 @@ class SQLiteStore:
     ):
         processed_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             conn.execute(
                 """
                 INSERT OR REPLACE INTO processed_order_location_obs_days
@@ -596,6 +250,7 @@ class SQLiteStore:
 
         return {(r[0], r[1]) for r in rows}
 
+    @locked_store_method
     def register_processed_detector_linearity_obs_day(
         self,
         obs_day: str,
@@ -604,7 +259,7 @@ class SQLiteStore:
     ):
         processed_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             conn.execute(
                 """
                 INSERT OR REPLACE INTO processed_detector_linearity_obs_days
@@ -615,14 +270,30 @@ class SQLiteStore:
             )
             conn.commit()
 
+    @locked_store_method
     def _replace_complete_unit(self, family: str, unit: tuple[str, ...], frames: list[pd.DataFrame]):
         frames = _prepare_unit_frames(family, frames)
         day_column = "night start date" if family == "qc" else "obs_day"
+        for frame in frames:
+            if not frame[day_column].astype(str).eq(unit[0]).all():
+                raise ValueError('Rows do not belong to the declared unit')
+            if family == 'detlin' and not frame['eso seq arm'].eq(unit[1]).all():
+                raise ValueError('Rows do not belong to the declared arm')
+        if family == 'detlin':
+            if set(frames[0].sequence_id) != set(frames[1].sequence_id) or not frames[1].fit_state.eq('available').all():
+                raise ValueError('Incomplete detector-linearity sequence results')
         condition = self._quote(day_column) + " = ?"
         if family == "detlin":
             condition += ' AND "eso seq arm" = ?'
         with closing(self._connect()) as conn:
             with conn:
+                if family == "detlin":
+                    for table, _, _ in _UNIT_TABLES[family]:
+                        conn.execute(f'DELETE FROM {quote(table)} WHERE {condition}', unit)
+                    conn.execute('DELETE FROM detlin_sequences WHERE obs_day=? AND arm=?', unit)
+                    sequences = frames[0][["sequence_id", "eso seq arm", "tpl_start", "tpl_id", "obs_day"]].drop_duplicates()
+                    conn.executemany('INSERT INTO detlin_sequences VALUES (?,?,?,?,?)',
+                                     sequences.itertuples(index=False, name=None))
                 for (table, columns, _), frame in zip(_UNIT_TABLES[family], frames, strict=True):
                     conn.execute(f'DELETE FROM {self._quote(table)} WHERE {condition}', unit)
                     columns_sql = ", ".join(self._quote(column) for column in columns)
@@ -630,6 +301,8 @@ class SQLiteStore:
                     values = [tuple(value.item() if hasattr(value, "item") else value for value in row)
                               for row in frame.itertuples(index=False, name=None)]
                     conn.executemany(f'INSERT INTO {self._quote(table)} ({columns_sql}) VALUES ({placeholders})', values)
+                if family == "qc":
+                    self._save_qc_provenance(conn, frames[0])
                 register = _REGISTERS[family]
                 timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
                 if family == "detlin":
@@ -651,8 +324,33 @@ class SQLiteStore:
     def replace_detector_linearity_day(self, day: str, arm: str, measurements: pd.DataFrame, results: pd.DataFrame):
         self._replace_complete_unit("detlin", (day, arm), [measurements, results])
 
+    def _insert_sequences(self, conn, frame):
+        for row in frame[['sequence_id', 'eso seq arm', 'tpl_start', 'tpl_id', 'obs_day']].drop_duplicates().itertuples(index=False, name=None):
+            present = conn.execute('SELECT sequence_id,arm,tpl_start,tpl_id,obs_day FROM detlin_sequences WHERE sequence_id=?', (row[0],)).fetchone()
+            if present is None:
+                conn.execute('INSERT INTO detlin_sequences VALUES (?,?,?,?,?)', row)
+            elif present != row:
+                raise ValueError('Conflicting sequence metadata')
+
+    def _save_qc_provenance(self, conn, frame):
+        provenance = frame.attrs.get('provenance', {})
+        direct_source = frame.attrs.get('source_database')
+        lookup = 'SELECT id FROM qc_metrics WHERE ' + ' AND '.join(f'{quote(key)} IS ?' for key in UNIQUE_COLUMNS)
+        links = []
+        for _, row in frame.iterrows():
+            sources = set(provenance.get(qc_identity(row), set()))
+            if direct_source:
+                sources.add(direct_source)
+            if not sources:
+                continue
+            values = tuple(None if pd.isna(row[key]) else str(row[key]) for key in UNIQUE_COLUMNS)
+            metric_id = conn.execute(lookup, values).fetchone()[0]
+            links.extend((metric_id, source) for source in sorted(sources))
+        conn.executemany('INSERT INTO qc_metric_sources VALUES (?,?)', links)
+
     # Metrics storage
 
+    @locked_store_method
     def write_metrics(self, df: pd.DataFrame):
         if df.empty:
             return
@@ -667,7 +365,7 @@ class SQLiteStore:
         placeholders = ", ".join("?" for _ in TABLE_COLUMNS)
 
         query = f"""
-        INSERT OR IGNORE INTO qc_metrics (
+        INSERT INTO qc_metrics (
             {columns_sql}
         )
         VALUES ({placeholders})
@@ -678,11 +376,13 @@ class SQLiteStore:
             for _, row in df.iterrows()
         ]
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             conn.executemany(query, rows)
+            self._save_qc_provenance(conn, df)
             conn.commit()
 
 
+    @locked_store_method
     def write_dispersion_solution_lines(self, df: pd.DataFrame):
         if df.empty:
             return
@@ -698,7 +398,7 @@ class SQLiteStore:
         placeholders = ", ".join("?" for _ in DISPERSION_SOLUTION_COLUMNS)
 
         query = f"""
-        INSERT OR IGNORE INTO dispersion_solution_lines (
+        INSERT INTO dispersion_solution_lines (
             {columns_sql}
         )
         VALUES ({placeholders})
@@ -709,10 +409,11 @@ class SQLiteStore:
             for _, row in df.iterrows()
         ]
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             conn.executemany(query, rows)
             conn.commit()
 
+    @locked_store_method
     def write_dispersion_resolution_stats(self, df: pd.DataFrame):
         if df.empty:
             return
@@ -730,7 +431,7 @@ class SQLiteStore:
         placeholders = ", ".join("?" for _ in DISPERSION_RESOLUTION_STATS_COLUMNS)
 
         query = f"""
-        INSERT OR IGNORE INTO dispersion_resolution_stats (
+        INSERT INTO dispersion_resolution_stats (
             {columns_sql}
         )
         VALUES ({placeholders})
@@ -741,10 +442,11 @@ class SQLiteStore:
             for _, row in df.iterrows()
         ]
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             conn.executemany(query, rows)
             conn.commit()
 
+    @locked_store_method
     def write_order_location_models(self, df: pd.DataFrame):
         if df.empty:
             return
@@ -760,7 +462,7 @@ class SQLiteStore:
         placeholders = ", ".join("?" for _ in ORDER_LOCATION_MODEL_COLUMNS)
 
         query = f"""
-        INSERT OR IGNORE INTO order_location_models (
+        INSERT INTO order_location_models (
             {columns_sql}
         )
         VALUES ({placeholders})
@@ -771,10 +473,11 @@ class SQLiteStore:
             for _, row in df.iterrows()
         ]
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             conn.executemany(query, rows)
             conn.commit()
 
+    @locked_store_method
     def write_order_location_meta(self, df: pd.DataFrame):
         if df.empty:
             return
@@ -790,7 +493,7 @@ class SQLiteStore:
         placeholders = ", ".join("?" for _ in ORDER_LOCATION_META_COLUMNS)
 
         query = f"""
-        INSERT OR IGNORE INTO order_location_meta (
+        INSERT INTO order_location_meta (
             {columns_sql}
         )
         VALUES ({placeholders})
@@ -801,10 +504,11 @@ class SQLiteStore:
             for _, row in df.iterrows()
         ]
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             conn.executemany(query, rows)
             conn.commit()
 
+    @locked_store_method
     def write_detector_linearity_measurements(self, df: pd.DataFrame):
         if df.empty:
             return
@@ -822,7 +526,7 @@ class SQLiteStore:
         placeholders = ", ".join("?" for _ in DETECTOR_LINEARITY_MEASUREMENT_COLUMNS)
 
         query = f"""
-        INSERT OR IGNORE INTO detector_linearity_measurements (
+        INSERT INTO detector_linearity_measurements (
             {columns_sql}
         )
         VALUES ({placeholders})
@@ -833,10 +537,12 @@ class SQLiteStore:
             for _, row in df.iterrows()
         ]
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
+            self._insert_sequences(conn, df)
             conn.executemany(query, rows)
             conn.commit()
 
+    @locked_store_method
     def write_detector_linearity_results(self, df: pd.DataFrame):
         if df.empty:
             return
@@ -854,7 +560,7 @@ class SQLiteStore:
         placeholders = ", ".join("?" for _ in DETECTOR_LINEARITY_RESULT_COLUMNS)
 
         query = f"""
-        INSERT OR IGNORE INTO detector_linearity_results (
+        INSERT INTO detector_linearity_results (
             {columns_sql}
         )
         VALUES ({placeholders})
@@ -865,7 +571,8 @@ class SQLiteStore:
             for _, row in df.iterrows()
         ]
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
+            self._insert_sequences(conn, df)
             conn.executemany(query, rows)
             conn.commit()
 
@@ -914,7 +621,7 @@ class SQLiteStore:
         ORDER BY {order_sql}
         """
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             return pd.read_sql(query, conn)
         
 
@@ -925,7 +632,7 @@ class SQLiteStore:
         ORDER BY "obs_day", "obs_date_utc", "eso seq arm", "order", "wavelength"
         """
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             return pd.read_sql(query, conn)
         
     def load_order_location_models(self) -> pd.DataFrame:
@@ -935,7 +642,7 @@ class SQLiteStore:
         ORDER BY "obs_day", "obs_date_utc", "eso seq arm", "soxspipe_recipe", "source_file"
         """
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             return pd.read_sql(query, conn)
 
 
@@ -946,7 +653,7 @@ class SQLiteStore:
         ORDER BY "obs_date_utc", "eso seq arm", "order"
         """
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             return pd.read_sql(query, conn)
 
 
@@ -957,7 +664,7 @@ class SQLiteStore:
         ORDER BY "obs_day", "obs_date_utc", "eso seq arm", "soxspipe_recipe", "source_file", "order"
         """
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             return pd.read_sql(query, conn)
 
     def load_detector_linearity_measurements(self) -> pd.DataFrame:
@@ -967,7 +674,7 @@ class SQLiteStore:
         ORDER BY "obs_day", "obs_date_utc", "eso seq arm", "detector_mode", "exptime"
         """
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             return pd.read_sql(query, conn)
 
     def load_detector_linearity_results(self) -> pd.DataFrame:
@@ -977,25 +684,21 @@ class SQLiteStore:
         ORDER BY "obs_day", "obs_date_utc", "eso seq arm", "detector_mode", "exptime"
         """
 
-        with self._connect() as conn:
+        with closing(self._connect()) as conn, conn:
             return pd.read_sql(query, conn)
 
 
     # Wipe database
 
+    @locked_store_method
     def drop_all(self):
-        with self._connect() as conn:
-            conn.execute("DROP TABLE IF EXISTS qc_metrics")
-            conn.execute("DROP TABLE IF EXISTS processed_obs_days")
-            conn.execute("DROP TABLE IF EXISTS dispersion_solution_lines")
-            conn.execute("DROP TABLE IF EXISTS processed_dispersion_obs_days")
-            conn.execute("DROP TABLE IF EXISTS dispersion_resolution_stats")
-            conn.execute("DROP TABLE IF EXISTS order_location_models")
-            conn.execute("DROP TABLE IF EXISTS processed_order_location_obs_days")
-            conn.execute("DROP TABLE IF EXISTS order_location_meta")
-            conn.execute("DROP TABLE IF EXISTS detector_linearity_measurements")
-            conn.execute("DROP TABLE IF EXISTS detector_linearity_results")
-            conn.execute("DROP TABLE IF EXISTS processed_detector_linearity_obs_days")
-            conn.commit()
-
-        self._init_db()
+        """Explicit low-level maintenance; the CLI uses protected_rebuild instead."""
+        with closing(self._connect()) as conn, conn:
+            tables = [table[0] for tables in _UNIT_TABLES.values() for table in tables]
+            for table in ['qc_metric_sources', *tables, 'detlin_sequences', *_REGISTERS.values()]:
+                conn.execute(f'DROP TABLE IF EXISTS {quote(table)}')
+        # File still exists: create the declared fresh schema without opening legacy.
+        with closing(self._connect()) as conn, conn:
+            for statement in schema_statements():
+                conn.execute(statement)
+            conn.execute(f'PRAGMA user_version = {SCHEMA_VERSION}')

@@ -1,6 +1,8 @@
 figures:
 
   - name: nir_dark_ron
+    arm: NIR
+    section: Dark
     type: time_series
     title: NIR Dark RON
     filename: nir_dark_ron.png

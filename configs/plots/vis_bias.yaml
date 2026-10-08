@@ -1,6 +1,8 @@
 figures:
 
   - name: vis_bias_level
+    arm: VIS
+    section: Bias
     type: time_series
     title: VIS Bias Median Level
     filename: vis_bias_level.png

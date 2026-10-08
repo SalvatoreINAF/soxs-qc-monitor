@@ -278,3 +278,44 @@ macOS 3.11/3.13 verificate come descritto nei
 candidato `fb37d9e` è verde: **216 PASS in ciascuno dei quattro job**, wheel e
 installazione isolata verificate. [Run 37772436524](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37772436524).
 **D1 completato e formalmente chiuso.** Non avviare D2 senza una nuova richiesta.
+
+
+## D2 — Contratti aggiuntivi
+
+`test_d2_config.py` verifica YAML/ancore/duplicati, tipi dei filtri, query e
+renderer, ROI, limiti delle figure, percorsi relativi e collisioni, output non
+utilizzati, discovery diretta/ricorsiva e invarianza prima delle scritture.
+`test_d2_storage.py` verifica identità SQL nullable, provenienza QC, omonimie
+DSOL/OLOC, schema/versioni, lock fra processi e rilascio dopo terminazione,
+rebuild/backup/coverage/sidecar WAL e contatori di candidati scartati.
+`test_d2_detlin.py` verifica sequenze VIS/NIR separate, retry/force atomici,
+geometria e binning, fit mancanti, gain indefinito, selezione latest/all e
+rollback dei metadati di sequenza.
+
+Aspettative intenzionalmente aggiornate: schema upstream incompatibile bloccato
+in preflight con codice 2, più sequenze accettate senza mescolare i fit, rebuild
+incapace di eliminare storico non recuperabile. I loader e le API delle famiglie
+indipendenti conservano il comportamento tollerante ai guasti; nessun XFAIL
+aggiunto e nessuna tolleranza scientifica allargata.
+
+Ogni cache CLI rimane temporanea e separata dal progetto monitorato. La fixture
+copia l’inventario font creato nella cache temporanea di collection, evitando una
+nuova scansione dei font di sistema per ogni caso. Nessuna cache dell’utente o
+cache generata su altre macchine viene riutilizzata. Le durate della suite non
+sono benchmark del batch operativo.
+
+Eseguire la suite con warning trattati come errori:
+
+```sh
+python -m pytest -ra --tb=short -W error
+python -m build --wheel --no-isolation --outdir /tmp/qc-wheel
+/path/to/installed-env/bin/python scripts/check_installation.py
+```
+
+Il checker della wheel comprende ora validazione anticipata, dry-run immutabile
+e rebuild protetto, oltre a entry point, risorsa template e idempotenza.
+La [tavola D2](../docs/qa/d2-reference.png) documenta i grafici VIS latest/all
+con due pendenze distinte; non è una golden image. Evidenze e stato di chiusura
+sono in [risultati D2](results/d2-validation.md) e [handover](../docs/handover.md).
+La CI rimane Linux 3.11/3.12/3.13 e macOS 3.12; un risultato locale non prova
+un’esecuzione hosted né Linux.

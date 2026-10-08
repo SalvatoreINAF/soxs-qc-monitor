@@ -1,4 +1,4 @@
-name: D1 verification
+name: QC verification
 on:
   push:
     branches: [dev]
@@ -49,7 +49,7 @@ jobs:
             python -m pip install '.[test]' build setuptools wheel
           fi
       - name: Scientific and application regressions
-        run: python -m pytest -ra --tb=short
+        run: python -m pytest -ra --tb=short -W error
       - name: Build wheel
         run: python -m build --wheel --no-isolation --outdir "${{ runner.temp }}/qc-wheel"
       - name: Isolated installed-package verification

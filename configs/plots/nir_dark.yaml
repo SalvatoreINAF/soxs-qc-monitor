@@ -1,6 +1,8 @@
 figures:
 
   - name: nir_dark_median
+    arm: NIR
+    section: Dark
     type: time_series
     title: NIR Dark Median Level
     filename: nir_dark_median.png

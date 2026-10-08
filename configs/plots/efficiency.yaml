@@ -1,6 +1,8 @@
 figures:
 
   - name: vis_efficiency_median
+    arm: VIS
+    section: Other QC Plots
     type: latest_by_order_bar
     title: VIS Median Efficiency
     filename: vis_efficiency_median.png
@@ -10,6 +12,8 @@ figures:
     order_sequence: ["u", "g", "r", "i"]
 
   - name: nir_efficiency_median
+    arm: NIR
+    section: Other QC Plots
     type: latest_by_order_bar
     title: NIR Median Efficiency
     filename: nir_efficiency_median.png
