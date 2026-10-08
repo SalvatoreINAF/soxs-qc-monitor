@@ -145,6 +145,9 @@ def main(argv=None):
             for command in commands:
                 code = execute(command, root, stream, deadline)
                 if code:
+                    if command[:3] != cli[:3]:
+                        # Git/pip failures prevent an update; they are not partial acquisition.
+                        code = 2
                     break
             # Non-CLI failures may have unrelated exit codes; batch contract is 0/1/2.
             code = code if code in (0, 1, 2) else 2
