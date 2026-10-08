@@ -319,3 +319,8 @@ con due pendenze distinte; non è una golden image. Evidenze e stato di chiusura
 sono in [risultati D2](results/d2-validation.md) e [handover](../docs/handover.md).
 La CI rimane Linux 3.11/3.12/3.13 e macOS 3.12; un risultato locale non prova
 un’esecuzione hosted né Linux.
+
+**D2 completato e formalmente chiuso l’8 ottobre 2026.**
+[Matrice hosted](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37793731551), attempt 1, sul commit `9f666b0`:
+315 PASS per ciascuno dei quattro job, wheel e installazione isolata riuscite.
+Nessuna verifica D2 pendente; non avviare D3 senza nuova richiesta.

@@ -1,10 +1,11 @@
 # Handover D2 — 8 ottobre 2026
 
-D2 implementato e verificato localmente su `dev`, pacchetto **1.2.0**, SQLite
+**D2 completato e formalmente chiuso l’8 ottobre 2026** su `dev`, pacchetto **1.2.0**, SQLite
 **schema 1**. **315 PASS su ciascuno di Python 3.11/3.12/3.13**, wheel isolata e
 `pip check` verdi su tutti e tre. Verifiche e stato di chiusura sono registrati nei [risultati D2](../tests/results/d2-validation.md);
-la matrice hosted D2 resta pendente fino a una pubblicazione richiesta dall’utente.
-Non attribuire al candidato D2 i risultati CI di D1 e non iniziare D3.
+La [matrice hosted D2](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37793731551), attempt 1, è verde sul commit
+`9f666b0e3382468ad7caf167d8437acabbe897c7`: 315 PASS in ciascuno dei quattro
+job, build e installazione isolata riuscite. Non iniziare D3.
 
 ## Baseline e scheda di consegna
 
@@ -12,7 +13,10 @@ Commit applicativo **`7f0f657`** (`7f0f657c3727aed5221fa9fb3ab5a3ca5c4d04ed`),
 successivo alla baseline `30a8914`. Suite, wheel e controllo visivo verificano
 il codice archiviato in tale commit. Il successivo incremento è soltanto
 la registrazione documentale di queste evidenze; identificare HEAD con
-`git log -2 --oneline`. `main` rimane a `8d44c9d` e `origin/dev` a `fb37d9e`.
+`git log --oneline`. L’utente ha pubblicato `dev`: il candidato hosted e
+`origin/dev` sono `9f666b0`; `main` rimane a `8d44c9d`.
+Il successivo commit di chiusura modifica soltanto la documentazione e non
+ha un proprio risultato CI attribuito.
 
 Baseline: `30a8914`, working tree pulito, `dev` un commit oltre `origin/dev`.
 D1 formalmente chiuso sul codice `fb37d9e`, 216 PASS in ciascuno dei quattro job
@@ -56,8 +60,8 @@ Nessuna regressione numerica viene sostituita con confronti pixel per pixel.
 
 ## Limiti e ripresa
 
-- Matrice hosted D2 da eseguire sul commit candidato pubblicato dall’utente;
-  distinguere sempre codice verificato e successivi commit documentali.
+- Matrice hosted D2 completata; distinguere il candidato verificato `9f666b0`
+  dal successivo commit documentale di chiusura.
 - Sequenze DETLIN su più date restano aperte. Binning assente assume 1 per asse
   con diagnosi; ROI e segnali restano nei pixel/ADU dell’immagine acquisita.
 - Update e pubblicazione non sono coordinati dal lock D2. Coerenza HTML/PNG,
@@ -66,8 +70,9 @@ Nessuna regressione numerica viene sostituita con confronti pixel per pixel.
   prestazioni operative restano aperti. Riduzione completata prima del monitor.
 - Backup retained per scelta; interruzione OS può lasciare uno staging non
   pubblicato. Nessuna pulizia generale o rielaborazione automatica dello storico.
-- Nessun push, merge, deployment o rebuild dei dati dell’utente eseguito.
+- Push del candidato effettuato dall’utente. Questa chiusura non esegue nuovi
+  push, merge, deployment o rebuild dei dati dell’utente.
 
-Alla prossima sessione verificare HEAD/working tree, leggere i risultati D2 e
-completare soltanto eventuali verifiche D2 pendenti. Non avviare D3 senza una
+Alla prossima sessione verificare HEAD/working tree e leggere i risultati D2.
+D2 è chiuso e non ha verifiche di accettazione pendenti. Non avviare D3 senza una
 nuova richiesta e non pubblicare o integrare `main` automaticamente.

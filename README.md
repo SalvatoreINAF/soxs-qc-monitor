@@ -507,6 +507,10 @@ successiva conserva i limiti D2/D3 e non avvia automaticamente nuove fasi.
 
 ## D2 — Configuration and storage
 
+**D2 formalmente chiuso l’8 ottobre 2026**: [CI hosted verde](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37793731551)
+su `9f666b0`, 315 PASS in ciascuno dei quattro job Linux/macOS; build e
+installazione isolata della wheel riuscite. D3 non avviato.
+
 Version **1.2.0** validates YAML, includes, query references, renderer parameters,
 ROIs and path collisions before acquisition. Relative operational paths retain
 `config_path.parent.parent`; includes remain relative to the YAML directory.
