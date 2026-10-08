@@ -438,13 +438,24 @@ def _load_detector_linearity_batch(
     df_measurements = pd.DataFrame(measurements)
     df_measurements = df_measurements[DETECTOR_LINEARITY_MEASUREMENT_COLUMNS]
 
-    df_results = compute_detector_linearity_results(
-        df_measurements=df_measurements.loc[[
-            (str(row["obs_day"]), str(row["eso seq arm"])) not in ambiguous
-            for _, row in df_measurements.iterrows()]],
-        roi_cache=roi_cache,
-        saturation_limit=saturation_limit,
-    )
+    eligible = df_measurements.loc[[
+        (str(row["obs_day"]), str(row["eso seq arm"])) not in ambiguous
+        for _, row in df_measurements.iterrows()]]
+    results = []
+    failed_sequences = set()
+    for sequence_id, group in eligible.groupby('sequence_id'):
+        try:
+            results.append(compute_detector_linearity_results(
+                df_measurements=group, roi_cache=roi_cache, saturation_limit=saturation_limit))
+        except Exception as exc:
+            failed_sequences.add(sequence_id)
+            unit = (str(group['obs_day'].iloc[0]), str(group['eso seq arm'].iloc[0]))
+            outcomes.append(InputOutcome(str(sequence_id), 'failed', unit, str(exc), unit[1],
+                {"sequence_id": str(sequence_id), "phase": "fit", "type": type(exc).__name__}))
+            log.exception("Detector-linearity sequence %s failed during calculation", sequence_id)
+    nonempty = [frame for frame in results if not frame.empty]
+    df_results = (pd.concat(nonempty, ignore_index=True) if nonempty else
+                  pd.DataFrame(columns=DETECTOR_LINEARITY_RESULT_COLUMNS))
 
     log.info(
         "Loaded %d detector-linearity measurements and %d result rows",
@@ -453,6 +464,8 @@ def _load_detector_linearity_batch(
     )
 
     for sequence_id, group in df_measurements.groupby('sequence_id'):
+        if sequence_id in failed_sequences:
+            continue
         unit = (str(group['obs_day'].iloc[0]), str(group['eso seq arm'].iloc[0]))
         required_modes = set(VIS_MODE_ORDER) if unit[1] == "VIS" else {"NIR"}
         if set(group["detector_mode"]) != required_modes:

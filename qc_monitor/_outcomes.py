@@ -10,6 +10,7 @@ class InputOutcome:
     unit: tuple[str, ...] | None = None
     reason: str = ""
     arm: str | None = None
+    details: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -19,6 +20,7 @@ class AcquisitionBatch:
 
     # Counts of rows removed by loaders; unknown counts are explicitly omitted.
     discarded_rows: dict[str, int] = field(default_factory=dict)
+    sqlite_operations: list[dict] = field(default_factory=list)
 
     def failures(self, unit: tuple[str, ...]) -> list[InputOutcome]:
         return [outcome for outcome in self.outcomes if outcome.state == "failed"

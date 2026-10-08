@@ -12,6 +12,7 @@ from astropy.table import Table
 
 from qc_monitor.schema import TABLE_SCHEMA, quote
 from qc_monitor._outcomes import AcquisitionBatch, InputOutcome
+from qc_monitor._sqlite_retry import SQLITE_TIMEOUT_SECONDS, retry_sqlite, sqlite_error
 
 log = logging.getLogger(__name__)
 
@@ -149,6 +150,17 @@ def load_qc_from_session_db(session_db_path: Path, cfg: dict) -> pd.DataFrame:
     return _load_qc_batch(session_db_path, cfg).frames["metrics"]
 
 
+def _read_qc_source(session_db_path, upstream_table):
+    uri = session_db_path.resolve().as_uri() + "?mode=ro"
+    with closing(sqlite3.connect(uri, uri=True, timeout=SQLITE_TIMEOUT_SECONDS)) as conn:
+        if not _table_or_view_exists(conn, upstream_table):
+            raise ValueError(f"Required table/view {upstream_table} is absent")
+        missing = set(TABLE_COLUMNS) - _get_table_columns(conn, upstream_table)
+        if missing:
+            raise ValueError(f"Missing columns: {sorted(missing)}")
+        return pd.read_sql_query(_build_select_query(upstream_table), conn)
+
+
 def _load_qc_batch(
     session_db_path: Path,
     cfg: dict,
@@ -159,8 +171,21 @@ def _load_qc_batch(
     The upstream database is expected to contain the configured upstream QC view.
     The returned DataFrame uses the original upstream column names.
     """
-    failure = lambda reason: AcquisitionBatch({"metrics": _empty_qc_dataframe()}, [
-        InputOutcome(str(session_db_path), "failed", reason=reason)])
+    retries = []
+
+    def failure(reason, exception=None):
+        details = {}
+        if exception is not None:
+            details = {"phase": "read", "type": type(exception).__name__}
+            error = sqlite_error(exception)
+            if error is not None:
+                details.update(sqlite_code=error.sqlite_errorcode,
+                               sqlite_name=error.sqlite_errorname)
+            if hasattr(exception, 'sqlite_retry'):
+                details['sqlite_retry'] = exception.sqlite_retry
+        return AcquisitionBatch({"metrics": _empty_qc_dataframe()}, [
+            InputOutcome(str(session_db_path), "failed", reason=reason, details=details)],
+            sqlite_operations=retries)
     if not session_db_path.is_file():
         log.warning("Session database not found: %s", session_db_path)
         return failure("Source is absent")
@@ -168,43 +193,20 @@ def _load_qc_batch(
     try:
         upstream_table = cfg["acquisition"]["upstream_table"]
 
-        uri = session_db_path.resolve().as_uri() + "?mode=ro"
-        with closing(sqlite3.connect(uri, uri=True)) as conn:
-            if not _table_or_view_exists(conn, upstream_table):
-                log.error(
-                    "Required upstream view/table %s not found in %s",
-                    upstream_table,
-                    session_db_path,
-                )
-                return failure(f"Required table/view {upstream_table} is absent")
-
-            available_columns = _get_table_columns(conn, upstream_table)
-            required_columns = set(TABLE_COLUMNS)
-            missing_columns = required_columns - available_columns
-
-            if missing_columns:
-                log.error(
-                    "Missing required columns in %s (%s): %s",
-                    upstream_table,
-                    session_db_path,
-                    ", ".join(sorted(missing_columns)),
-                )
-                return failure(f"Missing columns: {sorted(missing_columns)}")
-
-            query = _build_select_query(upstream_table)
-            df = pd.read_sql_query(query, conn)
+        df = retry_sqlite(lambda: _read_qc_source(session_db_path, upstream_table),
+                          operation="read_upstream", source=session_db_path, events=retries)
 
     except KeyError as exc:
         log.error("Missing configuration key: %s", exc)
-        return failure(str(exc))
+        return failure(str(exc), exc)
 
     except Exception as exc:
         log.error("Failed to read QC data from %s: %s", session_db_path, exc)
-        return failure(str(exc))
+        return failure(str(exc), exc)
 
     if df.empty:
         log.info("No QC rows found in session database %s", session_db_path)
-        return AcquisitionBatch({"metrics": _empty_qc_dataframe()}, [InputOutcome(str(session_db_path), "acquired", reason="Empty source")], {"metrics": 0})
+        return AcquisitionBatch({"metrics": _empty_qc_dataframe()}, [InputOutcome(str(session_db_path), "acquired", reason="Empty source")], {"metrics": 0}, retries)
 
     # Normalize / validate values, keeping upstream column names
     df["eso seq arm"] = df["eso seq arm"].apply(normalize_arm)
@@ -246,7 +248,7 @@ def _load_qc_batch(
         session_db_path,
     )
 
-    return AcquisitionBatch({"metrics": df}, outcomes, {"metrics": int(invalid.sum())})
+    return AcquisitionBatch({"metrics": df}, outcomes, {"metrics": int(invalid.sum())}, retries)
 
 
 def find_dispersion_solution_fits_files(

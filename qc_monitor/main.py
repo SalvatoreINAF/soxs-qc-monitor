@@ -43,6 +43,24 @@ from qc_monitor.locking import locked_coordinator
 from qc_monitor.rebuild import acquisition_store
 from qc_monitor.storage import qc_identity
 from qc_monitor.storage import validate_schema, SchemaError
+from qc_monitor._sqlite_retry import SQLITE_TIMEOUT_SECONDS, retry_sqlite, collect_sqlite_events
+
+
+def _inspect_upstream_schema(database, table):
+    with closing(sqlite3.connect(database.as_uri() + '?mode=ro', uri=True,
+                                timeout=SQLITE_TIMEOUT_SECONDS)) as conn:
+        table = table.replace('"', '""')
+        return {row[1] for row in conn.execute(f'PRAGMA table_info("{table}")')}
+
+
+def _inspect_qc_schema(database, rebuild):
+    with closing(sqlite3.connect(database.resolve().as_uri() + '?mode=ro', uri=True,
+                                timeout=SQLITE_TIMEOUT_SECONDS)) as conn:
+        if rebuild:
+            if conn.execute('PRAGMA user_version').fetchone()[0] not in (0, SCHEMA_VERSION):
+                raise SchemaError(f'{database}: unsupported schema for rebuild')
+        else:
+            validate_schema(conn)
 
 
 def validate_path_collisions(cfg, config_path, databases, *, no_plots=False):
@@ -333,21 +351,17 @@ def run_preflight(cfg: dict, project_root: Path, *, dry_run: bool = False, no_pl
         databases = find_session_databases(upstream_root, upstream_database_name, upstream_search_mode)
         for database in databases:
             try:
-                with closing(sqlite3.connect(database.as_uri() + '?mode=ro', uri=True)) as conn:
-                    table = acquisition_cfg['upstream_table'].replace('"', '""')
-                    columns = {row[1] for row in conn.execute(f'PRAGMA table_info("{table}")')}
-                    missing = set(TABLE_SCHEMA) - columns
-                    if missing:
-                        errors.append(f'{database}: upstream {table} missing required columns: {sorted(missing)}')
+                table = acquisition_cfg['upstream_table']
+                columns = retry_sqlite(lambda: _inspect_upstream_schema(database, table),
+                                       operation="preflight_upstream", source=database)
+                missing = set(TABLE_SCHEMA) - columns
+                if missing:
+                    errors.append(f'{database}: upstream {table} missing required columns: {sorted(missing)}')
             except sqlite3.Error as exc:
                 errors.append(f'{database}: cannot inspect upstream schema: {exc}')
     if not errors and qc_database_path.is_file() and not dry_run:
-        with closing(sqlite3.connect(qc_database_path.resolve().as_uri() + '?mode=ro', uri=True)) as conn:
-            if rebuild:
-                if conn.execute('PRAGMA user_version').fetchone()[0] not in (0, SCHEMA_VERSION):
-                    raise SchemaError(f'{qc_database_path}: unsupported schema for rebuild')
-            else:
-                validate_schema(conn)
+        retry_sqlite(lambda: _inspect_qc_schema(qc_database_path, rebuild),
+                     operation="preflight_archive", source=qc_database_path)
 
     if reduced_root.is_dir():
         day_dirs = find_observing_day_directories(reduced_root)
@@ -464,12 +478,14 @@ def _commit_batch(batch, family, qc_database, dry_run, already_closed, force, co
                   "not_persisted_incomplete": 0, "preserved": 0}
                   for name, key in zip(names, batch.frames)},
                   completed_units=[], open_units=[], skipped_units=[], validated_units=[],
-                  errors=[], input_states={}, latest_data_utc=None)
+                  errors=[], input_states={}, latest_data_utc=None, selected=0, persisted=0,
+                  sqlite_operations=batch.sqlite_operations)
     for outcome in batch.outcomes:
         report["input_states"][outcome.state] = report["input_states"].get(outcome.state, 0) + 1
         if outcome.state == "failed" and (force or outcome.unit is None or
                 (outcome.unit if family == "detlin" else outcome.unit[0]) not in already_closed):
-            report["errors"].append({"source": outcome.source, "unit": outcome.unit, "reason": outcome.reason})
+            report["errors"].append({"source": outcome.source, "unit": outcome.unit,
+                                     "reason": outcome.reason, **outcome.details})
     selected, persisted = 0, 0
     writers = {"qc": qc_database.replace_qc_day, "dsol": qc_database.replace_dispersion_day,
                "oloc": qc_database.replace_order_location_day, "detlin": qc_database.replace_detector_linearity_day}
@@ -491,6 +507,7 @@ def _commit_batch(batch, family, qc_database, dry_run, already_closed, force, co
             subset.append(frame.loc[mask].copy())
             report["tables"][name]["selected"] += len(subset[-1])
         selected += sum(len(frame) for frame in subset)
+        report["selected"] = selected
         failures = batch.failures(unit)
         reason = None
         if failures:
@@ -527,6 +544,7 @@ def _commit_batch(batch, family, qc_database, dry_run, already_closed, force, co
             for name, frame in zip(names, subset):
                 report["tables"][name]["persisted"] += len(frame)
             persisted += sum(len(frame) for frame in subset)
+            report["persisted"] = persisted
     report.update(selected=selected, persisted=persisted)
     report["state"] = "partial" if report["errors"] or report["open_units"] else (
         "completed" if units else "no_data")
@@ -548,7 +566,8 @@ def _consolidate_qc_sources(paths, cfg, qc_database, force=False, dry_run=False,
     metrics = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=list(TABLE_SCHEMA))
     batch = AcquisitionBatch({"metrics": metrics}, [outcome for item in batches for outcome in item.outcomes],
                              {"metrics": sum(item.discarded_rows["metrics"] for item in batches)}
-                             if all("metrics" in item.discarded_rows for item in batches) else {})
+                             if all("metrics" in item.discarded_rows for item in batches) else {},
+                             [event for item in batches for event in item.sqlite_operations])
     provenance = {}
     for path, item in zip(paths, batches):
         for _, row in item.frames['metrics'].iterrows():
@@ -853,7 +872,7 @@ def main():
     if args.summary_json and (args.dry_run or args.preflight):
         log.warning("--summary-json ignored in dry-run/preflight; summary is log-only")
     try:
-        with run.phase("execution"):
+        with collect_sqlite_events(run.sqlite_operations), run.phase("execution"):
             _run_main(args, run)
     except Exception as exc:
         log.exception("Dry-run storage error: %s" if isinstance(exc, ReadOnlyStorageError) else "Run failed: %s", exc)

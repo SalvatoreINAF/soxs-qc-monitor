@@ -25,6 +25,7 @@ class RunResult:
     phases: list = field(default_factory=list)
     errors: list = field(default_factory=list)
     storage: dict = field(default_factory=dict)
+    sqlite_operations: list = field(default_factory=list)
     exit_code: int = 0
     ended_utc: str | None = None
     duration_seconds: float | None = None
@@ -65,6 +66,7 @@ class RunResult:
                 "duration_seconds": self.duration_seconds, "versions": versions,
                 "families": self.families, "phases": self.phases,
                 "storage": self.storage,
+                "sqlite_operations": self.sqlite_operations,
                 "errors": self.errors, "exit_code": self.exit_code}
 
     def to_json(self):

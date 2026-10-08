@@ -8,6 +8,7 @@ import tempfile
 from qc_monitor.locking import writer_lease
 from qc_monitor.schema import UNIT_TABLES, REGISTERS, SCHEMA_VERSION, quote
 from qc_monitor.storage import SQLiteStore, SchemaError, validate_schema
+from qc_monitor._sqlite_retry import SQLITE_TIMEOUT_SECONDS, retry_path_read
 
 
 class RebuildError(RuntimeError):
@@ -15,9 +16,11 @@ class RebuildError(RuntimeError):
 
 
 def _readonly(path):
-    return sqlite3.connect(Path(path).resolve().as_uri() + '?mode=ro', uri=True)
+    return sqlite3.connect(Path(path).resolve().as_uri() + '?mode=ro', uri=True,
+                           timeout=SQLITE_TIMEOUT_SECONDS)
 
 
+@retry_path_read
 def validate_archive(path):
     with closing(_readonly(path)) as conn:
         validate_schema(conn)
@@ -33,7 +36,8 @@ def backup_archive(path):
     os.close(fd)
     backup = Path(name)
     try:
-        with closing(_readonly(path)) as source, closing(sqlite3.connect(backup)) as target:
+        with closing(_readonly(path)) as source, closing(sqlite3.connect(
+                backup, timeout=SQLITE_TIMEOUT_SECONDS)) as target:
             source.backup(target)
             if target.execute('PRAGMA integrity_check').fetchall() != [('ok',)]:
                 raise RebuildError('Previous archive failed backup integrity_check')
@@ -44,6 +48,7 @@ def backup_archive(path):
     return backup
 
 
+@retry_path_read
 def validate_coverage(previous, candidate):
     """Check old product identities, not old numeric values or exact row counts."""
     with closing(_readonly(previous)) as old, closing(_readonly(candidate)) as new:

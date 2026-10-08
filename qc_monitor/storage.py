@@ -14,6 +14,8 @@ from qc_monitor.schema import (
     DETECTOR_LINEARITY_MEASUREMENT_COLUMNS, DETECTOR_LINEARITY_RESULT_COLUMNS,
 )
 from qc_monitor.locking import writer_lease, locked_store_method
+from qc_monitor._sqlite_retry import (SQLITE_TIMEOUT_SECONDS, retry_store_method,
+                                      is_transient_sqlite_error)
 import json
 
 log = logging.getLogger(__name__)
@@ -88,6 +90,7 @@ class SQLiteStore:
         self.read_only = read_only
         self._missing_database = False
         self.schema_version = None
+        self.sqlite_operations = []
         if read_only:
             self._missing_database = not validate_readonly_sqlite_path(self.db_path)
             if not self._missing_database:
@@ -103,15 +106,20 @@ class SQLiteStore:
 
     def _connect(self):
         if not self.read_only:
-            conn = sqlite3.connect(self.db_path)
-            conn.execute('PRAGMA foreign_keys = ON')
+            conn = sqlite3.connect(self.db_path, timeout=SQLITE_TIMEOUT_SECONDS)
+            try:
+                conn.execute('PRAGMA foreign_keys = ON')
+            except BaseException:
+                conn.close()
+                raise
             return conn
         validate_readonly_sqlite_path(self.db_path)
         try:
-            return sqlite3.connect(self.db_path.as_uri() + "?mode=ro", uri=True)
+            return sqlite3.connect(self.db_path.as_uri() + "?mode=ro", uri=True, timeout=SQLITE_TIMEOUT_SECONDS)
         except sqlite3.Error as exc:
             raise ReadOnlyStorageError(f"Cannot open SQLite archive {self.db_path}: {exc}") from exc
 
+    @retry_store_method
     def _read_registry(self, query: str, parameters=()) -> list[tuple]:
         if self.read_only and self._missing_database:
             return []
@@ -134,10 +142,11 @@ class SQLiteStore:
         return writer_lease(self.db_path)
 
     @locked_store_method
+    @retry_store_method
     def _init_db(self):
         # Existing archives are inspected before any writable connection is opened.
         if self.db_path.exists() and self.db_path.stat().st_size:
-            with closing(sqlite3.connect(self.db_path.as_uri() + '?mode=ro', uri=True)) as conn:
+            with closing(sqlite3.connect(self.db_path.as_uri() + '?mode=ro', uri=True, timeout=SQLITE_TIMEOUT_SECONDS)) as conn:
                 validate_schema(conn)
             return
         with closing(self._connect()) as conn, conn:
@@ -160,6 +169,7 @@ class SQLiteStore:
         return {r[0] for r in rows}
 
     @locked_store_method
+    @retry_store_method
     def register_processed_obs_day(
         self,
         obs_day: str,
@@ -190,6 +200,7 @@ class SQLiteStore:
         return {r[0] for r in rows}
 
     @locked_store_method
+    @retry_store_method
     def register_processed_dispersion_obs_day(
         self,
         obs_day: str,
@@ -221,6 +232,7 @@ class SQLiteStore:
         return {r[0] for r in rows}
 
     @locked_store_method
+    @retry_store_method
     def register_processed_order_location_obs_day(
         self,
         obs_day: str,
@@ -251,6 +263,7 @@ class SQLiteStore:
         return {(r[0], r[1]) for r in rows}
 
     @locked_store_method
+    @retry_store_method
     def register_processed_detector_linearity_obs_day(
         self,
         obs_day: str,
@@ -271,6 +284,7 @@ class SQLiteStore:
             conn.commit()
 
     @locked_store_method
+    @retry_store_method
     def _replace_complete_unit(self, family: str, unit: tuple[str, ...], frames: list[pd.DataFrame]):
         frames = _prepare_unit_frames(family, frames)
         day_column = "night start date" if family == "qc" else "obs_day"
@@ -351,6 +365,7 @@ class SQLiteStore:
     # Metrics storage
 
     @locked_store_method
+    @retry_store_method
     def write_metrics(self, df: pd.DataFrame):
         if df.empty:
             return
@@ -383,6 +398,7 @@ class SQLiteStore:
 
 
     @locked_store_method
+    @retry_store_method
     def write_dispersion_solution_lines(self, df: pd.DataFrame):
         if df.empty:
             return
@@ -414,6 +430,7 @@ class SQLiteStore:
             conn.commit()
 
     @locked_store_method
+    @retry_store_method
     def write_dispersion_resolution_stats(self, df: pd.DataFrame):
         if df.empty:
             return
@@ -447,6 +464,7 @@ class SQLiteStore:
             conn.commit()
 
     @locked_store_method
+    @retry_store_method
     def write_order_location_models(self, df: pd.DataFrame):
         if df.empty:
             return
@@ -478,6 +496,7 @@ class SQLiteStore:
             conn.commit()
 
     @locked_store_method
+    @retry_store_method
     def write_order_location_meta(self, df: pd.DataFrame):
         if df.empty:
             return
@@ -509,6 +528,7 @@ class SQLiteStore:
             conn.commit()
 
     @locked_store_method
+    @retry_store_method
     def write_detector_linearity_measurements(self, df: pd.DataFrame):
         if df.empty:
             return
@@ -543,6 +563,7 @@ class SQLiteStore:
             conn.commit()
 
     @locked_store_method
+    @retry_store_method
     def write_detector_linearity_results(self, df: pd.DataFrame):
         if df.empty:
             return
@@ -587,7 +608,10 @@ class SQLiteStore:
             try:
                 result = self._read_registry(f'SELECT count(*) FROM "{table}" WHERE {where}', unit)
                 counts[table] = result[0][0] if result else 0
-            except ReadOnlyStorageError:
+            except ReadOnlyStorageError as exc:
+                if is_transient_sqlite_error(exc) or self.schema_version != 0 or self._read_registry(
+                        'SELECT name FROM sqlite_master WHERE name=?', (table,)):
+                    raise
                 # Legacy read-only archives need not expose every data table.
                 counts[table] = None
         return counts
@@ -597,12 +621,16 @@ class SQLiteStore:
         table = _UNIT_TABLES[family][0][0]
         try:
             result = self._read_registry(f'SELECT MAX("obs_date_utc") FROM "{table}"')
-        except ReadOnlyStorageError:
+        except ReadOnlyStorageError as exc:
+            if is_transient_sqlite_error(exc) or self.schema_version != 0 or self._read_registry(
+                    'SELECT name FROM sqlite_master WHERE name=?', (table,)):
+                raise
             return None
         return result[0][0] if result else None
 
     # Metrics load
 
+    @retry_store_method
     def load_all_metrics(self) -> pd.DataFrame:
         order_cols = [
             "night start date",
@@ -625,6 +653,7 @@ class SQLiteStore:
             return pd.read_sql(query, conn)
         
 
+    @retry_store_method
     def load_dispersion_solution_lines(self) -> pd.DataFrame:
         query = """
         SELECT *
@@ -635,6 +664,7 @@ class SQLiteStore:
         with closing(self._connect()) as conn, conn:
             return pd.read_sql(query, conn)
         
+    @retry_store_method
     def load_order_location_models(self) -> pd.DataFrame:
         query = """
         SELECT *
@@ -646,6 +676,7 @@ class SQLiteStore:
             return pd.read_sql(query, conn)
 
 
+    @retry_store_method
     def load_dispersion_resolution_stats(self) -> pd.DataFrame:
         query = """
         SELECT *
@@ -657,6 +688,7 @@ class SQLiteStore:
             return pd.read_sql(query, conn)
 
 
+    @retry_store_method
     def load_order_location_meta(self) -> pd.DataFrame:
         query = """
         SELECT *
@@ -667,6 +699,7 @@ class SQLiteStore:
         with closing(self._connect()) as conn, conn:
             return pd.read_sql(query, conn)
 
+    @retry_store_method
     def load_detector_linearity_measurements(self) -> pd.DataFrame:
         query = """
         SELECT *
@@ -677,6 +710,7 @@ class SQLiteStore:
         with closing(self._connect()) as conn, conn:
             return pd.read_sql(query, conn)
 
+    @retry_store_method
     def load_detector_linearity_results(self) -> pd.DataFrame:
         query = """
         SELECT *
