@@ -1,7 +1,7 @@
 # D3 — Roadmap delle milestone
 
 **Aggiornamento: 9 ottobre 2026.** D3-0 documentale consegnato; D3-A
-completata e formalmente chiusa; D3-B formalmente chiusa il 9 ottobre 2026; D3-C formalmente chiusa; D3-D formalmente chiusa (1.6.0/schema 1); D3-E formalmente chiusa (1.7.0/schema 1); D3-F implementata localmente (1.8.0/schema 1), chiusura hosted pendente.
+completata e formalmente chiusa; D3-B formalmente chiusa il 9 ottobre 2026; D3-C formalmente chiusa; D3-D formalmente chiusa (1.6.0/schema 1); D3-E formalmente chiusa (1.7.0/schema 1); D3-F e D3 formalmente chiuse (1.8.0/schema 1).
 Questo indice è il riferimento versionato per le nuove sessioni. La roadmap e
 la valutazione in `reference_docs/` restano locali e intenzionalmente escluse da Git.
 
@@ -42,7 +42,7 @@ D3-D/E formalmente chiuse; stato corrente e ripresa nella sezione finale D3-F.
 | [D3-C](d3/d3-c.md) | Esiti delle figure e gestione dei renderer | D3-0 | Formalmente chiusa | 10–14 ore |
 | [D3-D](d3/d3-d.md) | Motore di pubblicazione atomica, non attivo nella CLI | D3-B, D3-C | Formalmente chiusa | 10–14 ore |
 | [D3-E](d3/d3-e.md) | Retention sicura e attivazione nella CLI | D3-D | Formalmente chiusa | 12–16 ore |
-| [D3-F](d3/d3-f.md) | Riuso su errore e chiusura integrata | D3-A, D3-E | Consegna locale, CI pendente | 12–16 ore |
+| [D3-F](d3/d3-f.md) | Riuso su errore e chiusura integrata | D3-A, D3-E | Formalmente chiusa | 12–16 ore |
 
 Ordine operativo: **D3-0 → A → B → C → D → E → F**. A, B e C possono essere
 consegnate separatamente a partire da D3-0; non è richiesto lavoro parallelo.
@@ -341,3 +341,36 @@ o archivio operativo modificato nella consegna locale.
 Consegna locale F: commit applicativo `f416da6be0b50ef50d1c6640be7152610a1210e3`,
 654 PASS/1 SKIP per macOS 3.11/3.12/3.13, Linux D/E/F 165 PASS/0 SKIP,
 wheel/checker/pip check/QA verdi. 655 casi totali. Nessuna CI F attribuita.
+
+
+## D3-F e D3 — Chiusura formale, 9 ottobre 2026
+
+**D3-F completata e formalmente chiusa; D3 complessivamente chiusa.**
+CI [37986639107](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37986639107),
+attempt **1**, sul candidato **`fa9abac024f2f596d482e6385a564801dd1240fe`**.
+Pacchetto **1.8.0**, SQLite **schema 1**; D3-A/B/C/D/E restano chiuse.
+
+| Job hosted | Suite con warning come errori | Durata | Wheel / checker isolato |
+|---|---|---|---|
+| Linux Python 3.11 | 655 PASS, 0 SKIP | 263,35 s | PASS |
+| Linux Python 3.12 | 655 PASS, 0 SKIP | 198,40 s | PASS |
+| Linux Python 3.13 | 655 PASS, 0 SKIP | 249,40 s | PASS |
+| macOS Python 3.12 | 654 PASS, 1 SKIP | 246,71 s | PASS |
+
+Nessun FAIL/XFAIL/XPASS. Skip macOS soltanto per secondo filesystem scrivibile
+assente; la stessa prova passa nei tre job Linux. Build wheel 1.8.0 e checker
+isolato, incluso riuso/provenienza/uscita 2, verdi nei quattro job. Pip check
+verificato localmente; il workflow non lo esegue separatamente.
+
+Commit applicativo **`f416da6be0b50ef50d1c6640be7152610a1210e3`**;
+candidato hosted **`fa9abac024f2f596d482e6385a564801dd1240fe`**: differenze
+soltanto documentazione/evidenze/QA, verificate. Il successivo commit di
+chiusura è documentale e non ha una propria CI attribuita.
+**Nessuna verifica D3-F pendente.** Questa nota supera le precedenti indicazioni
+di CI F/D3 pendente; le prove locali restano evidenze storiche distinte.
+
+L'utente ha pubblicato il candidato. Questa chiusura modifica soltanto documenti
+ed evidenze, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
+Ripresa: leggere handover/indice e verificare dev/HEAD/working tree. D3 è chiusa;
+**D4 non avviata: pianificazione soltanto su nuova richiesta**, dopo verifica
+dello stato effettivo e chiarimento delle decisioni della prossima milestone.

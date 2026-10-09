@@ -1,3 +1,34 @@
+# Handover — D3-F e D3 formalmente chiuse, 9 ottobre 2026
+
+**D3-F completata e formalmente chiusa su dev. D3 complessivamente chiusa.**
+Pacchetto **1.8.0**, SQLite **schema 1**. A–E restano chiuse; **D4 non avviata**.
+
+- Commit applicativo `f416da6be0b50ef50d1c6640be7152610a1210e3`.
+- Candidato hosted **`fa9abac024f2f596d482e6385a564801dd1240fe`**, differenze soltanto documentali/QA.
+- [CI 37986639107](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37986639107), attempt 1:
+  **655 PASS per job Linux 3.11/3.12/3.13; 654 PASS, 1 SKIP macOS 3.12**.
+  Skip solo secondo filesystem assente, prova verde nei tre job Linux.
+- Warning come errori, wheel/checker isolato PASS nei quattro job, incluso
+  riuso/provenienza/uscita 2. Pip check verificato localmente. **Nessuna verifica F pendente.**
+- [Risultati](../tests/results/d3-f-validation.md), [metadata CI](../tests/results/d3-f-hosted.json),
+  [ambienti/hash](qa/d3-f-environments.json), [contratto F](d3/d3-f.md), [indice D3](d3-roadmap.md).
+
+Ripresa: verificare dev/HEAD/working tree e leggere indice/risultati. D3 è chiusa;
+**pianificare D4 soltanto su nuova richiesta**, ricontrollando codice e decisioni.
+Non iniziare sviluppo, merge/deploy o operazioni sugli archivi automaticamente.
+
+Restano i limiti F/E documentati: prima produzione F necessaria per il riuso,
+identità database per percorso/schema, data immagine distinta dai dati, nessun
+limite massimo di età dell'immagine, archivi vecchi danneggiati non riparati,
+retention per quantità/età, browser/hosting, accettazione scientifica sintetica.
+
+L'utente ha pubblicato il candidato. Questa registrazione è soltanto documentale:
+sorgenti/test/workflow/versione invariati, nessun nuovo push/merge/deploy,
+scheduler o rebuild operativo. Reference_docs aggiornata e ignorata da Git.
+Questa apertura prevale sulle riprese storiche e sulle indicazioni di CI pendente.
+
+---
+
 # Handover — D3-F consegnata localmente, 9 ottobre 2026
 
 **D3-F implementata e verificata localmente su dev, 1.8.0/schema 1.**

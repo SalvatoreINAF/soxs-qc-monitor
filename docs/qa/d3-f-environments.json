@@ -5,9 +5,52 @@
   "package_version": "1.8.0",
   "sqlite_schema": 1,
   "hosted": {
-    "state": "pending",
-    "candidate_sha": null,
-    "run_id": null
+    "state": "formally_closed",
+    "run_id": 37986639107,
+    "attempt": 1,
+    "candidate_sha": "fa9abac024f2f596d482e6385a564801dd1240fe",
+    "url": "https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37986639107",
+    "metadata": "tests/results/d3-f-hosted.json",
+    "jobs": [
+      {
+        "os": "Linux",
+        "python": "3.11",
+        "passed": 655,
+        "skipped": 0,
+        "seconds": 263.35,
+        "wheel": "PASS",
+        "checker": "PASS"
+      },
+      {
+        "os": "Linux",
+        "python": "3.12",
+        "passed": 655,
+        "skipped": 0,
+        "seconds": 198.4,
+        "wheel": "PASS",
+        "checker": "PASS"
+      },
+      {
+        "os": "Linux",
+        "python": "3.13",
+        "passed": 655,
+        "skipped": 0,
+        "seconds": 249.4,
+        "wheel": "PASS",
+        "checker": "PASS"
+      },
+      {
+        "os": "macOS",
+        "python": "3.12",
+        "passed": 654,
+        "skipped": 1,
+        "seconds": 246.71,
+        "wheel": "PASS",
+        "checker": "PASS"
+      }
+    ],
+    "warnings_as_errors": true,
+    "pip_check": "local only"
   },
   "local": [
     {
@@ -255,5 +298,6 @@
   "verification_notes": [
     "Full 3.11/3.12 and Docker checks preceded the CSS-only wrapping fix; Python application sources are unchanged. Final CSS verified by C/F 3.12 (131 PASS), full 3.13, visual QA and installed checker on all three interpreters.",
     "The new database-update test fixture originally leaked a SQLite connection; explicit close corrected, F 3.13 (46 PASS) and full 3.13 rerun without warning filters."
-  ]
+  ],
+  "d3_state": "formally_closed"
 }

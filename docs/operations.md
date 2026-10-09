@@ -462,7 +462,7 @@ checkout, indice, scheda F e handover. **D3-F non avviata; D3 non ancora chiusa.
 
 ## D3-F — Riuso compatibile e stato corrente (1.8.0/schema 1)
 
-D3-F implementata localmente; CI F/D3 ancora pendente. A–E formalmente chiuse.
+D3-F e D3 formalmente chiuse dopo verifica hosted. A–E restano chiuse.
 Il publisher cerca solo nel manifesto corrente e copia un PNG compatibile
 solo quando una figura fallisce; no_data non riusa. I vecchi manifesti E
 restano leggibili, ma serve una prima produzione F per disporre del fallback.
@@ -492,3 +492,36 @@ Ogni generazione è autosufficiente, retention E e codici 0/1/2 conservati.
 [Contratto F](d3/d3-f.md), [handover](handover.md),
 [evidenze](../tests/results/d3-f-validation.md). Nessun D4, push/merge/deploy,
 scheduler o rebuild operativo implicito. Le note precedenti restano storiche.
+
+
+## D3-F e D3 — Chiusura formale, 9 ottobre 2026
+
+**D3-F completata e formalmente chiusa; D3 complessivamente chiusa.**
+CI [37986639107](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37986639107),
+attempt **1**, sul candidato **`fa9abac024f2f596d482e6385a564801dd1240fe`**.
+Pacchetto **1.8.0**, SQLite **schema 1**; D3-A/B/C/D/E restano chiuse.
+
+| Job hosted | Suite con warning come errori | Durata | Wheel / checker isolato |
+|---|---|---|---|
+| Linux Python 3.11 | 655 PASS, 0 SKIP | 263,35 s | PASS |
+| Linux Python 3.12 | 655 PASS, 0 SKIP | 198,40 s | PASS |
+| Linux Python 3.13 | 655 PASS, 0 SKIP | 249,40 s | PASS |
+| macOS Python 3.12 | 654 PASS, 1 SKIP | 246,71 s | PASS |
+
+Nessun FAIL/XFAIL/XPASS. Skip macOS soltanto per secondo filesystem scrivibile
+assente; la stessa prova passa nei tre job Linux. Build wheel 1.8.0 e checker
+isolato, incluso riuso/provenienza/uscita 2, verdi nei quattro job. Pip check
+verificato localmente; il workflow non lo esegue separatamente.
+
+Commit applicativo **`f416da6be0b50ef50d1c6640be7152610a1210e3`**;
+candidato hosted **`fa9abac024f2f596d482e6385a564801dd1240fe`**: differenze
+soltanto documentazione/evidenze/QA, verificate. Il successivo commit di
+chiusura è documentale e non ha una propria CI attribuita.
+**Nessuna verifica D3-F pendente.** Questa nota supera le precedenti indicazioni
+di CI F/D3 pendente; le prove locali restano evidenze storiche distinte.
+
+L'utente ha pubblicato il candidato. Questa chiusura modifica soltanto documenti
+ed evidenze, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
+Ripresa: leggere handover/indice e verificare dev/HEAD/working tree. D3 è chiusa;
+**D4 non avviata: pianificazione soltanto su nuova richiesta**, dopo verifica
+dello stato effettivo e chiarimento delle decisioni della prossima milestone.
