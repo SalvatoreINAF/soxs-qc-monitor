@@ -1,7 +1,7 @@
 # Verifica batch, scientifica e di installazione
 
-Suite corrente su `dev`: **609 casi**, D3-E formalmente chiusa (1.7.0/schema 1),
-CI hosted verde sul candidato esatto. D3-D formalmente chiusa.
+Suite corrente su `dev`: **655 casi**, D3-F implementata localmente (1.8.0/schema 1),
+chiusura hosted F/D3 pendente. D3-E resta formalmente chiusa sul suo candidato. D3-D formalmente chiusa.
 D3-A/B/C restano formalmente chiuse. Il caso su due filesystem può essere
 saltato quando il runner non dispone di un secondo dispositivo scrivibile.
 La consegna D1 storica aveva 216 casi (177 di baseline e 39 nuovi D1).
@@ -662,3 +662,32 @@ L'utente ha pubblicato il candidato. Questa chiusura modifica soltanto documenti
 ed evidenze, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
 Ripresa: **pianificazione D3-F soltanto su nuova richiesta**, dopo controllo di
 checkout, indice, scheda F e handover. **D3-F non avviata; D3 non ancora chiusa.**
+
+
+## D3-F — Riuso e collaudo integrato
+
+46 nuovi casi in `test_d3f_reuse.py`: contratto per figura, query/database/DETLIN,
+metadati mancanti/legacy, PNG mancanti/corrotti/symlink/hardlink, no_data,
+provenienza immutata dopo retention, guasti copia/rimozione/manifesto/HTML/sync,
+cleanup finale, interruzione e contesa durante copia/finalizzazione. CLI reale
+verifica il ciclo incompleto/errore/riparazione/retry/chiusura/idempotenza e rebuild
+sintetico; le regressioni B verificano update fallito e rilascio dei processi.
+
+I casi legacy di D/E ora costruiscono esplicitamente un manifesto pre-F,
+aggiornando correttamente il marker: mantengono il rifiuto dei PNG legacy
+danneggiati. F può invece pubblicare senza immagine se un candidato F è
+illeggibile, preservando i controlli di struttura/proprietà e dei nuovi PNG.
+
+```sh
+python -m pytest tests/test_d3f_reuse.py -ra --tb=short -W error
+python -m pytest -ra --tb=short -W error
+python -m build --wheel --no-isolation --outdir /private/tmp/qc-d3f-wheel
+/path/to/installed-env/bin/python scripts/check_installation.py
+/path/to/installed-env/bin/python -m pip check
+python scripts/render_d3f_qa.py /private/tmp/qc-d3f-qa
+```
+
+Checker isolato esteso con reale errore di save, riuso/provenienza e uscita 2.
+Evidenze/ambienti in `tests/results/d3-f-validation.md` e
+`docs/qa/d3-f-environments.json`. Non attribuire la CI E al nuovo F.
+La chiusura richiede Linux 3.11/3.12/3.13 e macOS 3.12 sul candidato esatto.

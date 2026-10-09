@@ -1,6 +1,6 @@
 # SOXS QC Monitor
 
-**Current: 1.7.0/schema 1; D3-E formally closed after hosted verification.**
+**Current: 1.8.0/schema 1; D3-F implemented locally, hosted closure pending.**
 See [handover](docs/handover.md) for the current resume point.
 
 The SOXS QC Monitor is a lightweight monitoring tool that extracts Quality Control (QC) information from SOXS Pipeline products and generates a static HTML report with trend plots and diagnostic visualizations.
@@ -803,3 +803,31 @@ L'utente ha pubblicato il candidato. Questa chiusura modifica soltanto documenti
 ed evidenze, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
 Ripresa: **pianificazione D3-F soltanto su nuova richiesta**, dopo controllo di
 checkout, indice, scheda F e handover. **D3-F non avviata; D3 non ancora chiusa.**
+
+
+## D3-F — Compatible image reuse on failure (1.8.0)
+
+The atomic publisher copies a compatible image from the current generation only
+when the renderer fails. The live and archived reports show the original UTC
+production timestamp and the current error. Reuse retains exit code 2; no_data
+never reuses. Each new generation contains its own PNGs, so origin cleanup does
+not break reused images.
+
+Compatibility is per figure: all figure parameters except HTML section/wide,
+referenced queries, canonical QC database path/schema, and relevant DETLIN
+settings. Package version, unrelated figures/queries and page layout do not
+invalidate independent images. JSON/manifest v1 gain optional provenance and
+compatibility fields and a reused count. Scientific results/schema are unchanged.
+
+D3-E reports remain readable but cannot seed fallback: first produce a successful
+image with F. Failed copy produces a partial report after removing the incomplete
+copy; failed removal blocks publication. Missing/damaged F candidates remain
+failed without an image; structural/ownership corruption still blocks the run.
+No maximum image age is imposed; the displayed original timestamp remains
+unchanged across repeated failures.
+
+See [F contract](docs/d3/d3-f.md), [validation](tests/results/d3-f-validation.md),
+[operations](docs/operations.md) and [handover](docs/handover.md). Local delivery
+and formal hosted closure are distinct. F/D3 require the exact-candidate hosted
+matrix before formal closure. **No D4, push, merge or deploy is implicit.**
+Earlier delivery notes are historical and do not override this current status.

@@ -1,0 +1,259 @@
+{
+  "milestone": "D3-F",
+  "date": "2026-10-09",
+  "baseline": "9b38ea507e45887b35433fc379e134fa543f4936",
+  "package_version": "1.8.0",
+  "sqlite_schema": 1,
+  "hosted": {
+    "state": "pending",
+    "candidate_sha": null,
+    "run_id": null
+  },
+  "local": [
+    {
+      "python": "3.12.15",
+      "platform": "macOS-15.8-arm64-arm-64bit",
+      "executable": "/private/tmp/qc-d1-reference/bin/python",
+      "package_path": "/Users/savarese/Documents/GitHub/SOXS/qc_monitor/qc_monitor/__init__.py",
+      "versions": {
+        "qc-monitor": "1.8.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "astropy": "6.1.2",
+        "PyYAML": "6.0.2",
+        "matplotlib": "3.10.8",
+        "pillow": "12.1.0",
+        "pytest": "8.4.2"
+      },
+      "suite": {
+        "tests": 655,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 1,
+        "passed": 654,
+        "seconds": 189.293,
+        "warnings_as_errors": true,
+        "junit": "/private/tmp/qc-d3f-verified312.xml"
+      },
+      "installed": {
+        "python": "3.12.15",
+        "platform": "macOS-15.8-arm64-arm-64bit",
+        "executable": "/private/tmp/qc-d3d-installed312/bin/python",
+        "package_path": "/private/tmp/qc-d3d-installed312/lib/python3.12/site-packages/qc_monitor/__init__.py",
+        "versions": {
+          "qc-monitor": "1.8.0",
+          "numpy": "2.1.0",
+          "pandas": "2.3.3",
+          "astropy": "6.1.2",
+          "PyYAML": "6.0.2",
+          "matplotlib": "3.10.8",
+          "pillow": "12.1.0"
+        },
+        "environment": "D3-D isolated venv reused, F wheel reinstalled without dependencies; imports probed outside checkout with -I",
+        "checker": "Installed wheel: isolated imports, entry point, template, config, idempotence, dry-run, rebuild, partial rendering, Agg, atomic publication/retention and compatible image reuse verified",
+        "pip_check": "No broken requirements found.\nWARNING: The directory '/Users/savarese/Library/Caches/pip' or its parent directory is not owned or is not writable by the current user. The cache has been disabled. Check the permissions and owner of that directory. If executing pip with sudo, you should use sudo's -H flag.",
+        "wheel_sources_match": true
+      }
+    },
+    {
+      "python": "3.11.17",
+      "platform": "macOS-15.8-arm64-arm-64bit",
+      "executable": "/private/tmp/qc-d1-py311/bin/python",
+      "package_path": "/Users/savarese/Documents/GitHub/SOXS/qc_monitor/qc_monitor/__init__.py",
+      "versions": {
+        "qc-monitor": "1.8.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "astropy": "6.1.2",
+        "PyYAML": "6.0.2",
+        "matplotlib": "3.11.2",
+        "pillow": "12.3.0",
+        "pytest": "8.4.2"
+      },
+      "suite": {
+        "tests": 655,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 1,
+        "passed": 654,
+        "seconds": 173.814,
+        "warnings_as_errors": true,
+        "junit": "/private/tmp/qc-d3f-verified311.xml"
+      },
+      "installed": {
+        "python": "3.11.17",
+        "platform": "macOS-15.8-arm64-arm-64bit",
+        "executable": "/private/tmp/qc-d3d-installed311/bin/python",
+        "package_path": "/private/tmp/qc-d3d-installed311/lib/python3.11/site-packages/qc_monitor/__init__.py",
+        "versions": {
+          "qc-monitor": "1.8.0",
+          "numpy": "2.1.0",
+          "pandas": "2.3.3",
+          "astropy": "6.1.2",
+          "PyYAML": "6.0.2",
+          "matplotlib": "3.11.2",
+          "pillow": "12.3.0"
+        },
+        "environment": "D3-D isolated venv reused, F wheel reinstalled without dependencies; imports probed outside checkout with -I",
+        "checker": "Installed wheel: isolated imports, entry point, template, config, idempotence, dry-run, rebuild, partial rendering, Agg, atomic publication/retention and compatible image reuse verified",
+        "pip_check": "No broken requirements found.\nWARNING: The directory '/Users/savarese/Library/Caches/pip' or its parent directory is not owned or is not writable by the current user. The cache has been disabled. Check the permissions and owner of that directory. If executing pip with sudo, you should use sudo's -H flag.",
+        "wheel_sources_match": true
+      }
+    },
+    {
+      "python": "3.13.16",
+      "platform": "macOS-15.8-arm64-arm-64bit-Mach-O",
+      "executable": "/private/tmp/qc-d1-py313/bin/python",
+      "package_path": "/Users/savarese/Documents/GitHub/SOXS/qc_monitor/qc_monitor/__init__.py",
+      "versions": {
+        "qc-monitor": "1.8.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "astropy": "6.1.2",
+        "PyYAML": "6.0.2",
+        "matplotlib": "3.11.2",
+        "pillow": "12.3.0",
+        "pytest": "8.4.2"
+      },
+      "suite": {
+        "tests": 655,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 1,
+        "passed": 654,
+        "seconds": 172.441,
+        "warnings_as_errors": true,
+        "junit": "/private/tmp/qc-d3f-verified313.xml"
+      },
+      "installed": {
+        "python": "3.13.16",
+        "platform": "macOS-15.8-arm64-arm-64bit-Mach-O",
+        "executable": "/private/tmp/qc-d3d-installed313/bin/python",
+        "package_path": "/private/tmp/qc-d3d-installed313/lib/python3.13/site-packages/qc_monitor/__init__.py",
+        "versions": {
+          "qc-monitor": "1.8.0",
+          "numpy": "2.1.0",
+          "pandas": "2.3.3",
+          "astropy": "6.1.2",
+          "PyYAML": "6.0.2",
+          "matplotlib": "3.11.2",
+          "pillow": "12.3.0"
+        },
+        "environment": "D3-D isolated venv reused, F wheel reinstalled without dependencies; imports probed outside checkout with -I",
+        "checker": "Installed wheel: isolated imports, entry point, template, config, idempotence, dry-run, rebuild, partial rendering, Agg, atomic publication/retention and compatible image reuse verified",
+        "pip_check": "No broken requirements found.\nWARNING: The directory '/Users/savarese/Library/Caches/pip' or its parent directory is not owned or is not writable by the current user. The cache has been disabled. Check the permissions and owner of that directory. If executing pip with sudo, you should use sudo's -H flag.",
+        "wheel_sources_match": true
+      }
+    }
+  ],
+  "linux": {
+    "platform": "Docker Linux ARM64",
+    "python": "3.12.15",
+    "image": "python:3.12-slim",
+    "user": "uid/gid 1000, non-root",
+    "scope": "D3-D/E/F targeted, including actual filesystem/permission checks",
+    "passed": 165,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0,
+    "seconds": 24.626,
+    "warnings_as_errors": true,
+    "log": "/private/tmp/qc-d3f-linux/qc-d3f-linux312.log",
+    "freeze": [
+      "astropy==6.1.2",
+      "astropy-iers-data==0.2026.1.26.0.43.56",
+      "contourpy==1.3.3",
+      "cycler==0.12.1",
+      "fonttools==4.61.1",
+      "iniconfig==2.3.0",
+      "kiwisolver==1.4.9",
+      "matplotlib==3.10.8",
+      "numpy==2.1.0",
+      "packaging==26.0",
+      "pandas==2.3.3",
+      "pillow==12.1.0",
+      "pluggy==1.6.0",
+      "pyerfa==2.0.1.5",
+      "Pygments==2.21.0",
+      "pyparsing==3.3.2",
+      "pytest==8.4.2",
+      "python-dateutil==2.9.0.post0",
+      "pytz==2026.2",
+      "PyYAML==6.0.2",
+      "qc-monitor @ file:///tmp/project",
+      "six==1.17.0",
+      "tzdata==2026.2"
+    ]
+  },
+  "hashes": {
+    "qc_monitor/__init__.py": "7043c977f4b97a366af3c50f89afc84f46be47c7a410f68feb712f9b2b7d7e35",
+    "qc_monitor/_outcomes.py": "bd563b0f98783baa8d8702dbb12fab169381f83210dadfce12bc354f1473bf26",
+    "qc_monitor/_sqlite_retry.py": "3779f99b92f963eca86b81f8850693b2d17319939140f221cd7a15f796762897",
+    "qc_monitor/acquisition.py": "025133d43f490cf054b224b11dd5934ae632edf8632ebe2e3e801bb3ddab6e66",
+    "qc_monitor/bootstrap.py": "111792e3171b0f11da5c6291866235528251e2a0852a1da03052176658cee925",
+    "qc_monitor/config.py": "19d9d4ecef2016510112c4630d5c39b223b778223356a7ec426e70ac630c21ba",
+    "qc_monitor/coordination.py": "72e46286d5701459930d845928a96d80a8ca1c23b27406fc8dce3b1f45807d9b",
+    "qc_monitor/detector_linearity.py": "7c9bf07bea2c4eff60b2d742fde5ed05499cf475deac0cb283d2d5ebd37dcbce",
+    "qc_monitor/figure_result.py": "205026b5ef479ddb7549a17d6ea6b5e6e451845c89cb19e839936784a183b5b8",
+    "qc_monitor/generate_html.py": "5993fad29bcafbff31e8d6bd5ae2f2bff1431fcf4b1cc7ddde5cbd15ad79d678",
+    "qc_monitor/locking.py": "77283c7c767ba1b9ffe232cd1ac74e1d08a3548530cb8a0aa15f3eada70ae13b",
+    "qc_monitor/main.py": "a181decabd09231b9aeb9e6c4716529354cb01da65cae73dfee0f6983ebcf6cf",
+    "qc_monitor/plotting.py": "816f952564e8d8a405dcfcc5a29ee8395278c7fa71ed7345fa506c0d530495c1",
+    "qc_monitor/processing.py": "b785b88dedff87622332be1ad4a07962640b39f11111fb7d80979dd7152ad61f",
+    "qc_monitor/publication.py": "0578dc67ca6450e1de7be37bdc418da29894ca9b25ddb5893f7d94e40b55c95e",
+    "qc_monitor/rebuild.py": "2ad005c5261cf9e6d175e4050737dabce28e4a9d04f29645499e3a9e24b86346",
+    "qc_monitor/resources/template.html": "5ba87e32d4cf6717718081ed6fbee19e44f2afc098b9dc0cedcc0cda87de4e29",
+    "qc_monitor/run_result.py": "88f6cc7bc363a4fa3ebb162db28b83102c6778641d3d1eb26e15057c75e1495d",
+    "qc_monitor/schema.py": "e7b3d5b144b4cf1509d91f9464c10cac95a4bd868034e4c60b085c5280313d4c",
+    "qc_monitor/storage.py": "617d9a15471d801892f1b1a0b6014f66072da55b66bf5016579ecc4e9788a32a"
+  },
+  "post_css_verification": {
+    "python": "3.12.15",
+    "scope": "C/F, final template",
+    "passed": 131,
+    "seconds": 41.191,
+    "warnings_as_errors": true
+  },
+  "wheel": {
+    "path": "/private/tmp/qc-d3f-wheel/qc_monitor-1.8.0-py3-none-any.whl",
+    "sha256": "8cb94ac1d24f2573ea93ffc592f71c3b3a24247107ba69ae126f74931a6fd4ba"
+  },
+  "qa": {
+    "generator": "scripts/render_d3f_qa.py",
+    "data": "synthetic",
+    "screenshots": [
+      "docs/qa/d3-f-report-archive.png",
+      "docs/qa/d3-f-report-nominal.png",
+      "docs/qa/d3-f-report-partial.png",
+      "docs/qa/d3-f-report-reused.png"
+    ],
+    "screenshot_sha256": {
+      "d3-f-report-archive.png": "ee6daa9b215673e70f26a11fe8855a21e402983a0e84c616f6a9eb4b86a3a77e",
+      "d3-f-report-nominal.png": "572c6e328431c1e415757cb514bb75ce467725cec530ac164c52278fce3e0734",
+      "d3-f-report-partial.png": "bc616b0a7254cdb68bb093861fbefa6bb35ac67369b0d3aa161c3b081e0453e9",
+      "d3-f-report-reused.png": "ee6daa9b215673e70f26a11fe8855a21e402983a0e84c616f6a9eb4b86a3a77e"
+    }
+  },
+  "unchanged_from_baseline": [
+    "qc_monitor/acquisition.py",
+    "qc_monitor/storage.py",
+    "qc_monitor/schema.py",
+    "qc_monitor/processing.py",
+    "qc_monitor/detector_linearity.py",
+    "qc_monitor/plotting.py",
+    "qc_monitor/_sqlite_retry.py",
+    "qc_monitor/main.py",
+    "qc_monitor/coordination.py",
+    "qc_monitor/locking.py",
+    "qc_monitor/rebuild.py",
+    "scripts/batch.py",
+    "run_SOXS_QC_Monitor.sh",
+    "update_QC_Monitor.sh",
+    ".github/workflows/tests.yml"
+  ],
+  "application_commit": "f416da6be0b50ef50d1c6640be7152610a1210e3",
+  "verification_notes": [
+    "Full 3.11/3.12 and Docker checks preceded the CSS-only wrapping fix; Python application sources are unchanged. Final CSS verified by C/F 3.12 (131 PASS), full 3.13, visual QA and installed checker on all three interpreters.",
+    "The new database-update test fixture originally leaked a SQLite connection; explicit close corrected, F 3.13 (46 PASS) and full 3.13 rerun without warning filters."
+  ]
+}

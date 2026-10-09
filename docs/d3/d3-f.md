@@ -1,61 +1,117 @@
 # D3-F — Riuso su errore e chiusura integrata
 
-**Stato: pianificata, non implementata.** Scheda iniziale dell’8 ottobre 2026.
-Dipendenze: **D3-A e D3-E formalmente concluse (include B, C e D)**. Stima: **6–10 ore**, incluse verifiche e documentazione.
-Politiche comuni e procedura di consegna: [indice D3](../d3-roadmap.md).
+**Implementata su dev: 1.8.0/schema 1; chiusura hosted pendente.**
+Dipendenze D3-A/B/C/D/E formalmente chiuse. Stima approvata **12–16 ore**,
+incluse verifiche e handover, escluse attese CI; sostituisce le iniziali 6–10 ore.
+Stato di consegna e risultati effettivi: [handover](../handover.md),
+[evidenze F](../../tests/results/d3-f-validation.md), [audit](../../tests/results/d3-f-planning.md).
 
-## Obiettivo e completamento
+## Contratto implementato
 
-Mostrare una precedente immagine compatibile soltanto in caso di errore, con data originale esplicita, e verificare insieme tutti i requisiti D3.
+Il renderer produce ancora `produced`, `failed` o `no_data`. Solo il motore di
+pubblicazione può trasformare `failed` in `reused`, dopo il rendering e prima di
+manifesto/HTML. Cerca esclusivamente nel manifesto della generazione corrente,
+tra immagini `produced` o `reused`: niente scansioni dei predecessori, PNG legacy
+o accessi alla generazione originaria. `no_data` non riusa mai.
 
-La milestone è completa quando i comportamenti qui descritti sono verificati,
-le regressioni richieste passano e documentazione/evidenze sono consegnate.
-Distinguere consegna locale e chiusura formale hosted secondo l’indice D3.
+Il contratto di compatibilità versione **1** confronta:
 
-## Stato iniziale da ricontrollare
+- Tutti i parametri normalizzati della figura, compresi nome/tipo/filename,
+  braccio, titolo, selezione, assi e stili; esclude soltanto `section` e `wide`.
+- Le query effettivamente referenziate dalla figura, incluse serie e assi x/y,
+  con filtri e processing. Query/figure estranee, titolo della pagina, template,
+  destinazioni e retention non invalidano una figura indipendente.
+- Percorso canonico del database QC e schema 1. Contenuti/mtime del database
+  non sono confrontati. L'identità è il percorso, non un UUID dell'archivio.
+- Per DETLIN: parametri generali di acquisizione DETLIN e configurazione del
+  solo braccio della figura. Gli altri bracci sono esclusi.
 
-D2 non ha riuso tracciato. All’avvio ricontrollare gli esiti C, manifesto/motore D e retention/CLI E: il report è già coerente senza fallback. A fornisce il comportamento di recovery acquisizione per il collaudo integrato.
+La versione del pacchetto è informativa; futuri cambiamenti incompatibili dei
+renderer devono incrementare `COMPATIBILITY_VERSION`. Omissione versus valore
+esplicito di un parametro opzionale può produrre un confronto conservativo.
 
-## Interventi e compatibilità
+## Metadati e diagnostica
 
-- Cercare l’immagine compatibile nel manifesto della generazione corrente; su failed copiarla nel nuovo insieme e indicare `reused`, motivo e data originale. Su no_data lasciare la scheda senza immagine.
-- Verificare identità/configurazione della figura e leggibilità del PNG; fallback mancante o incompatibile resta errore senza immagine. Un’immagine già riusata conserva la data originale, senza catene di riferimenti.
-- Eseguire il collaudo dati validi → input incompleto → errore → riparazione → retry → chiusura → run senza novità, controllando DB, riepiloghi, report e retention.
-- Chiudere D3 soltanto con evidenze complete di A–F e matrice hosted sul candidato esatto; consegnare punto di ripresa, senza iniziare D4.
+`FigureResult`, JSON di riepilogo v1 e figure del manifesto v1 aggiungono campi
+opzionali, senza cambiare le firme pubbliche:
 
-Estendere gli esiti con `reused` e manifesto/riepilogo con origine e compatibilità. Il fallimento originale mantiene uscita 2 anche con riuso; nessun cambiamento di schema SQLite o risultati scientifici.
+| Campo | Significato |
+|---|---|
+| `generated_utc` | UTC della prima produzione riuscita, distinta dalla data dei dati |
+| `origin_generation_id` | UUID della generazione della prima produzione |
+| `reused_from_generation_id` | UUID della generazione corrente dalla quale si copia |
+| `compatibility` | Oggetto con `version`, `figure`, `queries`, `database` e, per DETLIN, `detector_linearity` |
+| `fallback` | Esito `unavailable`/`reused`, codice diagnostico, generazione candidata; motivo/tipo dell'eventuale errore di lettura/copia |
 
-Fuori da questa milestone: Riuso su assenza dati, accessi transitivi a vecchie generazioni, collaudo scientifico su strumenti reali non disponibile, ottimizzazioni D5, avvio D4, merge o deploy.
+`database` contiene `path` e `schema_version`. I codici fallback sono
+`no_current_image`, `missing_metadata`, `incompatible`, `source_unreadable`,
+`copy_failed`, `compatible_current_image`. Gli esiti senza immagine hanno path
+null; `produced` e `reused` hanno path locale alla generazione. `data_utc` resta
+null: non è disponibile una misura affidabile della freschezza dei dati.
 
-## Verifiche e accettazione
+Riuso ripetuto conserva data e UUID originari come valori, senza dereferenziare
+l'origine. L'HTML corrente e quello archiviato mostrano stato di riuso, errore
+attuale e “Original image produced (UTC)” con data originale. Nessuna scadenza
+aggiuntiva: un'immagine può restare vecchia durante fallimenti ripetuti.
 
-- Errore con PNG compatibile, incompatibile, mancante/corrotto; no_data con PNG disponibile: solo il primo caso riusa.
-- Riuso ripetuto dopo nuove pubblicazioni: data originale invariata e nuova generazione autosufficiente anche dopo cleanup dell’origine.
-- Errore durante copia/manifesto/HTML e cleanup: stato coerente, report precedente protetto fino al punto finale, nessun falso successo.
-- Collaudo sequenziale completo, concorrenza/interruzione/rebuild/update fallito su archivi temporanei; QA visiva nominale/parziale/riusata, suite, wheel e CI finale.
+Il motivo, il codice e il tipo dell'errore originale restano presenti. Conteggi
+JSON additivi: `produced`, `no_data`, `failed`, `reused`. Per lo stato aggregato,
+`failed` e `reused` contano entrambi come errore: tutti errori = `failed`,
+parte errori = `partial`. Il run mantiene **uscita 2** anche con report pubblicato.
 
-Usare solo dati sintetici e directory temporanee. Completare suite con warning
-come errori, wheel e checker isolato, poi matrice CI sul candidato esatto;
-seguire [istruzioni test](../../tests/README.md). Non allargare le tolleranze
-scientifiche per ottenere un esito verde. Conservare evidenze e limiti residui.
+## Copia, guasti e retention
 
-## Ripresa e consegna
+Il candidato deve avere metadati completi/compatibili e PNG decodificabile.
+Letture/copie non seguono symlink; hardlink e file non regolari non sono adottati.
+Prima della copia si rimuove l'eventuale artefatto incompleto del renderer
+nel solo staging del run. La copia è esclusiva, sincronizzata e verificata.
 
-1. Leggere [handover](../handover.md), [indice D3](../d3-roadmap.md),
-   [contratti D2](../d2-contracts.md), [risultati D2](../../tests/results/d2-validation.md)
-   e le evidenze delle dipendenze indicate sopra.
-2. Controllare branch `dev`, HEAD, working tree e storia con i comandi dell’indice.
-   Preservare modifiche locali; verificare quali protezioni sono già presenti.
-3. Pianificare solo D3-F, risolvendo le questioni sotto prima delle scelte
-   implementative interessate. Le domande non sono decisioni già approvate.
-4. Alla consegna aggiornare questa scheda e indice, handover, README, procedure
-   operative, istruzioni test e contratti coinvolti. Registrare prove in
-   `tests/results/d3-f-validation.md` (da creare allora), eventuale QA e ambiente.
-   Aggiornare roadmap/valutazione locali senza includerle in Git.
-5. Presentare scheda sintetica con baseline/commit, cambiamenti, decisioni,
-   test locali/CI, limiti e punto di ripresa. Non iniziare la milestone successiva.
+Candidato indisponibile/incompatibile/illeggibile: figura fallita senza immagine,
+report parziale pubblicabile. Copia fallita: rimozione della copia incompleta,
+report parziale, uscita 2. Se la rimozione fallisce, pubblicazione bloccata e
+report precedente protetto. Errori manifesto/HTML/sync prima del commit
+preservano il precedente report; cleanup finale fallito mantiene il nuovo
+report pubblicato e dà uscita 2, secondo D3-E.
 
-## Questioni da fissare nella pianificazione dettagliata
+Per permettere il recupero da PNG F mancanti/danneggiati, la verifica dei report
+esistenti controlla struttura, marker, manifesto e riferimenti senza imporre
+la leggibilità dei PNG con metadati F. I candidati al riuso vengono verificati
+individualmente e tutti i PNG del nuovo report vengono verificati rigorosamente.
+La storia conservata può quindi contenere una vecchia immagine danneggiata;
+F non ripara gli archivi precedenti. I controlli PNG dei manifesti legacy
+restano rigorosi. Marker, proprietà, struttura o percorsi incoerenti bloccano
+ancora l'operazione prima delle scritture dell'archivio.
 
-- Fissare i campi della configurazione da confrontare per compatibilità del fallback; non basta il filename e non serve invalidare i dati scientifici archiviati.
-- Precisare la data originale dell’immagine rispetto alla freschezza dei dati e del run, e il comportamento su fallimento della copia.
+Ogni nuovo report copia i PNG nella propria generazione; retention protegge
+corrente/storia e non dipende dall'origine dell'immagine riusata. Lease e
+politiche E (2 generazioni, 24 ore, 2 staging di default) restano attive.
+
+## Passaggio da E e limiti
+
+**Decisione approvata:** manifesti D3-E leggibili ma esclusi dal fallback:
+mancano identità del database e provenienza completa. Occorre una prima
+produzione riuscita con F. Nessuna migrazione automatica né adozione di PNG
+legacy. Schema SQLite 1, acquisizione, retry, scienza e tolleranze invariati.
+Nessuna nuova opzione YAML/CLI.
+
+Tutte le prove usano dati sintetici e percorsi temporanei. Non certificano
+strumenti reali, fine della riduzione o prestazioni operative. Restano i limiti
+E su browser vecchi, hosting e retention per quantità/età anziché byte.
+
+## Accettazione, chiusura e ripresa
+
+46 casi F coprono compatibilità, provenienza, errori/copie, no_data, riusi
+ripetuti, retention, interruzioni/concorrenza e CLI integrata
+valido → incompleto → errore → riparazione → retry → chiusura → run senza novità,
+con rebuild sintetico. Le regressioni A–E includono update fallito e supervisore.
+QA riproducibile: `scripts/render_d3f_qa.py /private/tmp/qc-d3f-qa`.
+
+Seguire [istruzioni test](../../tests/README.md): suite con `-W error`,
+wheel/checker fuori checkout, pip check e matrice hosted Linux 3.11/3.12/3.13,
+macOS 3.12 sul candidato esatto. Esiti in evidenze e manifesto ambienti.
+Solo dopo quella CI si possono dichiarare formalmente chiuse F e D3.
+
+Alla ripresa verificare dev/HEAD/working tree, leggere handover/risultati F,
+pubblicare il candidato soltanto su richiesta e verificare SHA/job reali.
+Distinguere commit applicativo, candidato CI e commit documentali successivi.
+**Fermarsi a D3-F; nessun D4, merge, deploy o rebuild operativo implicito.**

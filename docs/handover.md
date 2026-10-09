@@ -1,3 +1,62 @@
+# Handover — D3-F consegnata localmente, 9 ottobre 2026
+
+**D3-F implementata e verificata localmente su dev, 1.8.0/schema 1.**
+D3-A/B/C/D/E restano formalmente chiuse. **CI hosted F/D3 pendente; D4 non avviata.**
+Questa apertura prevale sulle riprese storiche conservate sotto.
+
+## Scheda sintetica di consegna
+
+- Baseline `9b38ea507e45887b35433fc379e134fa543f4936`, checkout pulito,
+  un commit documentale oltre origin/dev. Audit: 251 PASS/1 SKIP, 86,52 s.
+- Commit applicativo **`f416da6be0b50ef50d1c6640be7152610a1210e3`**.
+  Il commit successivo registra soltanto documentazione/evidenze/QA. Nessun
+  candidato F pubblicato né SHA F verificato dalla CI hosted.
+- Riuso solo su failed dal manifesto corrente, confronto per figura/query,
+  percorso QC/schema e DETLIN pertinente. Copia autosufficiente, provenienza UTC
+  immutata; errore originale e uscita 2 conservati. JSON/manifesto v1 additivi.
+- Decisioni approvate: manifesti E leggibili ma non riutilizzabili; prima
+  produzione F necessaria. Copia fallita = report parziale se rimossa;
+  rimozione fallita = pubblicazione bloccata. No riuso no_data.
+- **655 casi**: 654 PASS/1 SKIP per ciascuno di macOS Python 3.11.17,
+  3.12.15 e 3.13.16, -W error. Skip solo secondo filesystem assente.
+  Docker Linux ARM64 3.12.15, utente normale: **165 PASS/0 SKIP**, D/E/F
+  mirato, compresi filesystem/permessi. Non è matrice hosted.
+- Wheel/checker fuori checkout/pip check PASS sui tre interpreti; moduli/template
+  checkout/wheel/installed identici. QA nominale/parziale/riusata/archiviata
+  ispezionata; errori lunghi vanno a capo senza alterare le colonne.
+- 46 nuovi casi F: guasti e riusi ripetuti dopo cleanup origine, contesa e
+  interruzione durante copia/finalizzazione, CLI reale valido → incompleto →
+  errore → riparazione → retry → chiusura → run senza novità, rebuild sintetico.
+  Regressioni B includono supervisore e update fallito.
+- Acquisizione, scienza/tolleranze, storage/schema/retry, main, coordinamento,
+  supervisore e workflow identici alla baseline. Nessun archivio operativo
+  modificato, push/merge/deploy/scheduler. Stima 12–16 ore incluse verifiche/QA/
+  handover, escluse attese CI; non consuntivo.
+- [Contratto F](d3/d3-f.md), [audit](../tests/results/d3-f-planning.md),
+  [risultati](../tests/results/d3-f-validation.md),
+  [ambienti/hash](qa/d3-f-environments.json). Indice, README, procedure/contratti,
+  istruzioni test e reference_docs locali aggiornati; reference_docs ignorata.
+
+## Limiti e punto di ripresa vincolante
+
+L'identità del database è il percorso/schema, non un UUID o un confronto dei
+contenuti. Generated UTC misura la prima produzione dell'immagine, non la
+freschezza dei dati; data_utc resta null. Nessuna scadenza per immagini riusate.
+PNG F vecchi danneggiati non bloccano la verifica strutturale della storia ma
+sono esclusi dal fallback e non riparati; marker/proprietà/manifesti/percorsi
+incoerenti continuano a bloccare. Tutti i PNG del nuovo report sono verificati.
+I controlli PNG legacy restano rigorosi. Limiti E di quantità/età, browser molto
+vecchi e hosting invariati; nessuna accettazione scientifica su strumenti reali.
+
+Ripresa: verificare dev/HEAD/working tree e leggere contratto/risultati F.
+Pubblicare il candidato **soltanto su richiesta**, poi verificare lo SHA esatto
+con Linux 3.11/3.12/3.13 e macOS 3.12, suite/wheel/checker. Non attribuire la CI
+E o Docker a F. Registrare solo allora chiusura formale F e D3, distinguendo
+commit applicativo, candidato CI e successivi commit documentali.
+**Fermarsi a D3-F: nessun D4, merge/deploy o rebuild operativo automatico.**
+
+---
+
 # Handover — D3-E formalmente chiusa, 9 ottobre 2026
 
 **D3-E completata e formalmente chiusa su dev.** Pacchetto **1.7.0**,

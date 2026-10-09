@@ -1,6 +1,6 @@
 # D2 — Configuration and storage contracts
 
-D2 package 1.2.0; current D3-E package 1.7.0; SQLite schema version 1. D2 is developed on `dev`. D1 remains
+D2 package 1.2.0; current D3-F package 1.8.0; SQLite schema version 1. D2 is developed on `dev`. D1 remains
 formally closed on its previously verified candidate. D2 delivery and current
 verification evidence are recorded in [handover](handover.md) and
 [test results](../tests/results/d2-validation.md).
@@ -446,3 +446,37 @@ L'utente ha pubblicato il candidato. Questa chiusura modifica soltanto documenti
 ed evidenze, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
 Ripresa: **pianificazione D3-F soltanto su nuova richiesta**, dopo controllo di
 checkout, indice, scheda F e handover. **D3-F non avviata; D3 non ancora chiusa.**
+
+
+## D3-F — Riuso compatibile e stato corrente (1.8.0/schema 1)
+
+D3-F implementata localmente; CI F/D3 ancora pendente. A–E formalmente chiuse.
+Il publisher cerca solo nel manifesto corrente e copia un PNG compatibile
+solo quando una figura fallisce; no_data non riusa. I vecchi manifesti E
+restano leggibili, ma serve una prima produzione F per disporre del fallback.
+
+La compatibilità confronta figura (esclusi section/wide), query utilizzate,
+percorso canonico QC/schema e parametri DETLIN generali/del braccio pertinente.
+Il database può acquisire nuove righe senza invalidare il fallback. Percorso
+uguale non certifica che il database non sia stato sostituito. Nessuna nuova
+configurazione, migrazione o modifica scientifica. Contratto di compatibilità
+versione 1: incrementarlo se un futuro renderer cambia significato.
+
+JSON/manifesto v1 aggiungono generated_utc, origin_generation_id,
+reused_from_generation_id, compatibility, fallback e conteggio reused.
+Generated UTC è la prima produzione dell'immagine, non la data osservativa;
+data_utc resta null. Riuso ripetuto conserva l'origine senza seguirne i percorsi.
+Nessun limite massimo di età dell'immagine; leggere la data mostrata nel report.
+
+Errore originale conservato, uscita 2 anche se il report viene pubblicato.
+Copia fallita degrada a figura failed senza PNG solo se la copia incompleta
+è rimossa; rimozione fallita blocca la pubblicazione. PNG F mancanti/danneggiati
+sono candidati indisponibili; la verifica dei report esistenti resta strutturale
+per questi artefatti, mentre legacy e tutti i nuovi PNG sono verificati.
+Gli archivi precedenti danneggiati non vengono riparati. Le protezioni su
+marker/manifesto/proprietà/percorsi e le lease restano obbligatorie.
+
+Ogni generazione è autosufficiente, retention E e codici 0/1/2 conservati.
+[Contratto F](d3/d3-f.md), [handover](handover.md),
+[evidenze](../tests/results/d3-f-validation.md). Nessun D4, push/merge/deploy,
+scheduler o rebuild operativo implicito. Le note precedenti restano storiche.
