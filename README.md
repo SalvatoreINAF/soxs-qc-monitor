@@ -1,5 +1,8 @@
 # SOXS QC Monitor
 
+**Current: 1.5.0/schema 1; D3-C delivered locally, hosted verification pending.**
+See [handover](docs/handover.md) for the current resume point.
+
 The SOXS QC Monitor is a lightweight monitoring tool that extracts Quality Control (QC) information from SOXS Pipeline products and generates a static HTML report with trend plots and diagnostic visualizations.
 
 The monitor is designed to run periodically in batch mode and maintain an independent SQLite database containing historical QC information. It combines:
@@ -494,9 +497,10 @@ requests on Linux Python 3.11–3.13 and macOS Python 3.12, builds the wheel and
 checks its isolated installation. See [test instructions](tests/README.md),
 [operations](docs/operations.md) and [session handover](docs/handover.md).
 
-The report currently requires the standard HTML/`plots/` layout. Missing/stale
-figure handling and coherent publication remain D3 work. No P0 dry-run or
-whole-unit transaction guarantees are relaxed by these limitations.
+The report currently requires the standard HTML/`plots/` layout. D3-C displays
+explicit figure outcomes and excludes missing/stale images from the CLI report.
+Coherent publication remains D3-D/E work. Dry-run and whole-unit transaction
+guarantees are preserved.
 
 
 D1 è formalmente chiuso l’8 ottobre 2026: [matrice hosted verde](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37772436524)
@@ -656,3 +660,40 @@ Questa nota aggiorna le precedenti indicazioni di CI pendente.
 Ripresa: pianificazione D3-C **soltanto su nuova richiesta**.
 **D3-C non avviata.** Nessun push/merge/deploy o rebuild operativo in questa
 chiusura; aggiornamenti solo documentali, sorgenti/test/workflow invariati.
+
+## D3-C — Piano dettagliato consegnato, 9 ottobre 2026
+
+Su `dev` è disponibile il [piano D3-C](docs/d3/d3-c.md), verificato sul codice
+1.4.0/schema 1 dopo la chiusura D3-B. **Sviluppo non avviato.**
+Prevede esiti per figura, isolamento dei guasti, cleanup Matplotlib, Agg batch,
+HTML parziale e diagnostica JSON v1 additiva; la pubblicazione resta diretta.
+[Audit della baseline](tests/results/d3-c-planning.md): 82 PASS mirati;
+[handover corrente](docs/handover.md). Stima sviluppo completo **10–14 ore**,
+incluse verifiche e documentazione, escluse attese CI. Ripresa su nuova richiesta:
+sviluppo della sola C, senza avanzare a D. Questa nota aggiorna le precedenti
+indicazioni di ripresa; le funzionalità pianificate non sono ancora disponibili.
+
+## D3-C — Esiti delle figure (1.5.0, schema 1)
+
+**D3-C consegnata e verificata localmente su `dev` il 9 ottobre 2026.**
+Pacchetto **1.5.0**, SQLite **schema 1**. Commit applicativo **`45a7e3e5a2c8133120e185a42ded9e6f4256049f`**.
+D3-A/B restano formalmente chiuse; **CI hosted D3-C pendente, D3-D…F non avviate**.
+
+Ogni figura del batch ha un esito produced/no_data/failed. I renderer indipendenti
+proseguono dopo un errore; il report mostra schede senza immagini per assenza o
+fallimento, e segnala gli scarti quando può produrre una figura valida. Una
+serie interamente guasta rende fallita la figura. Gli errori danno codice 2
+anche con report pubblicato; l'assenza legittima non è un errore.
+
+I generatori ritornano liste di FigureResult e conservano le eccezioni per
+default; `continue_on_error=True` abilita la raccolta tollerante usata dal batch.
+HTML accetta `figure_results`; senza parametro resta legacy. JSON v1 aggiunge
+`plots` e `report`, distinguendo grafici e HTML pubblicato. Batch non interattivo
+usa Agg, le API conservano il backend esplicito. No-plots/dry-run/preflight
+rimangono senza rendering/pubblicazione.
+
+[Contratti](docs/d2-contracts.md), [procedure](docs/operations.md),
+[evidenze](tests/results/d3-c-validation.md) e [handover](docs/handover.md).
+490 PASS per Python 3.11/3.12/3.13 locale e wheel verificata nei tre venv;
+CI hosted pendente. Pubblicazione ancora diretta nel layout standard:
+nessuna atomicità, retention o immagine riusata in C. Fermarsi prima di D.

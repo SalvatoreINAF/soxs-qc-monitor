@@ -1,4 +1,4 @@
-# Batch operation and recovery — D3-B
+# Batch operation and recovery — D3-C
 
 Run only after the pipeline has finished reduction. An inventory of present FITS
 files does not certify producer completion. Closed observing days are normally
@@ -36,13 +36,13 @@ Configuration, wrappers and standalone remain in the checkout, outside the wheel
 |---|---|---|
 | 0 | Completed; valid empty sources and no new data are normal | Check freshness separately |
 | 1 | Partial acquisition; failed input or an open unit | Inspect family errors, repair source, retry |
-| 2 | Blocking error | Inspect traceback and failed phase before retrying |
+| 2 | Error, including a failed figure in a published partial report | Inspect errors, figure states and traceback before retrying |
 
 Each parsed CLI invocation logs one `RUN_SUMMARY <JSON>` line. Argument parser
 errors retain argparse output and code 2. JSON format version 1 includes UUID,
 mode, UTC start/end, monotonic durations, installed versions, phases, family
 states and errors. Disabled families are explicit. Fatal exceptions dominate
-partial acquisition. Rendering errors remain blocking. D2 adds storage/schema and sequence metadata
+partial acquisition. Rendering errors cause code 2 while independent figures and partial HTML can complete. D2 adds storage/schema and sequence metadata
 without changing JSON format version 1; see [D2 contracts](d2-contracts.md).
 
 Per-table counters mean:
@@ -202,10 +202,11 @@ Multiple DETLIN sequences now have independent fits and one atomic day/arm
 commit; cross-date sequences remain unsupported. D1/D2 fixtures provide an
 analytical baseline, not scientific acceptance on real instrument data.
 
-HTML still references configured figures in `plots/` relative to the page. A
-skipped figure may be missing or stale; other layouts are not reliable. There is
-no artifact manifest, atomic report generation, image retention or figure-level
-error isolation yet. Use the standard layout and inspect representative outputs.
+CLI HTML references only produced figures in `plots/` relative to the page;
+no_data/failed cards have no image. Direct legacy HTML calls without outcomes
+may still reference missing/stale files. Other layouts are not reliable. There
+is no generation manifest, atomic report generation or image retention yet.
+Use the standard layout and inspect representative outputs.
 `--no-plots` skips both PNG and HTML generation.
 
 
@@ -299,3 +300,47 @@ Questa nota aggiorna le precedenti indicazioni di CI pendente.
 Ripresa: pianificazione D3-C **soltanto su nuova richiesta**.
 **D3-C non avviata.** Nessun push/merge/deploy o rebuild operativo in questa
 chiusura; aggiornamenti solo documentali, sorgenti/test/workflow invariati.
+
+## D3-C — Contratto operativo pianificato, 9 ottobre 2026
+
+**Non ancora implementato**, pacchetto corrente 1.4.0/schema 1. Il
+[piano dettagliato](d3/d3-c.md) fissa: batch non interattivo Agg; errore di una
+figura/lettura isolato, altre figure proseguono; report parziale con codice 2;
+assenza legittima distinta da errore; nessun riferimento alle vecchie immagini
+per esiti failed/no_data. JSON v1 aggiungerà `plots` e `report`; published indica
+soltanto HTML scritto con successo. API senza esiti espliciti conservano il
+comportamento legacy. Nessuna nuova opzione YAML/CLI, riuso o retention.
+La pubblicazione resterà diretta nel layout standard fino a D3-E: il piano non
+fornisce già la garanzia di aggiornamento atomico. Gli attuali limiti sopra
+restano operativi. [Audit](../tests/results/d3-c-planning.md),
+[handover](handover.md): prossima attività sviluppo C su nuova richiesta.
+
+## D3-C — Esiti di rendering e report (1.5.0)
+
+Implementato; chiusura hosted pendente. `RUN_SUMMARY` v1 aggiunge:
+
+- `plots.state`: completed senza errori (anche tutto no_data), partial con
+  failed e altri esiti, failed se tutte fallite, skipped senza rendering.
+- `plots.counts`: produced/no_data/failed; `plots.figures` in ordine YAML con
+  name/type/filename/state/reason_code/reason/path/error_type/discarded.
+- `report.state`: published solo dopo scrittura HTML riuscita, failed dopo
+  errore HTML, skipped quando non richiesto; path valorizzato solo su published.
+
+Per ogni scarto: context/count/reason della serie/fase di preparazione;
+non sommare come righe uniche fra query diverse. Produced con scarti leciti
+non provoca codice 2. Una serie interamente inutilizzabile, lettura fallita,
+errore di disegno/save/HTML comporta codice 2; no_data da solo non lo comporta.
+L'acquisizione parziale conserva codice 1 in assenza di questi errori.
+Controllare `plots`/`errors`, non soltanto il completamento della fase plots.
+
+Il report viene scritto anche con tutte le figure vuote/fallite. Nessun link
+alle vecchie immagini di tali figure e nessuna cancellazione dei PNG legacy.
+Errori HTML lasciano report.failed; non assumere che il vecchio HTML sia fresco.
+Le protezioni B restano attive fino al riepilogo. Batch show=false impone Agg;
+show=true resta richiesta interattiva. Dry-run/preflight/no-plots e configurazioni
+senza figure registrano skipped e non importano plotting nel percorso CLI.
+
+Le API HTML senza esiti restano legacy. Pubblicazione diretta e layout standard
+rimangono obbligatori; interruzioni possono ancora lasciare artefatti incoerenti.
+Atomicità, layout separati, retention e riuso restano D/E/F.
+[Evidenze C](../tests/results/d3-c-validation.md), [handover](handover.md).

@@ -1,7 +1,7 @@
 # D3 — Roadmap delle milestone
 
-**Aggiornamento: 8 ottobre 2026.** D3-0 documentale consegnato; D3-A
-completata e formalmente chiusa; D3-B formalmente chiusa il 9 ottobre 2026; D3-C…F
+**Aggiornamento: 9 ottobre 2026.** D3-0 documentale consegnato; D3-A
+completata e formalmente chiusa; D3-B formalmente chiusa il 9 ottobre 2026; D3-C consegnata localmente (1.5.0/schema 1), chiusura hosted pendente; D3-D…F
 pianificate e non implementate.
 Questo indice è il riferimento versionato per le nuove sessioni. La roadmap e
 la valutazione in `reference_docs/` restano locali e intenzionalmente escluse da Git.
@@ -28,8 +28,10 @@ pacchetto **1.3.0**, schema **1**; [evidenze locali e hosted](../tests/results/d
 job, build e installazione isolata riuscite. D3-A chiusa, nessuna verifica pendente.
 D3-B: commit applicativo `98d51d341e4d85bc7e14e6f4abf6273e8e42bc32`,
 pacchetto **1.4.0**, schema **1**. [Evidenze locali](../tests/results/d3-b-validation.md)
-e [ambienti](qa/d3-b-environments.json). CI D3-B pendente sul candidato esatto.
-Ripresa: pianificazione D3-C soltanto su nuova richiesta; D3-C non avviata.
+e [ambienti](qa/d3-b-environments.json). Chiusura hosted sul candidato `7a952c5`
+registrata in fondo; nessuna verifica D3-B pendente. D3-C consegnata localmente
+il 9 ottobre: [scheda dettagliata](d3/d3-c.md), [evidenze](../tests/results/d3-c-validation.md).
+Ripresa: sola verifica/chiusura hosted D3-C dopo pubblicazione richiesta; niente D3-D.
 
 ## Milestone, dipendenze e stime
 
@@ -38,7 +40,7 @@ Ripresa: pianificazione D3-C soltanto su nuova richiesta; D3-C non avviata.
 | D3-0 | Roadmap, schede e handover | D2 | Consegnata, solo documenti | 2–4 ore |
 | [D3-A](d3/d3-a.md) | Isolamento acquisizione e retry limitati | D3-0 | Formalmente chiusa | 6–8 ore |
 | [D3-B](d3/d3-b.md) | Coordinamento run, rebuild e update | D3-0 | Formalmente chiusa | 8–12 ore |
-| [D3-C](d3/d3-c.md) | Esiti delle figure e gestione dei renderer | D3-0 | Pianificata | 6–8 ore |
+| [D3-C](d3/d3-c.md) | Esiti delle figure e gestione dei renderer | D3-0 | Consegnata localmente; CI pending | 10–14 ore |
 | [D3-D](d3/d3-d.md) | Motore di pubblicazione atomica, non attivo nella CLI | D3-B, D3-C | Pianificata | 6–10 ore |
 | [D3-E](d3/d3-e.md) | Retention sicura e attivazione nella CLI | D3-D | Pianificata | 6–10 ore |
 | [D3-F](d3/d3-f.md) | Riuso su errore e chiusura integrata | D3-A, D3-E | Pianificata | 6–10 ore |
@@ -48,10 +50,13 @@ consegnate separatamente a partire da D3-0; non è richiesto lavoro parallelo.
 D verifica il motore senza attivarlo nel batch; E lo attiva quando il controllo
 dello spazio è disponibile; F aggiunge il riuso su errore.
 
-Stima complessiva: **38–58 ore, circa 5–8 giornate**, incluse verifiche e
+Stima complessiva: **42–64 ore, circa 6–8 giornate**, incluse verifiche e
 documentazione, escluse attese CI. Sono stime di lavoro, non durate dei test.
 La stima D3-A iniziale di 4–6 ore è aggiornata a 6–8 dopo la pianificazione
 dettagliata: include preflight, cause SQLite avvolte e contese reali.
+La quota D3-C passa da 6–8 a 10–14 ore dopo l’audit dei dieci renderer,
+della compatibilità API e dei guasti di lettura/backend. Il totale descrive
+l’intera D3, non il lavoro residuo dopo A/B.
 Ogni sessione si arresta alla milestone richiesta. D4 richiede la chiusura di
 tutte le milestone applicative D3 e una nuova richiesta; non parte automaticamente.
 
@@ -170,3 +175,25 @@ Questa nota aggiorna le precedenti indicazioni di CI pendente.
 Ripresa: pianificazione D3-C **soltanto su nuova richiesta**.
 **D3-C non avviata.** Nessun push/merge/deploy o rebuild operativo in questa
 chiusura; aggiornamenti solo documentali, sorgenti/test/workflow invariati.
+
+## D3-C — Pianificazione dettagliata, 9 ottobre 2026
+
+Baseline `dev` / `08baf0c`, pulita e allineata a origin/dev; pacchetto 1.4.0,
+schema 1. [Piano](d3/d3-c.md) completo con scelte API/stati/HTML/JSON,
+isolamento delle letture, backend e verifiche. [Audit](../tests/results/d3-c-planning.md):
+82 PASS mirati / 81,80 s, Python 3.12.15, `-W error`; non è collaudo di C.
+Consegna solo documentale, sviluppo non avviato; versione futura prevista 1.5.0.
+Stima C 10–14 ore incluse verifiche/handover, escluse attese CI.
+Questa nota supera le precedenti istruzioni di pianificazione non ancora richiesta.
+Ripresa: implementare solo C su nuova richiesta; fermarsi prima di D.
+
+## D3-C — Consegna locale, 9 ottobre 2026
+
+**D3-C consegnata e verificata localmente su `dev` il 9 ottobre 2026.**
+Pacchetto **1.5.0**, SQLite **schema 1**. Commit applicativo **`45a7e3e5a2c8133120e185a42ded9e6f4256049f`**.
+D3-A/B restano formalmente chiuse; **CI hosted D3-C pendente, D3-D…F non avviate**.
+
+Decisioni concordate e implementate, 490 PASS per ciascuno dei tre interpreti
+macOS, wheel/checker/pip check/QA verdi. [Evidenze](../tests/results/d3-c-validation.md),
+[scheda C](d3/d3-c.md). Superata la sola pianificazione precedente.
+Ripresa: CI C sul candidato esatto dopo pubblicazione richiesta; nessun D.

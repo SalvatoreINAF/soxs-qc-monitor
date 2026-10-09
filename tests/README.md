@@ -1,6 +1,7 @@
-# D1 — Verifica batch, scientifica e di installazione
+# Verifica batch, scientifica e di installazione
 
-Suite corrente su `dev`: 216 casi (177 di baseline e 39 nuovi D1).
+Suite corrente su `dev`: **490 casi**, D3-C consegnata localmente e CI pendente.
+La consegna D1 storica aveva 216 casi (177 di baseline e 39 nuovi D1).
 I risultati storici H0/H1/H2 sotto riportati restano evidenze delle rispettive
 revisioni; non descrivono il conteggio corrente. La correzione DETLIN `8d44c9d`
 aveva già introdotto tre bias VIS e i confronti standalone.
@@ -467,3 +468,50 @@ Questa nota aggiorna le precedenti indicazioni di CI pendente.
 Ripresa: pianificazione D3-C **soltanto su nuova richiesta**.
 **D3-C non avviata.** Nessun push/merge/deploy o rebuild operativo in questa
 chiusura; aggiornamenti solo documentali, sorgenti/test/workflow invariati.
+
+## D3-C — Verifiche pianificate, 9 ottobre 2026
+
+**Sviluppo e test D3-C non ancora implementati.** Il
+[piano](../docs/d3/d3-c.md) contiene matrice di accettazione e comandi previsti;
+creare `test_d3c_rendering.py`, verificare tutti i dieci renderer, dati vuoti
+versus invalidi, errori lettura/save, cleanup e figure del chiamante, immagini
+legacy, API compatibili, HTML/template/JSON e codici 0/1/2. La prova Agg va
+eseguita in subprocess senza ereditare MPLBACKEND da pytest/CI. Verificare
+le lease durante report parziale e l'assenza di scritture nelle modalità ispettive.
+
+Audit della pianificazione sul codice corrente: **82 PASS / 81,80 s**, macOS
+Python 3.12.15, `-W error`; [evidenze](results/d3-c-planning.md). Non sostituisce
+suite completa, wheel o CI del futuro codice C. Prevedere regressioni locali
+3.11/3.12/3.13 in sequenza, wheel in nuovi ambienti, checker/pip check e QA
+nominale/parziale; formalmente chiudere con CI Linux 3.11/3.12/3.13 e macOS 3.12
+sul candidato esatto. Salvare risultati effettivi in `results/d3-c-validation.md`
+e ambiente/QA in docs/qa alla consegna. D3-B resta chiusa, 405 casi storici;
+le sezioni precedenti di CI pendente sono superate dalla chiusura registrata.
+
+## D3-C — Suite e consegna locale (1.5.0, schema 1)
+
+**490 casi**, 405 precedenti più 85 C. Tutti PASS su Python 3.11/3.12/3.13
+macOS, warning come errori, nessuno skip/XFAIL. [Evidenze](results/d3-c-validation.md),
+[ambiente](../docs/qa/d3-c-environments.json), [handover](../docs/handover.md).
+CI hosted ancora pendente: non attribuire le prove D3-B al codice C.
+
+```sh
+python -m pytest tests/test_d3c_rendering.py -ra --tb=short -W error
+python -m pytest -ra --tb=short -W error
+python -m build --wheel --no-isolation --outdir /tmp/qc-d3c-wheel
+/path/to/installed-env/bin/python scripts/check_installation.py
+/path/to/installed-env/bin/python -m pip check
+python scripts/render_d3c_qa.py /tmp/qc-d3c-visual
+```
+
+Suite in sequenza per le lease D3-B; il sandbox deve consentire ps ai test dei
+timeout reali. Non trasformare una restrizione del runner in skip o modificare
+il supervisore per nasconderla. Backend provato in subprocess senza Agg
+preimpostato; salvataggi falliti su filesystem reale; cleanup preserva figure
+preesistenti. I test D3-B di pubblicazione configurano ora vere figure.
+
+Checker wheel esteso per il modulo degli esiti, report parziale e Agg autonomo;
+installazioni nuove e isolate per i tre interpreti. QA ripetibile con i dati dei
+test, non con archivi operativi. [Tavola](../docs/qa/d3-c-reference.png) e
+[screenshot NIR](../docs/qa/d3-c-report-nir.png) ispezionati; nessuna golden image.
+Fermarsi a C: dopo pubblicazione autorizzata, verificare solo la chiusura hosted.

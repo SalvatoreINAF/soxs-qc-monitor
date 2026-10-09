@@ -1,6 +1,6 @@
 # D2 — Configuration and storage contracts
 
-D2 package 1.2.0; current D3-A package 1.3.0; SQLite schema version 1. D2 is developed on `dev`. D1 remains
+D2 package 1.2.0; current D3-C package 1.5.0; SQLite schema version 1. D2 is developed on `dev`. D1 remains
 formally closed on its previously verified candidate. D2 delivery and current
 verification evidence are recorded in [handover](handover.md) and
 [test results](../tests/results/d2-validation.md).
@@ -297,3 +297,39 @@ Questa nota aggiorna le precedenti indicazioni di CI pendente.
 Ripresa: pianificazione D3-C **soltanto su nuova richiesta**.
 **D3-C non avviata.** Nessun push/merge/deploy o rebuild operativo in questa
 chiusura; aggiornamenti solo documentali, sorgenti/test/workflow invariati.
+
+## D3-C — Estensioni pianificate, 9 ottobre 2026
+
+[Piano C](d3/d3-c.md) consegnato; **nessun nuovo contratto applicativo attivo**.
+Versione corrente 1.4.0/schema 1. Preservare acquisizione, identità, transazioni,
+API scientifiche, selezione latest/all e tolleranze. L'estensione prevista riguarda
+risultati tipizzati del rendering e campi additivi JSON v1 `plots`/`report`.
+I generatori conserveranno la propagazione delle eccezioni per default, con
+opzione di prosecuzione usata dalla CLI; HTML senza il nuovo parametro resterà
+legacy. Le condizioni precise per produced/no_data/failed e le prove sono
+nella scheda C. Le lease D3-B devono restare attive fino a report/riepilogo.
+Nessuna modifica di schema o configurazione richiesta dal piano.
+Sviluppo da avviare solo su nuova richiesta; D3-D non avviata.
+
+## D3-C — Contratto additivo del rendering (1.5.0, schema 1)
+
+Implementato con chiusura hosted pendente. Acquisizione/storage/scienza D2 e
+retry/lease A/B conservati. `figure_result.FigureResult` descrive identità,
+produced/no_data/failed, codice/motivo, path solo su produced, tipo dell'errore
+e scarti per context/count/reason. I renderer comunicano save esplicitamente,
+mai deducendo successo dall'esistenza di un PNG precedente.
+
+I generatori ritornano liste, vuote senza figure. Nuovo parametro keyword
+`continue_on_error=False`: default conserva eccezioni; True cattura Exception,
+registra traceback, restituisce failed e prosegue. BaseException resta propagata.
+Una misura invalida può essere scartata se restano campioni sufficienti; una
+serie nota interamente invalida rende fallita la figura. Filtri vuoti e campioni
+insufficienti legittimi sono no_data; colonne mancanti/dati tutti invalidi sono
+failed. NULL ammessi, fit mancanti/saturazione non diventano errori artificiali.
+
+`generate_html_report(..., figure_results=None)` mantiene il comportamento
+legacy senza parametro. Con esiti espliciti valida copertura e identità,
+mostra immagini solo per produced e schede/motivi per gli altri stati. Mantiene
+i placeholder page_title/sections e l'escaping. JSON resta v1 con plots/report
+additivi, secondo [operations](operations.md). Nessuna migrazione/opzione YAML
+aggiunta; schema 1. [Evidenze](../tests/results/d3-c-validation.md).

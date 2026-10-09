@@ -1,3 +1,85 @@
+# Handover — D3-C consegnata localmente, 9 ottobre 2026
+
+**D3-C consegnata e verificata localmente su `dev` il 9 ottobre 2026.**
+Pacchetto **1.5.0**, SQLite **schema 1**. Commit applicativo **`45a7e3e5a2c8133120e185a42ded9e6f4256049f`**.
+D3-A/B restano formalmente chiuse; **CI hosted D3-C pendente, D3-D…F non avviate**.
+
+## Scheda sintetica di consegna
+
+- Baseline `08baf0c`; documenti di pianificazione preesistenti preservati.
+  Commit applicativo `45a7e3e5a2c8133120e185a42ded9e6f4256049f`. I successivi commit registrano documenti;
+  non esiste ancora un candidato D3-C verificato dalla CI hosted.
+- Consegnati esiti tipizzati per tutti i renderer, isolamento delle letture e
+  dei guasti, cleanup e Agg batch, report parziale senza immagini obsolete,
+  campi additivi JSON v1 `plots`/`report`. API dirette mantengono le eccezioni
+  per default, con opzione `continue_on_error` usata nel batch.
+- Decisioni **concordate**: produrre con scarti segnalati se restano misure
+  sufficienti; una serie interamente guasta rende fallita la figura; errori
+  di rendering/lettura/HTML danno codice 2, assenza legittima non lo dà.
+- **490 PASS** per Python 3.11.17/3.12.15/3.13.16 su macOS arm64,
+  `-W error`, nessuno skip/XFAIL. 85 casi C nuovi. Wheel/checker/pip check
+  verdi nei tre nuovi venv; file installati identici a wheel e checkout.
+- [Evidenze](../tests/results/d3-c-validation.md),
+  [ambienti](qa/d3-c-environments.json), [scheda C](d3/d3-c.md),
+  [QA](qa/d3-c-report-nir.png). Formule/tolleranze/schema/DETLIN/retry invariati.
+- Documentazione aggiornata e reference_docs locale ignorata da Git.
+  Stima prevista 10–14 ore, non consuntivo. Nessun push/merge/deploy,
+  scheduler modificato o archivio operativo ricostruito.
+- Limiti: scrittura diretta, layout standard, niente generazioni/retention/riuso;
+  HTML API senza esiti conserva la modalità legacy.
+
+## Punto di ripresa vincolante
+
+Verificare dev/HEAD/working tree e leggere evidenze/scheda/manifesto. Pubblicare
+il candidato soltanto su richiesta e verificare la nuova CI sul suo SHA esatto:
+Linux 3.11/3.12/3.13 e macOS 3.12, suite/wheel/checker. Registrare poi la chiusura
+formale C. Le prove locali non sono CI hosted o prove Linux.
+**Nessun avvio di D3-D; questa consegna si arresta a D3-C.**
+Le sezioni successive sono storiche e questa apertura prevale su di esse.
+
+---
+
+# Handover — Pianificazione D3-C consegnata, 9 ottobre 2026
+
+**Piano dettagliato D3-C completato su `dev`; sviluppo non avviato.**
+D3-A/B restano formalmente chiuse. Pacchetto **1.4.0**, SQLite **schema 1**.
+
+## Scheda sintetica della consegna di pianificazione
+
+- Baseline **`08baf0c19bb839da23b46e5e942e9fff6db4d658`**, working tree
+  inizialmente pulito e allineato a origin/dev. Modifiche solo documentali,
+  nessun commit applicativo D3-C né nuovo candidato CI.
+- [Piano autonomo](d3/d3-c.md): esiti espliciti per i dieci renderer,
+  assenza/invalidità, API compatibili, letture indipendenti, backend e cleanup,
+  report parziale, campi additivi JSON v1 e criteri di accettazione.
+- Scelte principali: risultato tipizzato; generatori con
+  `continue_on_error=False` per compatibilità e True nel batch; HTML con
+  `figure_results=None` legacy; CLI passa gli esiti completi. `no_data` senza
+  immagini, errore figura/lettura porta codice 2. Agg nel batch non interattivo.
+- [Verifica baseline](../tests/results/d3-c-planning.md): **82 PASS / 81,80 s**
+  su macOS Python 3.12.15, warning come errori. La CI D3-B resta evidenza
+  storica del codice precedente; nessuna verifica applicativa D3-C eseguita.
+- Stima sviluppo completo C **10–14 ore**, circa 1,5–2 giornate, incluse prove
+  e documentazione; attese CI escluse. Nessuna decisione progettuale bloccante
+  rimasta nel piano; scostamenti da documentare alla consegna.
+- Aggiornati indice, README, operations, contratti, test e roadmap/valutazione
+  locali in reference_docs (ignorata da Git). Nessun push/merge/deploy o dato
+  operativo modificato. Limite futuro intermedio C: pubblicazione diretta,
+  layout standard, nessun riuso/retention/atomicità fino alle milestone dedicate.
+
+## Punto di ripresa
+
+Alla nuova richiesta di sviluppo, verificare branch/HEAD/working tree e leggere
+scheda C, audit, indice, contratti ed evidenze D3-B. Implementare **solo C**
+seguendo la sequenza e i test pianificati. Al termine consegnare scheda breve,
+`tests/results/d3-c-validation.md`, manifesto ambiente e QA; aggiornare tutti i
+documenti coinvolti. Versione 1.5.0 soltanto alla consegna applicativa, schema 1.
+Chiusura formale con CI sul candidato esatto; se pendente, dichiararla.
+**Non avviare D3-D o altre milestone automaticamente.**
+Le aperture successive sono storiche: questa prevale sul loro punto di ripresa.
+
+---
+
 # Handover — D3-B formalmente chiusa, 9 ottobre 2026
 
 **D3-B completata e formalmente chiusa su `dev`.** Pacchetto **1.4.0**,

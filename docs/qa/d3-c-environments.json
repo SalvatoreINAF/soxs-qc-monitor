@@ -1,0 +1,163 @@
+{
+  "milestone": "D3-C",
+  "date": "2026-10-09",
+  "baseline": "08baf0c19bb839da23b46e5e942e9fff6db4d658",
+  "package": "1.5.0",
+  "schema": 1,
+  "hosted": {
+    "state": "pending",
+    "candidate": null
+  },
+  "wheel": {
+    "filename": "qc_monitor-1.5.0-py3-none-any.whl",
+    "sha256": "b993d7039afe500dd4aa23e46ed21011537ace1d449c77c6a0351fc52a9b380d"
+  },
+  "environments": [
+    {
+      "python": "3.12.15",
+      "platform": "macOS-15.8-arm64-arm-64bit",
+      "executable": "/private/tmp/qc-d1-reference/bin/python",
+      "package_path": "/Users/savarese/Documents/GitHub/SOXS/qc_monitor/qc_monitor/__init__.py",
+      "versions": {
+        "qc-monitor": "1.5.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "astropy": "6.1.2",
+        "PyYAML": "6.0.2",
+        "matplotlib": "3.10.8"
+      },
+      "installed": {
+        "python": "3.12.15",
+        "platform": "macOS-15.8-arm64-arm-64bit",
+        "executable": "/private/tmp/qc-d3c-installed312/bin/python",
+        "package_path": "/private/tmp/qc-d3c-installed312/lib/python3.12/site-packages/qc_monitor/__init__.py",
+        "versions": {
+          "qc-monitor": "1.5.0",
+          "numpy": "2.1.0",
+          "pandas": "2.3.3",
+          "astropy": "6.1.2",
+          "PyYAML": "6.0.2",
+          "matplotlib": "3.10.8"
+        },
+        "wheel_sources_match": true,
+        "checker": "PASS",
+        "pip_check": "PASS"
+      },
+      "suite_log": "/private/tmp/qc-d3c-final312.log",
+      "suite": {
+        "state": "PASS",
+        "passed": 490,
+        "skipped": 0,
+        "xfail": 0,
+        "warnings_as_errors": true,
+        "duration_seconds": 164.5
+      }
+    },
+    {
+      "python": "3.11.17",
+      "platform": "macOS-15.8-arm64-arm-64bit",
+      "executable": "/private/tmp/qc-d1-py311/bin/python",
+      "package_path": "/Users/savarese/Documents/GitHub/SOXS/qc_monitor/qc_monitor/__init__.py",
+      "versions": {
+        "qc-monitor": "1.5.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "astropy": "6.1.2",
+        "PyYAML": "6.0.2",
+        "matplotlib": "3.11.2"
+      },
+      "installed": {
+        "python": "3.11.17",
+        "platform": "macOS-15.8-arm64-arm-64bit",
+        "executable": "/private/tmp/qc-d3c-installed311/bin/python",
+        "package_path": "/private/tmp/qc-d3c-installed311/lib/python3.11/site-packages/qc_monitor/__init__.py",
+        "versions": {
+          "qc-monitor": "1.5.0",
+          "numpy": "2.1.0",
+          "pandas": "2.3.3",
+          "astropy": "6.1.2",
+          "PyYAML": "6.0.2",
+          "matplotlib": "3.11.2"
+        },
+        "wheel_sources_match": true,
+        "checker": "PASS",
+        "pip_check": "PASS"
+      },
+      "suite_log": "/private/tmp/qc-d3c-final311.log",
+      "suite": {
+        "state": "PASS",
+        "passed": 490,
+        "skipped": 0,
+        "xfail": 0,
+        "warnings_as_errors": true,
+        "duration_seconds": 144.67
+      }
+    },
+    {
+      "python": "3.13.16",
+      "platform": "macOS-15.8-arm64-arm-64bit-Mach-O",
+      "executable": "/private/tmp/qc-d1-py313/bin/python",
+      "package_path": "/Users/savarese/Documents/GitHub/SOXS/qc_monitor/qc_monitor/__init__.py",
+      "versions": {
+        "qc-monitor": "1.5.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "astropy": "6.1.2",
+        "PyYAML": "6.0.2",
+        "matplotlib": "3.11.2"
+      },
+      "installed": {
+        "python": "3.13.16",
+        "platform": "macOS-15.8-arm64-arm-64bit-Mach-O",
+        "executable": "/private/tmp/qc-d3c-installed313/bin/python",
+        "package_path": "/private/tmp/qc-d3c-installed313/lib/python3.13/site-packages/qc_monitor/__init__.py",
+        "versions": {
+          "qc-monitor": "1.5.0",
+          "numpy": "2.1.0",
+          "pandas": "2.3.3",
+          "astropy": "6.1.2",
+          "PyYAML": "6.0.2",
+          "matplotlib": "3.11.2"
+        },
+        "wheel_sources_match": true,
+        "checker": "PASS",
+        "pip_check": "PASS"
+      },
+      "suite_log": "/private/tmp/qc-d3c-final313.log",
+      "suite": {
+        "state": "PASS",
+        "passed": 490,
+        "skipped": 0,
+        "xfail": 0,
+        "warnings_as_errors": true,
+        "duration_seconds": 146.02
+      }
+    }
+  ],
+  "source_hashes": {
+    "qc_monitor/__init__.py": "7043c977f4b97a366af3c50f89afc84f46be47c7a410f68feb712f9b2b7d7e35",
+    "qc_monitor/_outcomes.py": "bd563b0f98783baa8d8702dbb12fab169381f83210dadfce12bc354f1473bf26",
+    "qc_monitor/_sqlite_retry.py": "3779f99b92f963eca86b81f8850693b2d17319939140f221cd7a15f796762897",
+    "qc_monitor/acquisition.py": "025133d43f490cf054b224b11dd5934ae632edf8632ebe2e3e801bb3ddab6e66",
+    "qc_monitor/bootstrap.py": "111792e3171b0f11da5c6291866235528251e2a0852a1da03052176658cee925",
+    "qc_monitor/config.py": "a506e99796f256dcb0c05aed32f08283b6b93bffee8bf4eeec57f0ee4d4bdcf3",
+    "qc_monitor/coordination.py": "72e46286d5701459930d845928a96d80a8ca1c23b27406fc8dce3b1f45807d9b",
+    "qc_monitor/detector_linearity.py": "7c9bf07bea2c4eff60b2d742fde5ed05499cf475deac0cb283d2d5ebd37dcbce",
+    "qc_monitor/figure_result.py": "cb19c1a3edfdc2c625a1055db97d50935ddbe4c1a9786c0276601f97209d3f18",
+    "qc_monitor/generate_html.py": "7ed69fb67fe11e8daf4da7b169d63d64b11637e3662275cf31d5dfddeb524650",
+    "qc_monitor/locking.py": "77283c7c767ba1b9ffe232cd1ac74e1d08a3548530cb8a0aa15f3eada70ae13b",
+    "qc_monitor/main.py": "4d00384ea6fceb5a2b6c45231e41026e6db254e87a13299abf5789d17118209f",
+    "qc_monitor/plotting.py": "816f952564e8d8a405dcfcc5a29ee8395278c7fa71ed7345fa506c0d530495c1",
+    "qc_monitor/processing.py": "b785b88dedff87622332be1ad4a07962640b39f11111fb7d80979dd7152ad61f",
+    "qc_monitor/rebuild.py": "2ad005c5261cf9e6d175e4050737dabce28e4a9d04f29645499e3a9e24b86346",
+    "qc_monitor/run_result.py": "0adee944cd49b00afd5d49e4361bf44ff62e5baafc47e2ab9987841421a5e3e2",
+    "qc_monitor/schema.py": "e7b3d5b144b4cf1509d91f9464c10cac95a4bd868034e4c60b085c5280313d4c",
+    "qc_monitor/storage.py": "617d9a15471d801892f1b1a0b6014f66072da55b66bf5016579ecc4e9788a32a",
+    "qc_monitor/resources/template.html": "42ef110b88397714d083a074d2cf779cf076c12961ed71b83b591a1e824ca32a",
+    "scripts/check_installation.py": "003aed7bd90aeba674ea1fa728d2f8631f8a8115806fbdee3042dc9b6b820d6b",
+    "scripts/render_d3c_qa.py": "b8609aeafa8b4975ebb2c479b192c7270ae2437a742fac130611ef59fa28f4ce",
+    "tests/test_d3c_rendering.py": "48aaf04b3ca934b62283fa3e0f41e32faf13094c56959be598d05afeabc79e9a",
+    "tests/test_d3b_coordination.py": "b4f6d39a58a55eb1fbce9886c9c87b6527dd05009a30d60f815a02fbd4de5d5b"
+  },
+  "application_commit": "45a7e3e5a2c8133120e185a42ded9e6f4256049f"
+}
