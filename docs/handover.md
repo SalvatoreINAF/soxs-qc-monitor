@@ -1,3 +1,32 @@
+# Handover — D3-D formalmente chiusa, 9 ottobre 2026
+
+**D3-D completata e formalmente chiusa su dev.** Pacchetto **1.6.0**,
+SQLite **schema 1**. D3-A/B/C restano chiuse; **D3-E/F non avviate**.
+
+- Commit applicativo `a7a2ebb081f21a6b5e4330f2f200054fc480630d`.
+- Candidato hosted **`dc3b736c6b62219c5f4e2fdae078fd5a03449e02`**, commit successivo soltanto documentale.
+- [CI 37966108485](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37966108485), attempt 1: **549 PASS per ciascun job Linux Python
+  3.11/3.12/3.13**; **548 PASS, 1 SKIP macOS Python 3.12**. Lo skip è solo
+  la prova su due filesystem assente sul Mac, passata su tutti i job Linux.
+- Suite con -W error, build wheel e checker isolato verdi nei quattro job.
+  pip check verificato localmente, non separatamente dal workflow hosted.
+  **Nessuna verifica D3-D pendente.**
+- [Evidenze](../tests/results/d3-d-validation.md),
+  [CI metadata](../tests/results/d3-d-hosted.json),
+  [ambienti](qa/d3-d-environments.json), [contratto D](d3/d3-d.md).
+
+Punto di ripresa: **pianificazione D3-E soltanto su nuova richiesta**, dopo
+verifica dev/HEAD/working tree e lettura indice/scheda E. Non avviare sviluppo
+o altre milestone automaticamente. Restano i limiti D: motore interno non
+attivo nella CLI ordinaria, nessuna retention/riuso e nessun deploy automatico.
+
+Chiusura solo documentale; sorgenti/test/workflow/versione invariati. Nessun
+nuovo push/merge/deploy, scheduler o archivio operativo modificato. reference_docs
+aggiornata localmente e ancora ignorata da Git. Le sezioni successive sono
+storiche: questa apertura prevale sulle indicazioni precedenti di CI pendente.
+
+---
+
 # Handover — D3-D consegnata localmente, 9 ottobre 2026
 
 **D3-D consegnata e verificata localmente su dev, 1.6.0/schema 1.**

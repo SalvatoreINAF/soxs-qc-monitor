@@ -1,8 +1,7 @@
 # D3 — Roadmap delle milestone
 
 **Aggiornamento: 9 ottobre 2026.** D3-0 documentale consegnato; D3-A
-completata e formalmente chiusa; D3-B formalmente chiusa il 9 ottobre 2026; D3-C formalmente chiusa; D3-D consegnata localmente (1.6.0/schema 1), CI hosted
-pendente; D3-E/F pianificate e non implementate.
+completata e formalmente chiusa; D3-B formalmente chiusa il 9 ottobre 2026; D3-C formalmente chiusa; D3-D formalmente chiusa (1.6.0/schema 1); D3-E/F pianificate e non implementate.
 Questo indice è il riferimento versionato per le nuove sessioni. La roadmap e
 la valutazione in `reference_docs/` restano locali e intenzionalmente escluse da Git.
 
@@ -31,7 +30,7 @@ pacchetto **1.4.0**, schema **1**. [Evidenze locali](../tests/results/d3-b-valid
 e [ambienti](qa/d3-b-environments.json). Chiusura hosted sul candidato `7a952c5`
 registrata in fondo; nessuna verifica D3-B pendente. D3-C consegnata localmente
 il 9 ottobre: [scheda dettagliata](d3/d3-c.md), [evidenze](../tests/results/d3-c-validation.md).
-D3-D ora consegnata localmente; stato corrente e ripresa nella sezione finale D3-D.
+D3-D formalmente chiusa; stato corrente e ripresa nella sezione finale D3-D.
 
 ## Milestone, dipendenze e stime
 
@@ -41,7 +40,7 @@ D3-D ora consegnata localmente; stato corrente e ripresa nella sezione finale D3
 | [D3-A](d3/d3-a.md) | Isolamento acquisizione e retry limitati | D3-0 | Formalmente chiusa | 6–8 ore |
 | [D3-B](d3/d3-b.md) | Coordinamento run, rebuild e update | D3-0 | Formalmente chiusa | 8–12 ore |
 | [D3-C](d3/d3-c.md) | Esiti delle figure e gestione dei renderer | D3-0 | Formalmente chiusa | 10–14 ore |
-| [D3-D](d3/d3-d.md) | Motore di pubblicazione atomica, non attivo nella CLI | D3-B, D3-C | Consegnata localmente, CI pendente | 10–14 ore |
+| [D3-D](d3/d3-d.md) | Motore di pubblicazione atomica, non attivo nella CLI | D3-B, D3-C | Formalmente chiusa | 10–14 ore |
 | [D3-E](d3/d3-e.md) | Retention sicura e attivazione nella CLI | D3-D | Pianificata | 6–10 ore |
 | [D3-F](d3/d3-f.md) | Riuso su errore e chiusura integrata | D3-A, D3-E | Pianificata | 6–10 ore |
 
@@ -233,3 +232,32 @@ solo su nuova richiesta e dopo chiusura D. **D3-E/F non avviate.**
 
 Commit applicativo D **`a7a2ebb081f21a6b5e4330f2f200054fc480630d`**; 548 PASS/1 SKIP per macOS 3.11/3.12/3.13,
 Linux mirato 59 PASS senza skip, wheel/checker/pip check e QA verdi.
+
+
+## D3-D — Chiusura formale, 9 ottobre 2026
+
+**D3-D completata e formalmente chiusa.** [CI 37966108485](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37966108485), attempt **1**,
+sul candidato **`dc3b736c6b62219c5f4e2fdae078fd5a03449e02`**. Suite con warning come errori:
+
+| Job hosted | Esito suite | Durata | Wheel / checker isolato |
+|---|---|---|---|
+| Linux Python 3.11 | 549 PASS, 0 SKIP | 150,62 s | PASS |
+| Linux Python 3.12 | 549 PASS, 0 SKIP | 232,58 s | PASS |
+| Linux Python 3.13 | 549 PASS, 0 SKIP | 253,03 s | PASS |
+| macOS Python 3.12 | 548 PASS, 1 SKIP | 274,41 s | PASS |
+
+Nessun FAIL/XFAIL/XPASS. Lo skip macOS riguarda esclusivamente l'assenza di
+un secondo filesystem scrivibile; la stessa prova reale passa nei tre job
+Linux. Build wheel e checker di installazione isolata PASS in tutti i job.
+`pip check` verificato localmente, non separatamente dal workflow hosted.
+
+Pacchetto **1.6.0**, SQLite **schema 1**. Commit applicativo **`a7a2ebb`**,
+candidato hosted **`dc3b736`**: differenze soltanto documentali. Nessuna verifica
+D3-D pendente. Questa nota supera le precedenti indicazioni di CI pendente;
+le evidenze locali e i relativi skip restano conservati come storia distinta.
+
+L'utente ha pubblicato il candidato. Questa chiusura modifica soltanto
+documenti/evidenze, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
+CLI ordinaria ancora diretta; nessuna retention o riuso introdotti. Ripresa:
+**pianificazione D3-E soltanto su nuova richiesta**, dopo controllo del checkout
+e lettura di indice/scheda/handover. **D3-E/F non avviate.**

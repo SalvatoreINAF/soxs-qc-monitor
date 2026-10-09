@@ -367,3 +367,32 @@ The HTML API adds optional keyword `image_urls` without changing its default
 legacy behaviour. PublicationError carries its PublicationResult, including
 published/unconfirmed after a final-directory sync error. Internal consumers
 must explicitly apply the result to RunResult to preserve error exit codes.
+
+
+## D3-D — Chiusura formale, 9 ottobre 2026
+
+**D3-D completata e formalmente chiusa.** [CI 37966108485](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37966108485), attempt **1**,
+sul candidato **`dc3b736c6b62219c5f4e2fdae078fd5a03449e02`**. Suite con warning come errori:
+
+| Job hosted | Esito suite | Durata | Wheel / checker isolato |
+|---|---|---|---|
+| Linux Python 3.11 | 549 PASS, 0 SKIP | 150,62 s | PASS |
+| Linux Python 3.12 | 549 PASS, 0 SKIP | 232,58 s | PASS |
+| Linux Python 3.13 | 549 PASS, 0 SKIP | 253,03 s | PASS |
+| macOS Python 3.12 | 548 PASS, 1 SKIP | 274,41 s | PASS |
+
+Nessun FAIL/XFAIL/XPASS. Lo skip macOS riguarda esclusivamente l'assenza di
+un secondo filesystem scrivibile; la stessa prova reale passa nei tre job
+Linux. Build wheel e checker di installazione isolata PASS in tutti i job.
+`pip check` verificato localmente, non separatamente dal workflow hosted.
+
+Pacchetto **1.6.0**, SQLite **schema 1**. Commit applicativo **`a7a2ebb`**,
+candidato hosted **`dc3b736`**: differenze soltanto documentali. Nessuna verifica
+D3-D pendente. Questa nota supera le precedenti indicazioni di CI pendente;
+le evidenze locali e i relativi skip restano conservati come storia distinta.
+
+L'utente ha pubblicato il candidato. Questa chiusura modifica soltanto
+documenti/evidenze, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
+CLI ordinaria ancora diretta; nessuna retention o riuso introdotti. Ripresa:
+**pianificazione D3-E soltanto su nuova richiesta**, dopo controllo del checkout
+e lettura di indice/scheda/handover. **D3-E/F non avviate.**

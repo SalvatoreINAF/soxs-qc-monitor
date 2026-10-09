@@ -6,8 +6,74 @@
   "package": "1.6.0",
   "schema": 1,
   "hosted": {
-    "state": "pending",
-    "candidate": null
+    "state": "passed",
+    "candidate": "dc3b736c6b62219c5f4e2fdae078fd5a03449e02",
+    "run_id": 37966108485,
+    "attempt": 1,
+    "url": "https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37966108485",
+    "event": "push",
+    "created_utc": "2026-10-09T17:25:02Z",
+    "updated_utc": "2026-10-09T17:31:50Z",
+    "jobs": [
+      {
+        "name": "tests (macos-latest, 3.12)",
+        "job_id": 113940741126,
+        "conclusion": "success",
+        "passed": 548,
+        "skipped": 1,
+        "duration_seconds": 274.41,
+        "skip_reason": "No second writable filesystem",
+        "build_wheel": "PASS",
+        "isolated_checker": "PASS",
+        "warnings_as_errors": true,
+        "started_utc": "2026-10-09T17:25:09Z",
+        "completed_utc": "2026-10-09T17:31:04Z"
+      },
+      {
+        "name": "tests (ubuntu-latest, 3.11)",
+        "job_id": 113940741134,
+        "conclusion": "success",
+        "passed": 549,
+        "skipped": 0,
+        "duration_seconds": 150.62,
+        "skip_reason": null,
+        "build_wheel": "PASS",
+        "isolated_checker": "PASS",
+        "warnings_as_errors": true,
+        "started_utc": "2026-10-09T17:25:05Z",
+        "completed_utc": "2026-10-09T17:28:26Z"
+      },
+      {
+        "name": "tests (ubuntu-latest, 3.12)",
+        "job_id": 113940741150,
+        "conclusion": "success",
+        "passed": 549,
+        "skipped": 0,
+        "duration_seconds": 232.58,
+        "skip_reason": null,
+        "build_wheel": "PASS",
+        "isolated_checker": "PASS",
+        "warnings_as_errors": true,
+        "started_utc": "2026-10-09T17:25:05Z",
+        "completed_utc": "2026-10-09T17:30:01Z"
+      },
+      {
+        "name": "tests (ubuntu-latest, 3.13)",
+        "job_id": 113940740834,
+        "conclusion": "success",
+        "passed": 549,
+        "skipped": 0,
+        "duration_seconds": 253.03,
+        "skip_reason": null,
+        "build_wheel": "PASS",
+        "isolated_checker": "PASS",
+        "warnings_as_errors": true,
+        "started_utc": "2026-10-09T17:25:05Z",
+        "completed_utc": "2026-10-09T17:31:50Z"
+      }
+    ],
+    "log_sha256": "8a700e67e4800caa5e481f2bdcbef8b26735ac38f05ed8f416dd260aff94c921",
+    "pip_check": "Verified locally; not a separate hosted workflow step"
   },
   "wheel": {
     "filename": "qc_monitor-1.6.0-py3-none-any.whl",

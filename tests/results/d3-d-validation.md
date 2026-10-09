@@ -1,7 +1,7 @@
-# D3-D — Consegna e validazione locale, 9 ottobre 2026
+# D3-D — Validazione locale e hosted, 9 ottobre 2026
 
-**D3-D consegnata localmente su dev, pacchetto 1.6.0/schema 1.**
-Commit applicativo **`a7a2ebb081f21a6b5e4330f2f200054fc480630d`**. CI hosted D3-D pendente sul candidato esatto;
+**D3-D formalmente chiusa su dev, pacchetto 1.6.0/schema 1.**
+Commit applicativo **`a7a2ebb081f21a6b5e4330f2f200054fc480630d`**. CI hosted verde sul candidato `dc3b736c6b62219c5f4e2fdae078fd5a03449e02`;
 D3-A/B/C restano formalmente chiuse, D3-E/F non avviate.
 
 ## Baseline, decisioni e funzionalità
@@ -117,7 +117,7 @@ Il primo tentativo screenshot non produsse il file nei 15 s previsti; ripetuto
 con mock keychain/profili temporanei e attesa limitata, immagini effettivamente
 verificate. Nessuna golden image e nessun processo Chrome dell'utente terminato.
 
-## Documentazione, limiti e ripresa
+## Documentazione, limiti e ripresa locale — pendenza CI superata dalla chiusura sotto
 
 Aggiornati scheda/indice D3, handover, README, contratti/operazioni e istruzioni
 test; audit/evidenze/manifesto/QA consegnati. Roadmap/valutazione in reference_docs
@@ -137,3 +137,40 @@ suite/build/checker per Linux 3.11/3.12/3.13 e macOS 3.12, poi registrare la
 chiusura D. Distinguere commit applicativo e successivo commit documentale.
 Nessun push/merge/deploy/scheduler/rebuild operativo. **D3-E/F non avviate**;
 pianificazione E solo su nuova richiesta e dopo chiusura D.
+
+
+## D3-D — Chiusura formale, 9 ottobre 2026
+
+**D3-D completata e formalmente chiusa.** [CI 37966108485](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37966108485), attempt **1**,
+sul candidato **`dc3b736c6b62219c5f4e2fdae078fd5a03449e02`**. Suite con warning come errori:
+
+| Job hosted | Esito suite | Durata | Wheel / checker isolato |
+|---|---|---|---|
+| Linux Python 3.11 | 549 PASS, 0 SKIP | 150,62 s | PASS |
+| Linux Python 3.12 | 549 PASS, 0 SKIP | 232,58 s | PASS |
+| Linux Python 3.13 | 549 PASS, 0 SKIP | 253,03 s | PASS |
+| macOS Python 3.12 | 548 PASS, 1 SKIP | 274,41 s | PASS |
+
+Nessun FAIL/XFAIL/XPASS. Lo skip macOS riguarda esclusivamente l'assenza di
+un secondo filesystem scrivibile; la stessa prova reale passa nei tre job
+Linux. Build wheel e checker di installazione isolata PASS in tutti i job.
+`pip check` verificato localmente, non separatamente dal workflow hosted.
+
+Pacchetto **1.6.0**, SQLite **schema 1**. Commit applicativo **`a7a2ebb`**,
+candidato hosted **`dc3b736`**: differenze soltanto documentali. Nessuna verifica
+D3-D pendente. Questa nota supera le precedenti indicazioni di CI pendente;
+le evidenze locali e i relativi skip restano conservati come storia distinta.
+
+L'utente ha pubblicato il candidato. Questa chiusura modifica soltanto
+documenti/evidenze, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
+CLI ordinaria ancora diretta; nessuna retention o riuso introdotti. Ripresa:
+**pianificazione D3-E soltanto su nuova richiesta**, dopo controllo del checkout
+e lettura di indice/scheda/handover. **D3-E/F non avviate.**
+
+Metadata verificati e versionati: [riepilogo hosted](d3-d-hosted.json) e
+[manifesto ambienti](../../docs/qa/d3-d-environments.json). Metadata originali
+e log letti tramite gh run view, copie locali /private/tmp/qc-d3d-hosted.json
+e /private/tmp/qc-d3d-hosted.log; i dati essenziali sono conservati nel checkout.
+Verifiche documentali: link locali, coerenza SHA/job/conteggi e git diff --check.
+Nessuna nuova suite/build locale richiesta: codice, test Python, template,
+versione e workflow coincidono con il candidato verificato dalla CI.
