@@ -4,7 +4,7 @@
   "application_commit": "98d51d341e4d85bc7e14e6f4abf6273e8e42bc32",
   "package_version": "1.4.0",
   "schema_version": 1,
-  "hosted_status": "Original candidate 0df371c FAILED on Linux; corrected candidate hosted validation PENDING",
+  "hosted_status": "PASS; D3-B formally closed on 2026-10-09",
   "environments": [
     {
       "python": "3.12.15",
@@ -169,6 +169,53 @@
         "duration_seconds": 2.31
       }
     },
-    "hosted_status": "PENDING on exact corrected candidate"
+    "hosted_status": "PASS; exact corrected candidate 7a952c5972dfa7f00a0ccfefc5968e40f7e05d8a"
+  },
+  "hosted": {
+    "date": "2026-10-09",
+    "run_id": 37933559550,
+    "attempt": 1,
+    "url": "https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37933559550",
+    "candidate_commit": "7a952c5972dfa7f00a0ccfefc5968e40f7e05d8a",
+    "conclusion": "success",
+    "jobs": [
+      {
+        "os": "Linux",
+        "python": "3.11",
+        "passed": 405,
+        "duration_seconds": 178.99,
+        "skip_xfail": 0,
+        "wheel_build": "PASS",
+        "isolated_checker": "PASS"
+      },
+      {
+        "os": "Linux",
+        "python": "3.12",
+        "passed": 405,
+        "duration_seconds": 182.66,
+        "skip_xfail": 0,
+        "wheel_build": "PASS",
+        "isolated_checker": "PASS"
+      },
+      {
+        "os": "Linux",
+        "python": "3.13",
+        "passed": 405,
+        "duration_seconds": 181.69,
+        "skip_xfail": 0,
+        "wheel_build": "PASS",
+        "isolated_checker": "PASS"
+      },
+      {
+        "os": "macOS",
+        "python": "3.12",
+        "passed": 405,
+        "duration_seconds": 240.88,
+        "skip_xfail": 0,
+        "wheel_build": "PASS",
+        "isolated_checker": "PASS"
+      }
+    ],
+    "pip_check": "not separately executed by hosted workflow; local checks PASS"
   }
 }

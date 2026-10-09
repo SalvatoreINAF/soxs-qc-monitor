@@ -65,3 +65,21 @@ primo controllo non privilegiato: è stato eseguito esplicitamente in seguito.
 
 La matrice hosted va rieseguita sul candidato corretto prima della chiusura.
 Non confondere il precedente macOS verde con l’approvazione della correzione.
+
+
+## D3-B — Chiusura formale, 9 ottobre 2026
+
+**D3-B completata e formalmente chiusa.** [CI 37933559550](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37933559550),
+attempt 1, sul candidato corretto **`7a952c5972dfa7f00a0ccfefc5968e40f7e05d8a`**.
+**405 PASS per ciascun job**, nessuno skip/XFAIL: Linux Python 3.11
+(178,99 s), 3.12 (182,66 s), 3.13 (181,69 s), macOS 3.12 (240,88 s).
+Build wheel e checker di installazione isolata PASS in tutti e quattro i job.
+`pip check` è verificato localmente; il workflow hosted non lo esegue separatamente.
+La correzione timeout `179f3ec` è dunque verificata anche dalla matrice hosted.
+Il precedente run fallito resta evidenza storica, superata da questa esecuzione.
+
+Pacchetto **1.4.0**, schema **1**; nessuna verifica D3-B pendente.
+Questa nota aggiorna le precedenti indicazioni di CI pendente.
+Ripresa: pianificazione D3-C **soltanto su nuova richiesta**.
+**D3-C non avviata.** Nessun push/merge/deploy o rebuild operativo in questa
+chiusura; aggiornamenti solo documentali, sorgenti/test/workflow invariati.

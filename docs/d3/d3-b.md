@@ -1,6 +1,6 @@
 # D3-B — Coordinamento operativo
 
-**Stato: consegna locale verificata; CI pendente, non formalmente chiusa.**
+**Stato: completata e formalmente chiusa il 9 ottobre 2026.**
 Baseline `dev` / `8892af5`, pulita; D3-A formalmente chiusa. Pacchetto **1.4.0**, schema **1**.
 Stima approvata: **8–12 ore**, inclusi test e documentazione, esclusa attesa CI.
 
@@ -90,3 +90,21 @@ nessun push/merge/deploy, nessun D3-C.
 Dettagli: tests/results/d3-b-timeout-correction.md e
  docs/qa/d3-b-environments.json. Le verifiche wheel precedenti restano valide
 per i moduli Python/template invariati; il supervisore corretto vive nel checkout.
+
+
+## D3-B — Chiusura formale, 9 ottobre 2026
+
+**D3-B completata e formalmente chiusa.** [CI 37933559550](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37933559550),
+attempt 1, sul candidato corretto **`7a952c5972dfa7f00a0ccfefc5968e40f7e05d8a`**.
+**405 PASS per ciascun job**, nessuno skip/XFAIL: Linux Python 3.11
+(178,99 s), 3.12 (182,66 s), 3.13 (181,69 s), macOS 3.12 (240,88 s).
+Build wheel e checker di installazione isolata PASS in tutti e quattro i job.
+`pip check` è verificato localmente; il workflow hosted non lo esegue separatamente.
+La correzione timeout `179f3ec` è dunque verificata anche dalla matrice hosted.
+Il precedente run fallito resta evidenza storica, superata da questa esecuzione.
+
+Pacchetto **1.4.0**, schema **1**; nessuna verifica D3-B pendente.
+Questa nota aggiorna le precedenti indicazioni di CI pendente.
+Ripresa: pianificazione D3-C **soltanto su nuova richiesta**.
+**D3-C non avviata.** Nessun push/merge/deploy o rebuild operativo in questa
+chiusura; aggiornamenti solo documentali, sorgenti/test/workflow invariati.

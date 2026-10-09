@@ -537,7 +537,7 @@ is started automatically.
 [l’indice D3](docs/d3-roadmap.md) per ordine, dipendenze, decisioni e stime,
 e le sei schede collegate per pianificare una milestone alla volta.
 D3-A è **completata e formalmente chiusa**, pacchetto **1.3.0**, schema SQLite **1**
-invariato. D3-B implementata localmente nel pacchetto **1.4.0**, CI pendente; D3-C…F non avviate.
+invariato. D3-B formalmente chiusa nel pacchetto **1.4.0**; D3-C…F non avviate.
 [Verifiche D3-0](tests/results/d3-0-validation.md) e
 [handover](docs/handover.md) identificano la baseline e il punto di ripresa:
 **verifica e chiusura hosted D3-B**, senza avanzamento automatico.
@@ -638,3 +638,21 @@ nessun push/merge/deploy, nessun D3-C.
 Dettagli: tests/results/d3-b-timeout-correction.md e
  docs/qa/d3-b-environments.json. Le verifiche wheel precedenti restano valide
 per i moduli Python/template invariati; il supervisore corretto vive nel checkout.
+
+
+## D3-B — Chiusura formale, 9 ottobre 2026
+
+**D3-B completata e formalmente chiusa.** [CI 37933559550](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37933559550),
+attempt 1, sul candidato corretto **`7a952c5972dfa7f00a0ccfefc5968e40f7e05d8a`**.
+**405 PASS per ciascun job**, nessuno skip/XFAIL: Linux Python 3.11
+(178,99 s), 3.12 (182,66 s), 3.13 (181,69 s), macOS 3.12 (240,88 s).
+Build wheel e checker di installazione isolata PASS in tutti e quattro i job.
+`pip check` è verificato localmente; il workflow hosted non lo esegue separatamente.
+La correzione timeout `179f3ec` è dunque verificata anche dalla matrice hosted.
+Il precedente run fallito resta evidenza storica, superata da questa esecuzione.
+
+Pacchetto **1.4.0**, schema **1**; nessuna verifica D3-B pendente.
+Questa nota aggiorna le precedenti indicazioni di CI pendente.
+Ripresa: pianificazione D3-C **soltanto su nuova richiesta**.
+**D3-C non avviata.** Nessun push/merge/deploy o rebuild operativo in questa
+chiusura; aggiornamenti solo documentali, sorgenti/test/workflow invariati.

@@ -1,3 +1,29 @@
+# Handover — D3-B formalmente chiusa, 9 ottobre 2026
+
+**D3-B completata e formalmente chiusa su `dev`.** Pacchetto **1.4.0**,
+SQLite **schema 1**. D3-A resta chiusa; **D3-C…F non avviate**.
+
+- Implementazione iniziale: `98d51d3`; correzione timeout: `179f3ec`.
+- Candidato hosted verificato: **`7a952c5972dfa7f00a0ccfefc5968e40f7e05d8a`**.
+- [CI 37933559550](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37933559550), attempt 1: **405 PASS per job**,
+  Linux Python 3.11/3.12/3.13 e macOS 3.12; nessuno skip/XFAIL.
+- Wheel e checker isolato verdi in tutti i job. `pip check` verificato
+  localmente; nessun controllo separato di pip check nel workflow hosted.
+- Superata la CI fallita del candidato precedente. Nessuna verifica D3-B pendente.
+- [Evidenze](../tests/results/d3-b-validation.md),
+  [correzione](../tests/results/d3-b-timeout-correction.md),
+  [ambienti](qa/d3-b-environments.json), [scheda](d3/d3-b.md).
+
+Punto di ripresa: **pianificazione D3-C soltanto su nuova richiesta**,
+verificando branch/working tree e leggendo la relativa scheda e l’indice D3.
+Non iniziare lo sviluppo o le altre milestone automaticamente.
+La chiusura cambia soltanto documenti; nessun push, merge, deploy, scheduler
+modificato o rebuild operativo. `reference_docs` aggiornata e ignorata da Git.
+Le sezioni successive sono storiche; questa apertura prevale sulle vecchie
+indicazioni di CI pendente.
+
+---
+
 # Aggiornamento handover — 9 ottobre 2026
 
 **D3-B corretta localmente dopo il fallimento CI; nuova CI pendente.**

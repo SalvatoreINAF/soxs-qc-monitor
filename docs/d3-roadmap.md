@@ -1,7 +1,7 @@
 # D3 — Roadmap delle milestone
 
 **Aggiornamento: 8 ottobre 2026.** D3-0 documentale consegnato; D3-A
-completata e formalmente chiusa; D3-B implementata localmente, CI pendente; D3-C…F
+completata e formalmente chiusa; D3-B formalmente chiusa il 9 ottobre 2026; D3-C…F
 pianificate e non implementate.
 Questo indice è il riferimento versionato per le nuove sessioni. La roadmap e
 la valutazione in `reference_docs/` restano locali e intenzionalmente escluse da Git.
@@ -29,7 +29,7 @@ job, build e installazione isolata riuscite. D3-A chiusa, nessuna verifica pende
 D3-B: commit applicativo `98d51d341e4d85bc7e14e6f4abf6273e8e42bc32`,
 pacchetto **1.4.0**, schema **1**. [Evidenze locali](../tests/results/d3-b-validation.md)
 e [ambienti](qa/d3-b-environments.json). CI D3-B pendente sul candidato esatto.
-Ripresa: verifica e chiusura hosted D3-B; D3-C non avviata.
+Ripresa: pianificazione D3-C soltanto su nuova richiesta; D3-C non avviata.
 
 ## Milestone, dipendenze e stime
 
@@ -37,7 +37,7 @@ Ripresa: verifica e chiusura hosted D3-B; D3-C non avviata.
 |---|---|---|---|---|
 | D3-0 | Roadmap, schede e handover | D2 | Consegnata, solo documenti | 2–4 ore |
 | [D3-A](d3/d3-a.md) | Isolamento acquisizione e retry limitati | D3-0 | Formalmente chiusa | 6–8 ore |
-| [D3-B](d3/d3-b.md) | Coordinamento run, rebuild e update | D3-0 | Consegna locale, CI pendente | 8–12 ore |
+| [D3-B](d3/d3-b.md) | Coordinamento run, rebuild e update | D3-0 | Formalmente chiusa | 8–12 ore |
 | [D3-C](d3/d3-c.md) | Esiti delle figure e gestione dei renderer | D3-0 | Pianificata | 6–8 ore |
 | [D3-D](d3/d3-d.md) | Motore di pubblicazione atomica, non attivo nella CLI | D3-B, D3-C | Pianificata | 6–10 ore |
 | [D3-E](d3/d3-e.md) | Retention sicura e attivazione nella CLI | D3-D | Pianificata | 6–10 ore |
@@ -152,3 +152,21 @@ nessun push/merge/deploy, nessun D3-C.
 Dettagli: tests/results/d3-b-timeout-correction.md e
  docs/qa/d3-b-environments.json. Le verifiche wheel precedenti restano valide
 per i moduli Python/template invariati; il supervisore corretto vive nel checkout.
+
+
+## D3-B — Chiusura formale, 9 ottobre 2026
+
+**D3-B completata e formalmente chiusa.** [CI 37933559550](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37933559550),
+attempt 1, sul candidato corretto **`7a952c5972dfa7f00a0ccfefc5968e40f7e05d8a`**.
+**405 PASS per ciascun job**, nessuno skip/XFAIL: Linux Python 3.11
+(178,99 s), 3.12 (182,66 s), 3.13 (181,69 s), macOS 3.12 (240,88 s).
+Build wheel e checker di installazione isolata PASS in tutti e quattro i job.
+`pip check` è verificato localmente; il workflow hosted non lo esegue separatamente.
+La correzione timeout `179f3ec` è dunque verificata anche dalla matrice hosted.
+Il precedente run fallito resta evidenza storica, superata da questa esecuzione.
+
+Pacchetto **1.4.0**, schema **1**; nessuna verifica D3-B pendente.
+Questa nota aggiorna le precedenti indicazioni di CI pendente.
+Ripresa: pianificazione D3-C **soltanto su nuova richiesta**.
+**D3-C non avviata.** Nessun push/merge/deploy o rebuild operativo in questa
+chiusura; aggiornamenti solo documentali, sorgenti/test/workflow invariati.
