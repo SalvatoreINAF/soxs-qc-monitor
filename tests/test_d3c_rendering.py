@@ -229,6 +229,27 @@ def configure_cli(lab):
     lab.save_config()
 
 
+
+# Inject actual save failures inside the new staging, rather than legacy PNG paths.
+SAVE_FAILURE = """
+from pathlib import Path
+original_plots = app.generate_plots_from_config
+def failed_save(frame, plots, *args, **kwargs):
+    for figure in plots['figures']:
+        if figure['filename'] == FAILED_FILENAME:
+            (Path(plots['output_dir']) / figure['filename']).mkdir(parents=True, exist_ok=True)
+    return original_plots(frame, plots, *args, **kwargs)
+app.generate_plots_from_config = failed_save
+"""
+
+
+def save_failure_cli(lab, filename, expected):
+    program = 'import sys\nfrom qc_monitor import main as app\nFAILED_FILENAME=' + repr(filename) + '\n' + SAVE_FAILURE + '\nsys.exit(app.main())'
+    result = subprocess.run([sys.executable, '-c', program, '--config', str(lab.config)],
+        cwd=Path(__file__).resolve().parents[1], env=os.environ.copy(), capture_output=True, text=True, timeout=60)
+    assert result.returncode == expected, result.stderr
+    return result
+
 @pytest.mark.parametrize('backend', [None, 'TkAgg'])
 def test_cli_batch_backend_selected_without_pytest_environment(lab, backend):
     configure_cli(lab)
@@ -261,24 +282,21 @@ def test_cli_independent_figures_summary_and_real_failure(lab, failure):
     independent = {'name': 'vis_dsol', 'type': 'dispersion_resolution', 'filename': 'dsol.png',
                    'arm': 'VIS', 'selection': 'all'}
     lab.cfg['plots']['figures'].append(independent)
-    if failure == 'render':
-        # Preflight accepts a confined filename, then save encounters a directory.
-        lab.output.mkdir()
-        (lab.output / 'plots/time_series.png').mkdir(parents=True)
     lab.save_config()
     program = '''
 import sys
 from qc_monitor import main as app
 from qc_monitor.storage import SQLiteStore
+from qc_monitor import publication as pub
 if FAILURE == 'read':
     def bad_read(self): raise OSError('history read failure')
     SQLiteStore.load_all_metrics = bad_read
 elif FAILURE == 'html':
     def bad_html(*args, **kwargs): raise OSError('HTML write failure')
-    app.generate_html_report = bad_html
+    pub._render_html_report = bad_html
 sys.exit(app.main())
 '''
-    result = subprocess.run([sys.executable, '-c', 'FAILURE=' + repr(failure) + '\n' + program,
+    result = subprocess.run([sys.executable, '-c', 'FAILURE=' + repr(failure) + '\n' + (('from qc_monitor import main as app\nFAILED_FILENAME=\"time_series.png\"\n' + SAVE_FAILURE) if failure == 'render' else '') + program,
         '--config', str(lab.config), '--summary-json', str(lab.root / 'summary.json')],
         cwd=Path(__file__).resolve().parents[1], capture_output=True, text=True, timeout=60)
     assert result.returncode == 2, result.stderr
@@ -294,7 +312,10 @@ sys.exit(app.main())
         report = (lab.output / 'index.html').read_text()
         parser = Images()
         parser.feed(report)
-        assert parser.sources == ['plots/dsol.png']
+        from urllib.parse import unquote
+        assert len(parser.sources) == 1
+        assert (lab.output / unquote(parser.sources[0])).is_file()
+        assert parser.sources[0].endswith('/plots/dsol.png')
         assert 'Traceback' in result.stderr
 
 
@@ -356,10 +377,9 @@ def test_cli_empty_report_and_exit_precedence(lab, state):
         lab.dsol()
         lab.cfg['plots']['figures'].append({'name': 'vis_dsol', 'type': 'dispersion_resolution',
             'filename': 'dsol.png', 'arm': 'VIS', 'selection': 'all'})
-        (lab.output / 'plots/dsol.png').mkdir(parents=True)
     lab.save_config()
     code = {'empty': 0, 'partial_acquisition': 1, 'partial_with_render_failure': 2}[state]
-    data = summary(lab.cli(expected=code))
+    data = summary(save_failure_cli(lab, 'dsol.png', code) if code == 2 else lab.cli(expected=code))
     assert data['report']['state'] == 'published'
     assert data['plots']['figures'][0]['state'] == 'no_data'
     assert '<img' not in (lab.output / 'index.html').read_text()
@@ -369,8 +389,7 @@ def test_cli_empty_report_and_exit_precedence(lab, state):
 
 def test_cli_all_failed_publishes_error_report(lab):
     configure_cli(lab)
-    (lab.output / 'plots/time_series.png').mkdir(parents=True)
-    data = summary(lab.cli(expected=2))
+    data = summary(save_failure_cli(lab, 'time_series.png', 2))
     assert data['plots']['state'] == 'failed'
     assert data['report']['state'] == 'published'
     report = (lab.output / 'index.html').read_text()
@@ -381,17 +400,17 @@ def test_partial_report_retains_coordination_until_summary(lab):
     from qc_monitor.storage import SQLiteStore
     from qc_monitor.coordination import CoordinationBusyError
     configure_cli(lab)
-    (lab.output / 'plots/time_series.png').mkdir(parents=True)
-    program = '''
+    program = 'import qc_monitor.main as app\nFAILED_FILENAME=\"time_series.png\"\n' + SAVE_FAILURE + '''
 import sys
-import qc_monitor.main as app
-original = app.generate_html_report
-def pause(*args, **kwargs):
-    assert kwargs['figure_results'][0].state == 'failed'
+from qc_monitor import publication as pub
+original = pub._render_html_report
+def pause(plots, path, template, figure_results, **kwargs):
+    assert figure_results[0].state == 'failed'
+    pub._render_html_report = original
     print('ready', flush=True)
     sys.stdin.read(1)
-    return original(*args, **kwargs)
-app.generate_html_report = pause
+    return original(plots, path, template, figure_results, **kwargs)
+pub._render_html_report = pause
 sys.exit(app.main())
 '''
     process = subprocess.Popen([sys.executable, '-u', '-c', program,

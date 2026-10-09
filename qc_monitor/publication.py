@@ -1,10 +1,11 @@
-"""D3-D internal publication engine. The ordinary CLI deliberately does not call it.
+"""Atomic publication with bounded, ownership-checked retention (D3-E).
 
 The live HTML is the sole commit record. A finalised generation is immutable;
 its manifest never claims to be current. All leases span temporary cleanup.
 """
 from contextlib import contextmanager
 from copy import deepcopy
+from datetime import datetime, timezone
 from dataclasses import dataclass, field, asdict
 import hashlib
 from html.parser import HTMLParser
@@ -22,7 +23,7 @@ from .coordination import (leases, runtime_requests, project_requests,
                            config_resources, configuration_requests)
 from .figure_result import validate_figure_results, summarize_figures
 from .generate_html import _render_html_report
-from .run_result import utc_now
+from .run_result import utc_now, publication_cleanup
 
 OWNER = 'soxs-qc-monitor'
 MARKER = 'qc-publication-v1:'
@@ -40,6 +41,7 @@ class PublicationResult:
     manifest_path: str | None = None
     durability: str = 'not_applicable'
     staging_cleanup: str = 'not_required'
+    cleanup: dict = field(default_factory=publication_cleanup)
     errors: list = field(default_factory=list)
     figures: list = field(default_factory=list)
 
@@ -49,7 +51,7 @@ class PublicationResult:
         return value
 
     def apply_to(self, run):
-        """Explicit future adapter; not wired into the D3-D CLI."""
+        """Apply once, preserving publication even when subsequent cleanup failed."""
         run.publication = self.as_dict()
         run.errors.extend(deepcopy(self.errors))
         if self.state != 'skipped':
@@ -143,7 +145,7 @@ def _owned_directory(path, identity):
         try:
             os.mkdir(path.name, dir_fd=parent)
         except FileExistsError:
-            if json.loads(_read(path / '.owner.json')) != identity:
+            if _json(json.loads(_read(path / '.owner.json'))) != _json(identity):
                 raise ValueError(f'Invalid ownership marker: {path}')
         else:
             try:
@@ -163,13 +165,13 @@ def _owned_directory(path, identity):
 
 def _check_owned(path, identity):
     if path.exists() or path.is_symlink():
-        if json.loads(_read(path / '.owner.json')) != identity:
+        if _json(json.loads(_read(path / '.owner.json'))) != _json(identity):
             raise ValueError(f'Invalid ownership marker: {path}')
 
 
 def _remove_owned(path, identity):
     """Descriptor-relative cleanup; symlinks are unlinked, never traversed."""
-    if json.loads(_read(path / '.owner.json')) != identity:
+    if _json(json.loads(_read(path / '.owner.json'))) != _json(identity):
         raise ValueError(f'Staging ownership changed: {path}')
 
     def empty(fd, preserve_marker=False):
@@ -360,11 +362,13 @@ def _validate_paths(cfg, config_path, root, html_path, summary_path):
         protected.append(Path(summary_path))
     for key in ('upstream_root', 'reduced_root'):
         source = Path(cfg['paths'][key]).resolve()
-        if root == source or root.is_relative_to(source):
+        if (root.parent == source or root.parent.is_relative_to(source)
+                or source.is_relative_to(root.parent)):
             raise ValueError('Publication root overlaps input directory')
     for arm in cfg['detector_linearity']['arms'].values():
         source = Path(arm['root']).resolve()
-        if root == source or root.is_relative_to(source):
+        if (root.parent == source or root.parent.is_relative_to(source)
+                or source.is_relative_to(root.parent)):
             raise ValueError('Publication root overlaps detector input directory')
     namespace = root.parent
     if html_path == namespace or html_path.is_relative_to(namespace):
@@ -386,12 +390,154 @@ def _validate_paths(cfg, config_path, root, html_path, summary_path):
         raise ValueError('Live report must not be a symlink')
 
 
+def _prepared(value):
+    if not isinstance(value, str):
+        raise ValueError('Expected UTC preparation timestamp')
+    timestamp = datetime.fromisoformat(value)
+    if timestamp.tzinfo is None or timestamp.utcoffset().total_seconds() != 0:
+        raise ValueError('Expected UTC preparation timestamp')
+    return timestamp
+
+
+def _inventory(root, kind, identity):
+    """Recognise only canonical UUID directories with exact D ownership.
+
+    Unmarked directories and non-UUID names are foreign. A present but unsafe or
+    inconsistent marker cannot establish ownership and blocks automatic cleanup.
+    """
+    parent = root / kind
+    found, ignored = {}, 0
+    if not parent.exists() and not parent.is_symlink():
+        return found, ignored
+    with _directory(parent) as fd:
+        names = sorted(os.listdir(fd))
+    for name in names:
+        if name == '.owner.json':
+            continue
+        try:
+            _uuid(name)
+        except (ValueError, TypeError, AttributeError):
+            ignored += 1
+            continue
+        path = parent / name
+        with _directory(path):
+            pass
+        try:
+            marker = json.loads(_read(path / '.owner.json'))
+        except FileNotFoundError:
+            ignored += 1
+            continue
+        if not isinstance(marker, dict):
+            raise ValueError(f'Invalid ownership marker: {path}')
+        expected = dict(identity, kind='generation', generation_id=name,
+                        prepared_utc=marker.get('prepared_utc'))
+        if _json(marker) != _json(expected):
+            raise ValueError(f'Ownership mismatch: {path}')
+        _prepared(marker['prepared_utc'])
+        found[name] = marker
+    return found, ignored
+
+
+def _history(root, identity, current, limit):
+    """Validate only the retained prefix, including each autonomous archive HTML."""
+    retained = []
+    generation = current
+    while generation is not None and len(retained) < limit:
+        _uuid(generation)
+        if generation in retained:
+            raise ValueError('Cycle in retained publication history')
+        path = root / 'generations' / generation
+        marker = json.loads(_read(path / '.owner.json'))
+        manifest = json.loads(_read(path / 'manifest.json'))
+        if not retained and 'retained_history_length' in manifest:
+            length = manifest['retained_history_length']
+            if type(length) is not int or length < 1:
+                raise ValueError('Invalid retained history length')
+            # Increasing N cannot recreate history already pruned by an older run.
+            limit = min(limit, length)
+        expected = dict(identity, kind='generation', generation_id=generation,
+                        prepared_utc=manifest.get('prepared_utc'))
+        if (_json(marker) != _json(expected)
+                or any(_json(manifest.get(key)) != _json(value)
+                       for key, value in identity.items())
+                or manifest.get('generation_id') != generation
+                or manifest.get('run_id') != generation):
+            raise ValueError(f'Retained generation identity mismatch: {path}')
+        _prepared(marker['prepared_utc'])
+        urls = []
+        for figure in manifest['figures']:
+            if figure['state'] == 'produced':
+                filename = _relative_png(figure['filename'])
+                if figure['path'] != 'plots/' + filename.as_posix():
+                    raise ValueError('Invalid retained manifest artifact path')
+                urls.append(_url(path / 'plots' / filename, path / 'report.html'))
+            elif figure['state'] not in ('no_data', 'failed') or figure['path'] is not None:
+                raise ValueError('Invalid retained figure outcome')
+        _validate_html(_read(path / 'report.html').decode('utf-8'), path / 'report.html', urls)
+        retained.append(generation)
+        generation = manifest['previous_generation_id']
+        if generation is not None:
+            _uuid(generation)
+            if generation in retained:
+                raise ValueError('Cycle in retained publication history')
+    return retained
+
+
+def validate_publication(cfg, *, config_path, summary_path=None):
+    """Read-only path/property/history validation, usable before archive writes."""
+    html = Path(os.path.abspath(cfg['plots']['html_output']))
+    root = Path(os.path.abspath(cfg['plots']['output_dir'])) / '.qc-publication' / hashlib.sha256(str(html).encode()).hexdigest()
+    identity = {'owner': OWNER, 'format_version': 1, 'report_id': root.name,
+                'report_path': str(html)}
+    _validate_paths(cfg, config_path, root, html, summary_path)
+    _check_owned(root.parent, {'owner': OWNER, 'format_version': 1, 'kind': 'namespace'})
+    _check_owned(root, dict(identity, kind='report'))
+    for kind in ('staging', 'generations'):
+        _check_owned(root / kind, dict(identity, kind=kind))
+    current = _current(html, root, root.name)
+    _history(root, identity, current, cfg['plots']['publication']['retained_generations'])
+    return html, root, identity, current
+
+
+def _cleanup(root, identity, current, policy, run_id, diagnostic):
+    """Plan all deletions before modifying anything; stop on the first failure."""
+    diagnostic['state'] = 'failed'
+    diagnostic['limits_guaranteed'] = False
+    retained = _history(root, identity, current, policy['retained_generations'])
+    inventory = {}
+    ignored = {}
+    for kind in ('generations', 'staging'):
+        inventory[kind], ignored[kind] = _inventory(root, kind, identity)
+    diagnostic['ignored'] = ignored
+    diagnostic['remaining'] = {kind: len(items) for kind, items in inventory.items()}
+    now = _prepared(utc_now())
+    stages = sorted((name for name in inventory['staging'] if name != run_id),
+                    key=lambda name: (_prepared(inventory['staging'][name]['prepared_utc']), name))
+    expired = [name for name in stages
+               if (now - _prepared(inventory['staging'][name]['prepared_utc'])).total_seconds()
+               >= policy['orphan_max_age_hours'] * 3600]
+    survivors = [name for name in stages if name not in expired]
+    excess = max(0, len(survivors) - policy['max_orphan_staging'])
+    candidates = {'generations': sorted(set(inventory['generations']) - set(retained) - {run_id}),
+                  'staging': expired + survivors[:excess]}
+    for kind, names in candidates.items():
+        for name in names:
+            try:
+                _remove_owned(root / kind / name, inventory[kind][name])
+            finally:
+                # rmdir may have succeeded before its directory fsync failed.
+                if not os.path.lexists(root / kind / name):
+                    diagnostic['remaining'][kind] -= 1
+                    diagnostic['removed'][kind] += 1
+    diagnostic['state'] = 'completed'
+    diagnostic['limits_guaranteed'] = True
+
+
 def publish_report(cfg, *, project_root, config_path, run_id, render, summary_path=None):
     """Publish under B leases; ``render(staging_plots_cfg)`` returns C outcomes.
 
     cfg must already be normalised. Errors raise PublicationError with the complete
-    result (including published state after the commit point). No SQLite writes,
-    retention, fallback, or automatic CLI activation occur here.
+    result (including published state after the commit point). No SQLite writes or image fallback occur here.
     """
     result = PublicationResult()
     if not cfg['plots'].get('figures'):
@@ -420,19 +566,17 @@ def _publish(cfg, config_path, run_id, render, summary_path, result):
         result.state = 'failed'
         result.phase = 'validation'
         _uuid(run_id)
-        html_path = Path(os.path.abspath(cfg['plots']['html_output']))
-        output = Path(os.path.abspath(cfg['plots']['output_dir']))
-        report_id = hashlib.sha256(str(html_path).encode()).hexdigest()
-        root = output / '.qc-publication' / report_id
-        _validate_paths(cfg, config_path, root, html_path, summary_path)
-        identity = {'owner': OWNER, 'format_version': 1, 'report_id': report_id,
-                    'report_path': str(html_path)}
+        html_path, root, identity, previous = validate_publication(
+            cfg, config_path=config_path, summary_path=summary_path)
+        output = root.parent.parent
+        report_id = root.name
         namespace = {'owner': OWNER, 'format_version': 1, 'kind': 'namespace'}
-        _check_owned(root.parent, namespace)
-        _check_owned(root, dict(identity, kind='report'))
+        policy = cfg['plots']['publication']
+        previous_history = _history(root, identity, previous, policy['retained_generations'])
         for kind in ('staging', 'generations'):
-            _check_owned(root / kind, dict(identity, kind=kind))
-        previous = _current(html_path, root, report_id)
+            candidate = root / kind / run_id
+            if candidate.exists() or candidate.is_symlink():
+                raise FileExistsError(f'Run identifier already exists: {candidate}')
         result.previous_generation_id = previous
         result.generation_id = run_id
         result.phase = 'prepare'
@@ -442,13 +586,11 @@ def _publish(cfg, config_path, run_id, render, summary_path, result):
         _owned_directory(root, dict(identity, kind='report'))
         for kind in ('staging', 'generations'):
             _owned_directory(root / kind, dict(identity, kind=kind))
+        result.phase = 'startup_cleanup'
+        _cleanup(root, identity, previous, policy, run_id, result.cleanup['startup'])
+        result.phase = 'prepare'
         final = root / 'generations' / run_id
-        if final.exists() or final.is_symlink():
-            raise FileExistsError(f'Generation already exists: {run_id}')
         stage = root / 'staging' / run_id
-        if stage.exists() or stage.is_symlink():
-            stage = None  # Never clean a directory belonging to an earlier invocation.
-            raise FileExistsError(f'Staging already exists: {run_id}')
         stage_identity = dict(identity, kind='generation', generation_id=run_id,
                               prepared_utc=utc_now())
         _owned_directory(stage, stage_identity)
@@ -491,6 +633,7 @@ def _publish(cfg, config_path, run_id, render, summary_path, result):
             manifest_figures.append(value)
         manifest = dict(identity, generation_id=run_id, run_id=run_id,
                         previous_generation_id=previous, prepared_utc=stage_identity['prepared_utc'],
+                        retained_history_length=min(policy['retained_generations'], 1 + len(previous_history)),
                         package_version=__version__, rendering_config=snapshot,
                         detector_linearity=deepcopy(cfg.get('detector_linearity', {})),
                         figures=manifest_figures)
@@ -545,6 +688,8 @@ def _publish(cfg, config_path, run_id, render, summary_path, result):
             result.phase = 'sync_commit'
             os.fsync(parent)
         result.durability = 'confirmed'
+        result.phase = 'retention_cleanup'
+        _cleanup(root, identity, run_id, policy, run_id, result.cleanup['retention'])
         result.phase = 'completed'
     except Exception as exc:
         result.errors.append({'phase': result.phase, 'type': type(exc).__name__, 'reason': str(exc)})

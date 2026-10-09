@@ -436,7 +436,7 @@ def test_real_renderer_custom_template_and_legacy_api(setup):
     assert 'src="plots/' in legacy.read_text() and pub.MARKER not in legacy.read_text()
 
 
-def test_cli_keeps_direct_publication_and_summary_skipped(lab):
+def test_cli_activates_atomic_publication(lab):
     lab.cfg['plots']['datapoint_queries'] = {'sample': {'filters': {}}}
     lab.cfg['plots']['figures'] = [{'name': 'vis_hist', 'type': 'histogram',
                                    'filename': 'hist.png', 'datapoint_query': 'sample', 'arm': 'VIS'}]
@@ -444,9 +444,11 @@ def test_cli_keeps_direct_publication_and_summary_skipped(lab):
     completed = lab.cli()
     summary = json.loads(completed.stderr.split('RUN_SUMMARY ')[-1])
     assert summary['report']['state'] == 'published'
-    assert summary['publication'] == RunResult('run').publication
-    assert not list(lab.output.rglob('.qc-publication'))
-    assert (lab.output / 'plots/hist.png').is_file()
+    assert summary['publication']['state'] == 'published'
+    assert summary['publication']['cleanup']['retention']['limits_guaranteed'] is True
+    assert list(lab.output.rglob('.qc-publication'))
+    assert not (lab.output / 'plots/hist.png').exists()
+    assert references(Path(summary['report']['path']))[0].is_file()
 
 
 def test_renames_are_local_to_each_filesystem(setup, monkeypatch):

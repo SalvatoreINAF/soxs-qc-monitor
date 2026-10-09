@@ -118,8 +118,10 @@ ACQUISITION_DEFAULTS = {
 }
 DETLIN_DEFAULTS = {'enabled': False, 'filename_token': 'DETLIN', 'statistic': 'mean',
                    'saturation_level': 65536, 'saturation_fraction': .60, 'arms': {}}
+PUBLICATION_DEFAULTS = {'retained_generations': 2, 'orphan_max_age_hours': 24,
+                        'max_orphan_staging': 2}
 PLOT_DEFAULTS = {'output_dir': 'plots', 'html_output': 'index.html', 'show': False,
-                 'figures': [], 'datapoint_queries': {}}
+                 'figures': [], 'datapoint_queries': {}, 'publication': PUBLICATION_DEFAULTS}
 COMMON_FIGURE = {'name', 'type', 'filename', 'arm', 'section', 'title', 'wide',
                  'x_label', 'y_label'}
 LEGEND = {'figsize', 'legend_fontsize', 'legend_ncol', 'legend_loc'}
@@ -197,6 +199,14 @@ def validate_config(cfg):
     if 'page_title' in plots:
         _text(plots['page_title'], 'plots.page_title')
     _boolean(plots['show'], 'plots.show')
+    policy = _mapping(plots['publication'], 'plots.publication')
+    _keys(policy, PUBLICATION_DEFAULTS, 'plots.publication')
+    policy = plots['publication'] = {**PUBLICATION_DEFAULTS, **policy}
+    for key in ('retained_generations', 'max_orphan_staging'):
+        _number(policy[key], 'plots.publication.' + key, integer=True, positive=False)
+    if policy['retained_generations'] < 2 or policy['max_orphan_staging'] < 0:
+        raise ConfigurationError('plots.publication: retained_generations >= 2 and max_orphan_staging >= 0 required')
+    _number(policy['orphan_max_age_hours'], 'plots.publication.orphan_max_age_hours')
     queries = _mapping(plots['datapoint_queries'], 'plots.datapoint_queries')
     for name, query in queries.items():
         field = f"{cfg.get('_origins', {}).get('queries', {}).get(name, 'YAML')}: datapoint_queries.{name}"

@@ -16,6 +16,14 @@ def utc_now():
     return datetime.now(timezone.utc).isoformat()
 
 
+def publication_cleanup():
+    """Additive v1 diagnostics; null counts mean that no inventory was verified."""
+    def phase():
+        return {'state': 'skipped', 'removed': {'generations': 0, 'staging': 0},
+                'remaining': None, 'ignored': None, 'limits_guaranteed': None}
+    return {'startup': phase(), 'retention': phase()}
+
+
 @dataclass
 class RunResult:
     mode: str
@@ -32,7 +40,7 @@ class RunResult:
     publication: dict = field(default_factory=lambda: {'state': 'skipped',
         'phase': None, 'generation_id': None, 'previous_generation_id': None,
         'report_path': None, 'manifest_path': None, 'durability': 'not_applicable',
-        'staging_cleanup': 'not_required', 'errors': []})
+        'staging_cleanup': 'not_required', 'cleanup': publication_cleanup(), 'errors': []})
     sqlite_operations: list = field(default_factory=list)
     exit_code: int = 0
     ended_utc: str | None = None

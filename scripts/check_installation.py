@@ -95,20 +95,32 @@ with closing(sqlite3.connect(str(next(Path('.').glob('qc.sqlite.backup-*.sqlite'
             {'name': 'vis_bad', 'type': 'histogram', 'filename': 'bad.png',
              'arm': 'VIS', 'datapoint_query': 'sample'},
         ]
-        (root / 'plots/bad.png').mkdir(parents=True)
         (root / 'configs/qc_monitor.yaml').write_text(json.dumps(rendering))
         env.pop('MPLBACKEND', None)
-        partial = subprocess.run([str(entry)], cwd=root, env=env,
+        partial_program = """
+from pathlib import Path
+from qc_monitor import main as app
+original = app.generate_plots_from_config
+def fail_save(frame, plots, *args, **kwargs):
+    (Path(plots['output_dir']) / 'bad.png').mkdir(exist_ok=True)
+    return original(frame, plots, *args, **kwargs)
+app.generate_plots_from_config = fail_save
+"""
+        partial = subprocess.run([sys.executable, '-I', '-c', partial_program + '\nimport sys; sys.exit(app.main())'], cwd=root, env=env,
                                  capture_output=True, text=True, timeout=60)
         assert partial.returncode == 2, partial.stderr
         diagnostic = json.loads(partial.stderr.split('RUN_SUMMARY ')[-1])
-        assert diagnostic['versions']['qc-monitor'] == '1.6.0'
+        assert diagnostic['versions']['qc-monitor'] == '1.7.0'
         assert diagnostic['plots']['counts'] == {'produced': 1, 'failed': 1, 'no_data': 0}
         assert diagnostic['report']['state'] == 'published'
-        assert (root / 'plots/good.png').is_file()
+        good_path = Path(diagnostic['plots']['figures'][0]['path'])
+        assert good_path.is_file() and '.qc-publication' in good_path.parts
+        assert not (root / 'plots/good.png').exists()
         report = (root / 'index.html').read_text()
-        assert 'src="plots/good.png"' in report and 'src="plots/bad.png"' not in report
-        backend = subprocess.run([sys.executable, '-I', '-c', '''
+        import re
+        sources = re.findall(r'<img[^>]* src="([^"]+)"', report)
+        assert len(sources) == 1 and sources[0].endswith('/plots/good.png')
+        backend = subprocess.run([sys.executable, '-I', '-c', partial_program + '''
 import sys
 from qc_monitor import main as app
 from qc_monitor.figure_result import FigureResult
@@ -119,7 +131,9 @@ assert matplotlib.get_backend().lower() == 'agg'
 '''], cwd=root, env=dict(env, MPLBACKEND='TkAgg'),
             capture_output=True, text=True, timeout=60)
         assert backend.returncode == 0, backend.stderr
-        assert diagnostic['publication']['state'] == 'skipped'
+        assert diagnostic['publication']['state'] == 'published'
+        assert diagnostic['publication']['cleanup']['retention']['limits_guaranteed'] is True
+        assert len(list((root / 'plots/.qc-publication').glob('*/generations/*/manifest.json'))) == 2
         publication = subprocess.run([sys.executable, '-I', '-c', '''
 import json, uuid
 from pathlib import Path
@@ -140,7 +154,7 @@ def publish(render):
 good = publish(lambda plots: generate_plots_from_config(frame, plots, continue_on_error=True))
 assert good.state == 'published' and good.durability == 'confirmed'
 manifest = json.loads(Path(good.manifest_path).read_text())
-assert manifest['package_version'] == '1.6.0'
+assert manifest['package_version'] == '1.7.0'
 assert (Path(good.manifest_path).parent / 'report.html').is_file()
 before = Path(good.report_path).read_bytes()
 def broken(plots):
@@ -156,10 +170,14 @@ except PublicationError as exc:
 else:
     raise AssertionError('failure incorrectly published')
 assert Path(good.report_path).read_bytes() == before
+for _ in range(4):
+    result = publish(lambda plots: generate_plots_from_config(frame, plots, continue_on_error=True))
+assert result.cleanup['retention']['remaining'] == {'generations': 2, 'staging': 0}
+assert not Path(good.manifest_path).exists()
 '''], cwd=root, env=dict(env, MPLBACKEND='Agg'),
             capture_output=True, text=True, timeout=60)
         assert publication.returncode == 0, publication.stderr
-    print("Installed wheel: isolated imports, entry point, template, config, idempotence, dry-run, rebuild, partial rendering, Agg and internal atomic publication verified")
+    print("Installed wheel: isolated imports, entry point, template, config, idempotence, dry-run, rebuild, partial rendering, Agg and atomic CLI publication/retention verified")
 
 
 if __name__ == "__main__":

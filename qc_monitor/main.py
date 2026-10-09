@@ -34,7 +34,8 @@ from qc_monitor._outcomes import AcquisitionBatch, InputOutcome
 from qc_monitor.run_result import RunResult, write_summary
 from qc_monitor.figure_result import FigureResult, summarize_figures, validate_figure_results
 
-from qc_monitor.generate_html import generate_html_report, _load_template
+from qc_monitor.generate_html import _load_template
+from qc_monitor.publication import publish_report, PublicationError, validate_publication
 from qc_monitor.detector_linearity import (
     VIS_MODE_ORDER,
     _load_detector_linearity_batch,
@@ -702,6 +703,13 @@ def _run_main(args, run):
         input_roots = [Path(cfg["paths"][key]).resolve() for key in ("upstream_root", "reduced_root")]
         input_roots.append(config_dir.resolve())
         input_roots.extend(Path(arm["root"]).resolve() for arm in cfg.get("detector_linearity", {}).get("arms", {}).values() if arm.get("root"))
+        publication_namespace = Path(cfg['plots']['output_dir']).resolve() / '.qc-publication'
+        lexical_target = Path(os.path.abspath(args.summary_json.expanduser()))
+        if (target == publication_namespace or target.is_relative_to(publication_namespace)
+                or lexical_target == publication_namespace
+                or lexical_target.is_relative_to(publication_namespace)):
+            args.summary_json = None
+            raise ConfigurationError(f'Summary destination overlaps managed publication: {target}')
         protected = {Path(cfg["paths"]["qc_database"]).resolve(),
                      Path(cfg["plots"]["html_output"]).resolve()}
         database = Path(cfg['paths']['qc_database']).resolve()
@@ -736,6 +744,8 @@ def _run_main(args, run):
 
     sources = find_session_databases(upstream_root, upstream_database_name, upstream_search_mode)
     validate_path_collisions(cfg, config_path, sources, no_plots=args.dry_run or args.no_plots)
+    if not (args.dry_run or args.no_plots) and cfg['plots']['figures']:
+        validate_publication(cfg, config_path=config_path, summary_path=args.summary_json)
     if args.preflight:
         return
     if not args.dry_run:
@@ -831,20 +841,21 @@ def _run_main(args, run):
         import matplotlib
         matplotlib.use('Agg')
 
-    figure_results = []
-    groups = [
-        ('qc', {'time_series', 'xy_scatter', 'histogram', 'latest_by_order_bar'},
-         lambda: (qc_database.load_all_metrics(),)),
-        ('dsol_lines', {'dispersion_resolution', 'dispersion_residual_xy', 'dispersion_residual_histogram'},
-         lambda: (qc_database.load_dispersion_solution_lines(),)),
-        ('dsol_stats', {'dispersion_resolution_timeseries'},
-         lambda: (qc_database.load_dispersion_resolution_stats(),)),
-        ('oloc', {'order_location_fit'},
-         lambda: (qc_database.load_order_location_models(), qc_database.load_order_location_meta())),
-        ('detlin', {'detector_linearity'},
-         lambda: (qc_database.load_detector_linearity_results(),)),
-    ]
-    with run.phase('plots'):
+    def render(staging_plots_cfg):
+        plots_cfg = staging_plots_cfg
+        figure_results = []
+        groups = [
+            ('qc', {'time_series', 'xy_scatter', 'histogram', 'latest_by_order_bar'},
+             lambda: (qc_database.load_all_metrics(),)),
+            ('dsol_lines', {'dispersion_resolution', 'dispersion_residual_xy', 'dispersion_residual_histogram'},
+             lambda: (qc_database.load_dispersion_solution_lines(),)),
+            ('dsol_stats', {'dispersion_resolution_timeseries'},
+             lambda: (qc_database.load_dispersion_resolution_stats(),)),
+            ('oloc', {'order_location_fit'},
+             lambda: (qc_database.load_order_location_models(), qc_database.load_order_location_meta())),
+            ('detlin', {'detector_linearity'},
+             lambda: (qc_database.load_detector_linearity_results(),)),
+        ]
         for dataset, types, load in groups:
             figures = [fig for fig in plots_cfg['figures'] if fig['type'] in types]
             if not figures:
@@ -862,25 +873,23 @@ def _run_main(args, run):
                     results = generate_plots_from_config(
                         frames[0], plots_cfg, types, continue_on_error=True)
             figure_results.extend(results)
-            for item in results:
-                if item.state == 'failed':
-                    run.errors.append({'phase': 'plots', 'dataset': dataset, 'figure': item.name,
-                                       'type': item.error_type, 'reason': item.reason,
-                                       'reason_code': item.reason_code})
             # Retain already completed work if a later global failure occurs.
             run.plots = summarize_figures(figure_results)
         by_name = validate_figure_results(plots_cfg['figures'], figure_results)
         figure_results = [by_name[fig['name']] for fig in plots_cfg['figures']]
         run.plots = summarize_figures(figure_results)
 
-    html_output = resolve_project_path(plots_cfg.get('html_output', 'index.html'), project_root)
-    run.report = {'state': 'failed', 'path': None}
-    with run.phase('html'):
-        generate_html_report(
-            plots_cfg, html_output,
-            template_path=Path(plots_cfg['template']) if plots_cfg.get('template') else None,
-            figure_results=figure_results)
-        run.report = {'state': 'published', 'path': str(html_output.resolve())}
+        return figure_results
+
+    with run.phase('publication'):
+        try:
+            result = publish_report(cfg, project_root=project_root, config_path=config_path,
+                                    run_id=run.run_id, render=render, summary_path=args.summary_json)
+        except PublicationError as exc:
+            exc.result.apply_to(run)
+            raise
+        else:
+            result.apply_to(run)
 
 
 
@@ -913,7 +922,8 @@ def _main(operation):
             run.coordination['conflict_resource'] = exc.resource
         failed = [phase["name"] for phase in run.phases if phase["state"] == "failed"]
         error = {"type": type(exc).__name__, "reason": str(exc), "phase": failed[-1] if failed else "execution"}
-        run.errors.append(error)
+        if not isinstance(exc, PublicationError):
+            run.errors.append(error)
         for name in failed:
             if name in run.families:
                 run.families[name]["state"] = "failed"

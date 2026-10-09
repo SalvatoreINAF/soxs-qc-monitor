@@ -143,12 +143,13 @@ def test_run_keeps_protection_through_publication(lab, phase):
     program = '''
 import sys
 import qc_monitor.main as app
+from qc_monitor import publication as pub
 phase = sys.argv[2]
 def pause(*args, **kwargs):
     print('ready', flush=True)
     sys.stdin.read(1)
 if phase == 'plots': app.generate_plots_from_config = pause
-elif phase == 'html': app.generate_html_report = pause
+elif phase == 'html': pub._render_html_report = pause
 else: app.write_summary = pause
 sys.argv = ['qc-monitor', '--config', sys.argv[1], '--summary-json', sys.argv[3]]
 sys.exit(app.main())
