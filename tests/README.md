@@ -1,5 +1,32 @@
 # Verifica batch, scientifica e di installazione
 
+## D4 — Refactoring regressions
+
+D4 adds 49 cases covering baseline import/signature compatibility, pickle type
+identity, lazy registry/backend selection, equivalent finite numeric conversion,
+all seven public writers with reordered columns/NumPy scalars, SQL null/provenance,
+rollback, all four registry keys/statuses, configuration recheck and artist data
+for all ten renderers. Independent baseline captures and their origin are in
+[fixtures](fixtures/README.md); scientific fixtures/tolerances remain unchanged.
+
+Run complete interpreter suites **sequentially** on the same checkout: D3-B tests
+acquire exclusive source/update leases and overlapping suites interfere by design.
+Timeout tests need permission to execute ps. Do not turn those failures into skips
+or weaken assertions. The second-filesystem test is expected to skip on this Mac;
+the hosted Linux matrix must execute it.
+
+```sh
+python -m pytest -ra --tb=short -W error
+python scripts/capture_d4_rendering.py BASELINE_CHECKOUT TEMP_OUTPUT
+python scripts/check_d4_equivalence.py BASELINE_CHECKOUT TEMP_OUTPUT
+python scripts/render_d4_qa.py TEMP_OUTPUT
+python scripts/capture_d4_reports.py TEMP_OUTPUT docs/qa
+```
+
+[Results](results/d4-validation.md), [D4 contract](../docs/d4.md),
+[environments](../docs/qa/d4-environments.json), [handover](../docs/handover.md).
+Local validation complete; D4 hosted closure pending. Stop at D4.
+
 Suite corrente su `dev`: **655 casi**, D3-F e D3 formalmente chiuse (1.8.0/schema 1),
 CI hosted verde sul candidato esatto. D3-E resta formalmente chiusa sul suo candidato. D3-D formalmente chiusa.
 D3-A/B/C restano formalmente chiuse. Il caso su due filesystem può essere

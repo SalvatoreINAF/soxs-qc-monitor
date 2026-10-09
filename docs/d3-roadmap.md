@@ -1,5 +1,13 @@
 # D3 — Roadmap delle milestone
 
+## Ripresa D4 — 9 ottobre 2026
+
+D3 resta formalmente chiusa. D4 è stata autorizzata e implementata su dev,
+1.9.0/schema 1; validazione locale completata e CI D4 pendente.
+[Contratto e piano D4](d4.md), [evidenze D4](../tests/results/d4-validation.md),
+[handover corrente](handover.md). Le indicazioni storiche «D4 non avviata»
+sottostanti descrivono la consegna D3. Fermarsi a D4, senza avviare D5.
+
 **Aggiornamento: 9 ottobre 2026.** D3-0 documentale consegnato; D3-A
 completata e formalmente chiusa; D3-B formalmente chiusa il 9 ottobre 2026; D3-C formalmente chiusa; D3-D formalmente chiusa (1.6.0/schema 1); D3-E formalmente chiusa (1.7.0/schema 1); D3-F e D3 formalmente chiuse (1.8.0/schema 1).
 Questo indice è il riferimento versionato per le nuove sessioni. La roadmap e

@@ -1,3 +1,55 @@
+# Handover — D4 consegnata localmente, 9 ottobre 2026
+
+**D4 implementata e verificata localmente su dev, 1.9.0/schema 1.**
+D3 resta formalmente chiusa. **CI hosted D4 pendente; D4 non ancora formalmente
+chiusa. Nessun D5 avviato.** Questa apertura prevale sulle riprese storiche.
+
+## Scheda sintetica di consegna
+
+- Baseline `ddf67a85793e8dd64bbac19fe29e7a84634b89f0`, checkout pulito iniziale;
+  commit applicativo locale **`2cbbdb93500898730e4f32e1c3c21ceafa88602a`**. Il successivo commit documentale
+  registra la consegna; non introduce nuovo codice applicativo.
+- Helper SQL/registri senza commit, conversione finita e discovery comuni;
+  preflight/runtime/consolidamento separati e plotting per famiglia con registro
+  statico lazy dei dieci renderer. Import/firme/tipi serializzabili compatibili;
+  processing vuoto conservato. Configurazione ricontrollata sotto le protezioni.
+- **49 nuovi casi, 704 complessivi. 703 PASS/1 SKIP per Python 3.11/3.12/3.13**,
+  warning come errori; nessun FAIL/XFAIL/XPASS finale. Durate 202,88/232,65/225,95 s.
+  Skip soltanto per secondo filesystem scrivibile assente sul Mac; prova necessaria
+  nella futura matrice Linux. D4 mirato finale 3.12: 49 PASS/13,85 s.
+- Wheel 1.9.0, checker esteso con -I fuori checkout e pip check PASS nei tre
+  ambienti isolati; moduli/risorse identici byte per byte a checkout/wheel/installati.
+  Suite 3.12 precede solo normalizzazione del prefisso pathlib nel test; mirato
+  finale ripetuto e suite complete 3.11/3.13 sul test aggiornato. Codice identico.
+- Confronto CLI/SQL baseline per sette scenari PASS; dati/PNG dei dieci renderer
+  equivalenti. QA nominale/parziale/riusata/archiviata e tavola renderer ispezionate,
+  link e integrità indipendenti. Capture Chrome attende decode e compositor.
+- Schema, intero modulo DETLIN, bootstrap, lock/retry/coordinamento, rebuild,
+  pubblicazione/esiti/riepiloghi/template invariati; formule/loader/selezioni
+  pertinenti invariati nell’AST. Nessuna nuova opzione CLI/YAML/manifesto.
+- Documenti/test/evidenze/ambienti/handover e due reference_docs locali aggiornati;
+  reference_docs resta ignorata da Git. Stima 28–40 ore resta stima, non consuntivo.
+
+[Scheda e piano D4](d4.md), [audit iniziale](../tests/results/d4-planning.md),
+[evidenze complete](../tests/results/d4-validation.md),
+[ambienti/hash](qa/d4-environments.json), [audit codice](qa/d4-code-audit.json),
+[equivalenza](qa/d4-equivalence.json).
+
+## Ripresa vincolante
+
+Verificare dev/HEAD/working tree e leggere questi documenti. Pubblicare il
+candidato **solo su richiesta** e verificare matrice hosted Linux 3.11/3.12/3.13
+più macOS 3.12 sullo SHA esatto; registrare poi la chiusura formale D4.
+Non attribuire a D4 la CI D3 né una CI mai eseguita. Eseguire le suite sullo
+stesso checkout una per volta: anche test mirati/API possono interferire con
+le lease esclusive dell’update. Test timeout richiedono ps disponibile.
+
+**Fermarsi a D4.** Nessun push, merge/deploy, scheduler o rebuild operativo
+eseguito. Nessuna accettazione su dati reali, benchmark D5 o cambio scientifico.
+Le sezioni seguenti conservano la storia delle consegne precedenti.
+
+---
+
 # Handover — D3-F e D3 formalmente chiuse, 9 ottobre 2026
 
 **D3-F completata e formalmente chiusa su dev. D3 complessivamente chiusa.**

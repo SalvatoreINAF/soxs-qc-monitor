@@ -1,6 +1,7 @@
 # SOXS QC Monitor
 
-**Current: 1.8.0/schema 1; D3-F and D3 formally closed after hosted verification.**
+**Current: 1.9.0/schema 1; D4 locally delivered and verified; hosted CI pending.**
+D3 remains formally closed. See the [D4 contract](docs/d4.md) and [D4 results](tests/results/d4-validation.md).
 See [handover](docs/handover.md) for the current resume point.
 
 The SOXS QC Monitor is a lightweight monitoring tool that extracts Quality Control (QC) information from SOXS Pipeline products and generates a static HTML report with trend plots and diagnostic visualizations.
@@ -416,6 +417,15 @@ stop the scheduler first; see [update and rollback](docs/operations.md#update-an
 ├── logs
 ├── plots
 ├── qc_monitor
+│   ├── _consolidation.py
+│   ├── _preflight.py
+│   ├── _runtime.py
+│   ├── _renderers.py
+│   ├── _plots_common.py
+│   ├── _plots_qc.py
+│   ├── _plots_dsol.py
+│   ├── _plots_oloc.py
+│   ├── _plots_detlin.py
 │   ├── acquisition.py
 │   ├── config.py
 │   ├── locking.py
@@ -438,15 +448,11 @@ stop the scheduler first; see [update and rollback](docs/operations.md#update-an
 
 ### `main.py`
 
-Application entry point.
-
-Responsibilities:
-
-- validated configuration and acquisition orchestration
-- acquisition orchestration
-- database consolidation
-- plot generation
-- HTML report generation
+Application entry point and compatible imports for pipeline callers. It sequences
+acquisition, rendering/publication and the run summary. Private `_runtime.py`
+resolves configuration and protected destinations; `_preflight.py` checks resources
+without writes; `_consolidation.py` keeps domain-specific ingestion and unit commits
+explicit. The configuration is rechecked after operation leases are acquired.
 
 ### `acquisition.py`
 
@@ -463,13 +469,19 @@ Placeholder containing only a docstring; it is not an operational processing lay
 ### `storage.py`
 
 Manages the QC Monitor SQLite database, schema checks and atomic family units.
+Private SQL insertion/registry helpers receive the caller’s connection and never
+commit on their own. Nullable values and NumPy scalars are adapted at that boundary.
 `locking.py` coordinates storage writers; `rebuild.py` validates and publishes
 replacement databases while retaining backups. `config.py` owns declarative
 loading, defaults, validation and path normalization.
 
 ### `plotting.py`
 
-Generates all PNG plots used by the report.
+Compatible interface for all existing plotting functions. Implementations live in
+private QC/DSOL/OLOC/DETLIN modules, with `_plots_common.py` handling query selection,
+validation and figure finalization. `_renderers.py` declares the ten supported types
+and their datasets, including both OLOC frames, without importing Matplotlib.
+Backend selection still precedes rendering; errors remain isolated per figure.
 
 ### `generate_html.py`
 

@@ -1,6 +1,21 @@
 # D2 — Configuration and storage contracts
 
-D2 package 1.2.0; current D3-F package 1.8.0; SQLite schema version 1. D2 is developed on `dev`. D1 remains
+## Compatibilità D4
+
+Pacchetto corrente 1.9.0, SQLite schema 1. I contratti scientifici e dello storage
+D2/D3 rimangono validi. Helper privati condividono inserimenti e registri usando
+le definizioni di schema già presenti: ricevono la connessione transazionale,
+non effettuano commit e non introducono nuove politiche di conflitto. Provenienza
+QC e metadati delle sequenze restano responsabilità esplicite dei writer di dominio.
+Valori null opzionali e scalari NumPy sono adattati per SQLite; i vincoli NOT NULL
+continuano a rifiutare valori obbligatori mancanti con rollback.
+
+Import/firme delle API esistenti conservati, incluso processing vuoto. Selezioni
+OLOC e DETLIN distinte, `last_3_months` riferito al massimo timestamp della serie.
+[Contratto D4](d4.md), [evidenze](../tests/results/d4-validation.md),
+[handover](handover.md); validazione locale completata, CI D4 pendente.
+
+D2 package 1.2.0; current D4 package 1.9.0; SQLite schema version 1. D2 is developed on `dev`. D1 remains
 formally closed on its previously verified candidate. D2 delivery and current
 verification evidence are recorded in [handover](handover.md) and
 [test results](../tests/results/d2-validation.md).

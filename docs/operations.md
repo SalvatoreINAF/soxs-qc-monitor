@@ -1,4 +1,17 @@
-# Batch operation and recovery — D3-F
+# Batch operation and recovery — D4
+
+## D4 — Organizzazione interna e compatibilità
+
+D4 1.9.0/schema 1 conserva comandi, opzioni, configurazione, transazioni, lock,
+retry, rebuild, pubblicazione e retention. Main continua a esporre le API della
+pipeline; la preparazione delle risorse, il preflight e i coordinatori sono moduli
+privati separati. La seconda lettura della configurazione sotto protezione resta
+obbligatoria. Il registro dei renderer non importa Matplotlib e il backend batch
+è selezionato prima del plotting.
+
+[Contratto D4](d4.md), [verifiche D4](../tests/results/d4-validation.md),
+[handover](handover.md). Validazione locale completata; CI del candidato D4 pendente.
+I contratti operativi D3 riportati sotto restano validi. Fermata a D4.
 
 Run only after the pipeline has finished reduction. An inventory of present FITS
 files does not certify producer completion. Closed observing days are normally

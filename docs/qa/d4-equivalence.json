@@ -1,0 +1,537 @@
+{
+  "baseline_sha": "ddf67a85793e8dd64bbac19fe29e7a84634b89f0",
+  "equivalent": true,
+  "steps": [
+    "nominal",
+    "incomplete",
+    "save_failure_reuse",
+    "repair_retry",
+    "idempotent",
+    "dry_run",
+    "rebuild"
+  ],
+  "checks": [
+    "normalized table contents",
+    "family counters and states",
+    "figure state counts",
+    "integrity_check",
+    "foreign_key_check"
+  ],
+  "normalization": [
+    "isolated project root replaced by <PROJECT>",
+    "processed_at excluded"
+  ],
+  "renderer_reference": "tests/fixtures/d4-renderer-data.json",
+  "png_byte_equivalence": {
+    "detector_linearity.png": "066251641e332fe0d2e146158958db4063daecdbd81cb493cf1f1fd41af4951e",
+    "dispersion_residual_histogram.png": "00e60aee32f1a2af4e56578b54c15144d777996af627aa9002c5cead9eb44413",
+    "dispersion_residual_xy.png": "276b23d56a93262a26840f7e963b279bfccc4f52a825d4edbac9aeaeb6374693",
+    "dispersion_resolution.png": "b2247376041046441cb6d3f51840b59f15d3e9d637827460c16d3a97edf773fb",
+    "dispersion_resolution_timeseries.png": "9cfa7ee2c5665e28d281241c01fe64229bbd8f7707900381bc9324c08329828e",
+    "histogram.png": "b76632c6ffce4af7af0756c123080bee23970286d11a50bdff66dc9c76e93ec6",
+    "latest_by_order_bar.png": "7954ccdadd317e526016291261beaad1a8c6213bd91ee4ac83002be36d5d02bb",
+    "order_location_fit.png": "283968e947aca1a93307bec3abfa6d6181730b2af3a9c4723741cad5fbef872b",
+    "time_series.png": "3a9f1fe49239b2a2179c7e0038ac283ac72f6d1adc8bd56495b508714bfd70e7",
+    "xy_scatter.png": "f7e9767106fc47977c9a1b389fa055065e3c5572d54948e9f089888663750747"
+  },
+  "temporary_full_comparison": "/private/tmp/qc-d4-sql-final/comparison.json",
+  "sql_steps": {
+    "nominal": {
+      "exit_code": 0,
+      "states": {
+        "detlin": "completed",
+        "dsol": "completed",
+        "oloc": "completed",
+        "qc": "completed"
+      },
+      "figure_counts": {
+        "failed": 0,
+        "no_data": 0,
+        "produced": 3,
+        "reused": 0
+      },
+      "baseline_sha256": "e989291e2f447468ebfab5990ed9bd4e7b7ff304437bd436dfc1ea7dbccb26f3",
+      "refactored_sha256": "e989291e2f447468ebfab5990ed9bd4e7b7ff304437bd436dfc1ea7dbccb26f3",
+      "tables": {
+        "detector_linearity_measurements": {
+          "rows": 28,
+          "sha256": "ca1acc187b77b36d1bbe7fbeca6b1c56a1767283f4595ead1c1c0fa1fcdc0a3e"
+        },
+        "detector_linearity_results": {
+          "rows": 8,
+          "sha256": "2712ed38f7c1e5bcba09b7e4c946cf62e89a867e7d2ae7ca7e6879f5fbb5dd0e"
+        },
+        "detlin_sequences": {
+          "rows": 1,
+          "sha256": "d44f858ee11ffaca54fffc8e4695e69f0777f417ff2f10f344967f9f2ada80e9"
+        },
+        "dispersion_resolution_stats": {
+          "rows": 1,
+          "sha256": "e5230276683ff69a225cfd162e299124c236da2a19fb79d4151e0625e50dc9bb"
+        },
+        "dispersion_solution_lines": {
+          "rows": 2,
+          "sha256": "3ce898b4fddd9a26cfad021a1f9b81c7a0b49d1c0a27d84c261977092465ba21"
+        },
+        "order_location_meta": {
+          "rows": 1,
+          "sha256": "546da3d9d73e912dc6fa802351e19d1c977071a6bddd60bc51fd9e1ea1f252c5"
+        },
+        "order_location_models": {
+          "rows": 1,
+          "sha256": "b7f3ccbb1fc21de434db54c6e8de7a4ddd672b81a7bb142ffbeb0eca54d25345"
+        },
+        "processed_detector_linearity_obs_days": {
+          "rows": 1,
+          "sha256": "87a22eb77bd681d3eed3e4c33f18525706435e322e74bf5f1ad5f249bcf2de8d"
+        },
+        "processed_dispersion_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "processed_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "processed_order_location_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "qc_metric_sources": {
+          "rows": 1,
+          "sha256": "f7274eb58807fa12c9e70927ffd5c44971b3824f2d3641a265e1c2cff63e86bd"
+        },
+        "qc_metrics": {
+          "rows": 1,
+          "sha256": "fd3d0f237d5cbd6f3a686732ec9d1da0cc328ed5f034f16f737a826ecf0d243e"
+        }
+      }
+    },
+    "incomplete": {
+      "exit_code": 1,
+      "states": {
+        "detlin": "completed",
+        "dsol": "partial",
+        "oloc": "completed",
+        "qc": "completed"
+      },
+      "figure_counts": {
+        "failed": 0,
+        "no_data": 0,
+        "produced": 3,
+        "reused": 0
+      },
+      "baseline_sha256": "4c43711dd0440b7b631051e873d0cc14d02ba440ea58b11abed60b55efddd84c",
+      "refactored_sha256": "4c43711dd0440b7b631051e873d0cc14d02ba440ea58b11abed60b55efddd84c",
+      "tables": {
+        "detector_linearity_measurements": {
+          "rows": 28,
+          "sha256": "ca1acc187b77b36d1bbe7fbeca6b1c56a1767283f4595ead1c1c0fa1fcdc0a3e"
+        },
+        "detector_linearity_results": {
+          "rows": 8,
+          "sha256": "2712ed38f7c1e5bcba09b7e4c946cf62e89a867e7d2ae7ca7e6879f5fbb5dd0e"
+        },
+        "detlin_sequences": {
+          "rows": 1,
+          "sha256": "d44f858ee11ffaca54fffc8e4695e69f0777f417ff2f10f344967f9f2ada80e9"
+        },
+        "dispersion_resolution_stats": {
+          "rows": 1,
+          "sha256": "e5230276683ff69a225cfd162e299124c236da2a19fb79d4151e0625e50dc9bb"
+        },
+        "dispersion_solution_lines": {
+          "rows": 2,
+          "sha256": "3ce898b4fddd9a26cfad021a1f9b81c7a0b49d1c0a27d84c261977092465ba21"
+        },
+        "order_location_meta": {
+          "rows": 1,
+          "sha256": "546da3d9d73e912dc6fa802351e19d1c977071a6bddd60bc51fd9e1ea1f252c5"
+        },
+        "order_location_models": {
+          "rows": 1,
+          "sha256": "b7f3ccbb1fc21de434db54c6e8de7a4ddd672b81a7bb142ffbeb0eca54d25345"
+        },
+        "processed_detector_linearity_obs_days": {
+          "rows": 1,
+          "sha256": "87a22eb77bd681d3eed3e4c33f18525706435e322e74bf5f1ad5f249bcf2de8d"
+        },
+        "processed_dispersion_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "processed_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "processed_order_location_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "qc_metric_sources": {
+          "rows": 1,
+          "sha256": "f7274eb58807fa12c9e70927ffd5c44971b3824f2d3641a265e1c2cff63e86bd"
+        },
+        "qc_metrics": {
+          "rows": 1,
+          "sha256": "fd3d0f237d5cbd6f3a686732ec9d1da0cc328ed5f034f16f737a826ecf0d243e"
+        }
+      }
+    },
+    "save_failure_reuse": {
+      "exit_code": 2,
+      "states": {
+        "detlin": "completed",
+        "dsol": "partial",
+        "oloc": "completed",
+        "qc": "completed"
+      },
+      "figure_counts": {
+        "failed": 0,
+        "no_data": 0,
+        "produced": 2,
+        "reused": 1
+      },
+      "baseline_sha256": "51b75f3182c7d54c17f007175042f17ec051cbc95ae666ad25c3745d0b522ebe",
+      "refactored_sha256": "51b75f3182c7d54c17f007175042f17ec051cbc95ae666ad25c3745d0b522ebe",
+      "tables": {
+        "detector_linearity_measurements": {
+          "rows": 28,
+          "sha256": "ca1acc187b77b36d1bbe7fbeca6b1c56a1767283f4595ead1c1c0fa1fcdc0a3e"
+        },
+        "detector_linearity_results": {
+          "rows": 8,
+          "sha256": "2712ed38f7c1e5bcba09b7e4c946cf62e89a867e7d2ae7ca7e6879f5fbb5dd0e"
+        },
+        "detlin_sequences": {
+          "rows": 1,
+          "sha256": "d44f858ee11ffaca54fffc8e4695e69f0777f417ff2f10f344967f9f2ada80e9"
+        },
+        "dispersion_resolution_stats": {
+          "rows": 1,
+          "sha256": "e5230276683ff69a225cfd162e299124c236da2a19fb79d4151e0625e50dc9bb"
+        },
+        "dispersion_solution_lines": {
+          "rows": 2,
+          "sha256": "3ce898b4fddd9a26cfad021a1f9b81c7a0b49d1c0a27d84c261977092465ba21"
+        },
+        "order_location_meta": {
+          "rows": 1,
+          "sha256": "546da3d9d73e912dc6fa802351e19d1c977071a6bddd60bc51fd9e1ea1f252c5"
+        },
+        "order_location_models": {
+          "rows": 1,
+          "sha256": "b7f3ccbb1fc21de434db54c6e8de7a4ddd672b81a7bb142ffbeb0eca54d25345"
+        },
+        "processed_detector_linearity_obs_days": {
+          "rows": 1,
+          "sha256": "87a22eb77bd681d3eed3e4c33f18525706435e322e74bf5f1ad5f249bcf2de8d"
+        },
+        "processed_dispersion_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "processed_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "processed_order_location_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "qc_metric_sources": {
+          "rows": 1,
+          "sha256": "f7274eb58807fa12c9e70927ffd5c44971b3824f2d3641a265e1c2cff63e86bd"
+        },
+        "qc_metrics": {
+          "rows": 1,
+          "sha256": "fd3d0f237d5cbd6f3a686732ec9d1da0cc328ed5f034f16f737a826ecf0d243e"
+        }
+      }
+    },
+    "repair_retry": {
+      "exit_code": 0,
+      "states": {
+        "detlin": "completed",
+        "dsol": "completed",
+        "oloc": "completed",
+        "qc": "completed"
+      },
+      "figure_counts": {
+        "failed": 0,
+        "no_data": 0,
+        "produced": 3,
+        "reused": 0
+      },
+      "baseline_sha256": "fb5335a277a0ec9f04071aa6d99a1f9d10167138128eeabff00de476730680ef",
+      "refactored_sha256": "fb5335a277a0ec9f04071aa6d99a1f9d10167138128eeabff00de476730680ef",
+      "tables": {
+        "detector_linearity_measurements": {
+          "rows": 28,
+          "sha256": "ca1acc187b77b36d1bbe7fbeca6b1c56a1767283f4595ead1c1c0fa1fcdc0a3e"
+        },
+        "detector_linearity_results": {
+          "rows": 8,
+          "sha256": "2712ed38f7c1e5bcba09b7e4c946cf62e89a867e7d2ae7ca7e6879f5fbb5dd0e"
+        },
+        "detlin_sequences": {
+          "rows": 1,
+          "sha256": "d44f858ee11ffaca54fffc8e4695e69f0777f417ff2f10f344967f9f2ada80e9"
+        },
+        "dispersion_resolution_stats": {
+          "rows": 2,
+          "sha256": "46ef9895cddaaaff20521634269da73e8f044fdf1aba5c2c28a74cb65d0b150b"
+        },
+        "dispersion_solution_lines": {
+          "rows": 4,
+          "sha256": "6e814e27cc2835c61a85847ad7d81adcc1a266fe3c88051a9952ca5af0a148b7"
+        },
+        "order_location_meta": {
+          "rows": 1,
+          "sha256": "546da3d9d73e912dc6fa802351e19d1c977071a6bddd60bc51fd9e1ea1f252c5"
+        },
+        "order_location_models": {
+          "rows": 1,
+          "sha256": "b7f3ccbb1fc21de434db54c6e8de7a4ddd672b81a7bb142ffbeb0eca54d25345"
+        },
+        "processed_detector_linearity_obs_days": {
+          "rows": 1,
+          "sha256": "87a22eb77bd681d3eed3e4c33f18525706435e322e74bf5f1ad5f249bcf2de8d"
+        },
+        "processed_dispersion_obs_days": {
+          "rows": 2,
+          "sha256": "9a76c7191e4079d704e5bb22931bf3745623d4127d59c96e6506d799aa901c01"
+        },
+        "processed_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "processed_order_location_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "qc_metric_sources": {
+          "rows": 1,
+          "sha256": "f7274eb58807fa12c9e70927ffd5c44971b3824f2d3641a265e1c2cff63e86bd"
+        },
+        "qc_metrics": {
+          "rows": 1,
+          "sha256": "fd3d0f237d5cbd6f3a686732ec9d1da0cc328ed5f034f16f737a826ecf0d243e"
+        }
+      }
+    },
+    "idempotent": {
+      "exit_code": 0,
+      "states": {
+        "detlin": "completed",
+        "dsol": "completed",
+        "oloc": "completed",
+        "qc": "completed"
+      },
+      "figure_counts": {
+        "failed": 0,
+        "no_data": 0,
+        "produced": 3,
+        "reused": 0
+      },
+      "baseline_sha256": "e724a63589b6ab53f770e13384d9e1295d84579117da3443f07bd295370bcc22",
+      "refactored_sha256": "e724a63589b6ab53f770e13384d9e1295d84579117da3443f07bd295370bcc22",
+      "tables": {
+        "detector_linearity_measurements": {
+          "rows": 28,
+          "sha256": "ca1acc187b77b36d1bbe7fbeca6b1c56a1767283f4595ead1c1c0fa1fcdc0a3e"
+        },
+        "detector_linearity_results": {
+          "rows": 8,
+          "sha256": "2712ed38f7c1e5bcba09b7e4c946cf62e89a867e7d2ae7ca7e6879f5fbb5dd0e"
+        },
+        "detlin_sequences": {
+          "rows": 1,
+          "sha256": "d44f858ee11ffaca54fffc8e4695e69f0777f417ff2f10f344967f9f2ada80e9"
+        },
+        "dispersion_resolution_stats": {
+          "rows": 2,
+          "sha256": "46ef9895cddaaaff20521634269da73e8f044fdf1aba5c2c28a74cb65d0b150b"
+        },
+        "dispersion_solution_lines": {
+          "rows": 4,
+          "sha256": "6e814e27cc2835c61a85847ad7d81adcc1a266fe3c88051a9952ca5af0a148b7"
+        },
+        "order_location_meta": {
+          "rows": 1,
+          "sha256": "546da3d9d73e912dc6fa802351e19d1c977071a6bddd60bc51fd9e1ea1f252c5"
+        },
+        "order_location_models": {
+          "rows": 1,
+          "sha256": "b7f3ccbb1fc21de434db54c6e8de7a4ddd672b81a7bb142ffbeb0eca54d25345"
+        },
+        "processed_detector_linearity_obs_days": {
+          "rows": 1,
+          "sha256": "87a22eb77bd681d3eed3e4c33f18525706435e322e74bf5f1ad5f249bcf2de8d"
+        },
+        "processed_dispersion_obs_days": {
+          "rows": 2,
+          "sha256": "9a76c7191e4079d704e5bb22931bf3745623d4127d59c96e6506d799aa901c01"
+        },
+        "processed_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "processed_order_location_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "qc_metric_sources": {
+          "rows": 1,
+          "sha256": "f7274eb58807fa12c9e70927ffd5c44971b3824f2d3641a265e1c2cff63e86bd"
+        },
+        "qc_metrics": {
+          "rows": 1,
+          "sha256": "fd3d0f237d5cbd6f3a686732ec9d1da0cc328ed5f034f16f737a826ecf0d243e"
+        }
+      }
+    },
+    "dry_run": {
+      "exit_code": 0,
+      "states": {
+        "detlin": "completed",
+        "dsol": "completed",
+        "oloc": "completed",
+        "qc": "completed"
+      },
+      "figure_counts": {
+        "failed": 0,
+        "no_data": 0,
+        "produced": 0,
+        "reused": 0
+      },
+      "baseline_sha256": "b25b710584f5be78f8ee50f2d7f07a29c64d75490abe3abc2f6fbdad27af8993",
+      "refactored_sha256": "b25b710584f5be78f8ee50f2d7f07a29c64d75490abe3abc2f6fbdad27af8993",
+      "tables": {
+        "detector_linearity_measurements": {
+          "rows": 28,
+          "sha256": "ca1acc187b77b36d1bbe7fbeca6b1c56a1767283f4595ead1c1c0fa1fcdc0a3e"
+        },
+        "detector_linearity_results": {
+          "rows": 8,
+          "sha256": "2712ed38f7c1e5bcba09b7e4c946cf62e89a867e7d2ae7ca7e6879f5fbb5dd0e"
+        },
+        "detlin_sequences": {
+          "rows": 1,
+          "sha256": "d44f858ee11ffaca54fffc8e4695e69f0777f417ff2f10f344967f9f2ada80e9"
+        },
+        "dispersion_resolution_stats": {
+          "rows": 2,
+          "sha256": "46ef9895cddaaaff20521634269da73e8f044fdf1aba5c2c28a74cb65d0b150b"
+        },
+        "dispersion_solution_lines": {
+          "rows": 4,
+          "sha256": "6e814e27cc2835c61a85847ad7d81adcc1a266fe3c88051a9952ca5af0a148b7"
+        },
+        "order_location_meta": {
+          "rows": 1,
+          "sha256": "546da3d9d73e912dc6fa802351e19d1c977071a6bddd60bc51fd9e1ea1f252c5"
+        },
+        "order_location_models": {
+          "rows": 1,
+          "sha256": "b7f3ccbb1fc21de434db54c6e8de7a4ddd672b81a7bb142ffbeb0eca54d25345"
+        },
+        "processed_detector_linearity_obs_days": {
+          "rows": 1,
+          "sha256": "87a22eb77bd681d3eed3e4c33f18525706435e322e74bf5f1ad5f249bcf2de8d"
+        },
+        "processed_dispersion_obs_days": {
+          "rows": 2,
+          "sha256": "9a76c7191e4079d704e5bb22931bf3745623d4127d59c96e6506d799aa901c01"
+        },
+        "processed_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "processed_order_location_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "qc_metric_sources": {
+          "rows": 1,
+          "sha256": "f7274eb58807fa12c9e70927ffd5c44971b3824f2d3641a265e1c2cff63e86bd"
+        },
+        "qc_metrics": {
+          "rows": 1,
+          "sha256": "fd3d0f237d5cbd6f3a686732ec9d1da0cc328ed5f034f16f737a826ecf0d243e"
+        }
+      }
+    },
+    "rebuild": {
+      "exit_code": 0,
+      "states": {
+        "detlin": "completed",
+        "dsol": "completed",
+        "oloc": "completed",
+        "qc": "completed"
+      },
+      "figure_counts": {
+        "failed": 0,
+        "no_data": 0,
+        "produced": 3,
+        "reused": 0
+      },
+      "baseline_sha256": "0334829b16102cfa1e2b6e122888c54c66aea683716ce097aabb473e581b1717",
+      "refactored_sha256": "0334829b16102cfa1e2b6e122888c54c66aea683716ce097aabb473e581b1717",
+      "tables": {
+        "detector_linearity_measurements": {
+          "rows": 28,
+          "sha256": "ca1acc187b77b36d1bbe7fbeca6b1c56a1767283f4595ead1c1c0fa1fcdc0a3e"
+        },
+        "detector_linearity_results": {
+          "rows": 8,
+          "sha256": "2712ed38f7c1e5bcba09b7e4c946cf62e89a867e7d2ae7ca7e6879f5fbb5dd0e"
+        },
+        "detlin_sequences": {
+          "rows": 1,
+          "sha256": "d44f858ee11ffaca54fffc8e4695e69f0777f417ff2f10f344967f9f2ada80e9"
+        },
+        "dispersion_resolution_stats": {
+          "rows": 2,
+          "sha256": "46ef9895cddaaaff20521634269da73e8f044fdf1aba5c2c28a74cb65d0b150b"
+        },
+        "dispersion_solution_lines": {
+          "rows": 4,
+          "sha256": "6e814e27cc2835c61a85847ad7d81adcc1a266fe3c88051a9952ca5af0a148b7"
+        },
+        "order_location_meta": {
+          "rows": 1,
+          "sha256": "546da3d9d73e912dc6fa802351e19d1c977071a6bddd60bc51fd9e1ea1f252c5"
+        },
+        "order_location_models": {
+          "rows": 1,
+          "sha256": "b7f3ccbb1fc21de434db54c6e8de7a4ddd672b81a7bb142ffbeb0eca54d25345"
+        },
+        "processed_detector_linearity_obs_days": {
+          "rows": 1,
+          "sha256": "87a22eb77bd681d3eed3e4c33f18525706435e322e74bf5f1ad5f249bcf2de8d"
+        },
+        "processed_dispersion_obs_days": {
+          "rows": 2,
+          "sha256": "9a76c7191e4079d704e5bb22931bf3745623d4127d59c96e6506d799aa901c01"
+        },
+        "processed_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "processed_order_location_obs_days": {
+          "rows": 1,
+          "sha256": "d541deb3206e92d845063058df7668f33cb40c7844fdc3624f423b1e30de257a"
+        },
+        "qc_metric_sources": {
+          "rows": 1,
+          "sha256": "f7274eb58807fa12c9e70927ffd5c44971b3824f2d3641a265e1c2cff63e86bd"
+        },
+        "qc_metrics": {
+          "rows": 1,
+          "sha256": "fd3d0f237d5cbd6f3a686732ec9d1da0cc328ed5f034f16f737a826ecf0d243e"
+        }
+      }
+    }
+  }
+}
