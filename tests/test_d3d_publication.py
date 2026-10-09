@@ -79,6 +79,22 @@ def references(html):
     return [html.parent / unquote(value) for value in parser.sources]
 
 
+def legacy_manifest(result):
+    """Turn a synthetic publication into the actual pre-F manifest shape."""
+    path = Path(result.manifest_path)
+    manifest = json.loads(path.read_text())
+    for figure in manifest['figures']:
+        for key in ('compatibility', 'generated_utc', 'origin_generation_id',
+                    'reused_from_generation_id', 'fallback'):
+            figure.pop(key, None)
+    path.write_text(pub._json(manifest))
+    live = Path(result.report_path)
+    content = live.read_text()
+    marker = pub._marker(content)
+    marker['manifest_sha256'] = hashlib.sha256(path.read_bytes()).hexdigest()
+    live.write_text(pub._marked(content.split('\n', 1)[1], marker))
+
+
 def test_successive_generations_are_independent_and_manifest_is_not_a_pointer(setup):
     cfg, _ = setup
     before = deepcopy(cfg)
@@ -323,6 +339,7 @@ def test_invalid_existing_publication_is_not_adopted(setup, corruption):
     elif corruption == 'manifest':
         Path(previous.manifest_path).write_text('{}')
     elif corruption == 'png':
+        legacy_manifest(previous)  # Legacy E still requires intact PNGs.
         references(html)[0].write_bytes(b'corrupt PNG')
     else:
         (root_of(cfg) / '.owner.json').write_text('{}')

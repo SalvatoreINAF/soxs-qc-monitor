@@ -35,7 +35,7 @@ class RunResult:
     storage: dict = field(default_factory=dict)
     coordination: dict = field(default_factory=dict)
     plots: dict = field(default_factory=lambda: {'state': 'skipped',
-        'counts': {'produced': 0, 'no_data': 0, 'failed': 0}, 'figures': []})
+        'counts': {'produced': 0, 'no_data': 0, 'failed': 0, 'reused': 0}, 'figures': []})
     report: dict = field(default_factory=lambda: {'state': 'skipped', 'path': None})
     publication: dict = field(default_factory=lambda: {'state': 'skipped',
         'phase': None, 'generation_id': None, 'previous_generation_id': None,

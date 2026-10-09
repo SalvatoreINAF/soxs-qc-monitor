@@ -110,8 +110,8 @@ app.generate_plots_from_config = fail_save
                                  capture_output=True, text=True, timeout=60)
         assert partial.returncode == 2, partial.stderr
         diagnostic = json.loads(partial.stderr.split('RUN_SUMMARY ')[-1])
-        assert diagnostic['versions']['qc-monitor'] == '1.7.0'
-        assert diagnostic['plots']['counts'] == {'produced': 1, 'failed': 1, 'no_data': 0}
+        assert diagnostic['versions']['qc-monitor'] == '1.8.0'
+        assert diagnostic['plots']['counts'] == {'produced': 1, 'failed': 1, 'no_data': 0, 'reused': 0}
         assert diagnostic['report']['state'] == 'published'
         good_path = Path(diagnostic['plots']['figures'][0]['path'])
         assert good_path.is_file() and '.qc-publication' in good_path.parts
@@ -154,8 +154,21 @@ def publish(render):
 good = publish(lambda plots: generate_plots_from_config(frame, plots, continue_on_error=True))
 assert good.state == 'published' and good.durability == 'confirmed'
 manifest = json.loads(Path(good.manifest_path).read_text())
-assert manifest['package_version'] == '1.7.0'
+assert manifest['package_version'] == '1.8.0'
 assert (Path(good.manifest_path).parent / 'report.html').is_file()
+def failed_image(plots):
+    (Path(plots['output_dir']) / plots['figures'][0]['filename']).mkdir(parents=True)
+    return generate_plots_from_config(frame, plots, continue_on_error=True)
+reused = publish(failed_image)
+assert reused.figures[0].state == 'reused'
+assert reused.figures[0].generated_utc == good.figures[0].generated_utc
+assert reused.figures[0].origin_generation_id == good.generation_id
+assert Path(reused.figures[0].path).read_bytes() == Path(good.figures[0].path).read_bytes()
+run = RunResult('run')
+reused.apply_to(run)
+run.finish()
+assert run.exit_code == 2 and run.plots['counts']['reused'] == 1
+assert 'Original image produced (UTC)' in Path(reused.report_path).read_text()
 before = Path(good.report_path).read_bytes()
 def broken(plots):
     raise OSError('installed failure injection')
@@ -177,7 +190,7 @@ assert not Path(good.manifest_path).exists()
 '''], cwd=root, env=dict(env, MPLBACKEND='Agg'),
             capture_output=True, text=True, timeout=60)
         assert publication.returncode == 0, publication.stderr
-    print("Installed wheel: isolated imports, entry point, template, config, idempotence, dry-run, rebuild, partial rendering, Agg and atomic CLI publication/retention verified")
+    print("Installed wheel: isolated imports, entry point, template, config, idempotence, dry-run, rebuild, partial rendering, Agg, atomic publication/retention and compatible image reuse verified")
 
 
 if __name__ == "__main__":

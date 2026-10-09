@@ -144,14 +144,18 @@ def _render_sections(figures: list[dict], plots_relative_dir: str, figure_result
                 result = figure_results.get(fig['name']) if figure_results is not None else None
                 chunks.extend([f'    <div class="{card_class}">', f'      <h3>{safe_title}</h3>'])
                 if result is not None:
-                    labels = {'produced': 'Produced', 'no_data': 'No data', 'failed': 'Failed'}
+                    labels = {'produced': 'Produced', 'no_data': 'No data', 'failed': 'Failed',
+                              'reused': 'Reused after failure'}
                     chunks.append(f'      <p class="figure-state {result.state}">{labels[result.state]}: '
                                   f'{html.escape(result.reason)}</p>')
+                    if result.state == 'reused':
+                        chunks.append('      <p class="figure-warning">Original image produced (UTC): '
+                                      f'{html.escape(result.generated_utc)}</p>')
                     for discarded in result.discarded:
                         message = (f"Discarded {discarded['count']} sample(s) — "
                                    f"{discarded['context']}: {discarded['reason']}")
                         chunks.append(f'      <p class="figure-warning">{html.escape(message)}</p>')
-                if result is None or result.state == 'produced':
+                if result is None or result.state in ('produced', 'reused'):
                     chunks.extend([f'      <a href="{safe_img_path}">',
                                    f'        <img src="{safe_img_path}" alt="{safe_title}">',
                                    '      </a>'])

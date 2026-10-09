@@ -15,7 +15,7 @@ from qc_monitor import publication as pub
 from qc_monitor.config import normalize_runtime_config, ConfigurationError
 from qc_monitor.run_result import RunResult
 from conftest import tree_snapshot, database_snapshot
-from test_d3d_publication import configuration, publish, render, root_of, references, CHILD
+from test_d3d_publication import configuration, publish, render, root_of, references, CHILD, legacy_manifest
 from test_d3c_rendering import configure_cli, summary
 
 
@@ -248,7 +248,9 @@ def test_run_collision_never_cleaned(setup, kind):
 
 @pytest.mark.parametrize('damage', ['archive', 'png', 'missing', 'cycle'])
 def test_retained_history_damage_stops_before_deletions(setup, damage):
-    first, second = publish(setup), publish(setup)
+    first = publish(setup)
+    legacy_manifest(first)
+    second = publish(setup)
     path = Path(first.manifest_path).parent
     if damage == 'archive': (path / 'report.html').write_text('<img src="outside.png">')
     elif damage == 'png': next((path / 'plots').rglob('*.png')).write_bytes(b'broken')

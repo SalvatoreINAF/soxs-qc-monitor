@@ -1,4 +1,4 @@
-"""Atomic publication with bounded, ownership-checked retention (D3-E).
+"""Atomic publication, bounded retention and compatible image reuse (D3-F).
 
 The live HTML is the sole commit record. A finalised generation is immutable;
 its manifest never claims to be current. All leases span temporary cleanup.
@@ -24,11 +24,14 @@ from .coordination import (leases, runtime_requests, project_requests,
 from .figure_result import validate_figure_results, summarize_figures
 from .generate_html import _render_html_report
 from .run_result import utc_now, publication_cleanup
+from .schema import SCHEMA_VERSION
 
 OWNER = 'soxs-qc-monitor'
 MARKER = 'qc-publication-v1:'
 MARKER_START = '<!-- ' + MARKER
 DIR_FLAGS = os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW
+COMPATIBILITY_VERSION = 1
+IMAGE_STATES = ('produced', 'reused')
 
 
 @dataclass
@@ -58,7 +61,7 @@ class PublicationResult:
             run.plots = summarize_figures(self.figures)
             run.report = {'state': self.state, 'path': self.report_path}
         for item in self.figures:
-            if item.state == 'failed':
+            if item.state in ('failed', 'reused'):
                 run.errors.append({'phase': 'plots', 'figure': item.name,
                                    'reason_code': item.reason_code, 'reason': item.reason,
                                    'type': item.error_type})
@@ -229,11 +232,14 @@ def _sync_tree(path):
 
 
 def _png(path):
+    _png_data(_read(path))
+
+
+def _png_data(data):
     from PIL import Image
-    data = _read(path)
     with Image.open(io.BytesIO(data)) as image:
         if image.format != 'PNG':
-            raise ValueError(f'Expected PNG: {path}')
+            raise ValueError('Expected PNG')
         image.verify()
     with Image.open(io.BytesIO(data)) as image:
         image.load()
@@ -268,7 +274,7 @@ class _References(HTMLParser):
             self.links.append(attrs.get('href', ''))
 
 
-def _validate_html(content, html_path, expected):
+def _validate_html(content, html_path, expected, *, verify_images=True):
     parsed = _References()
     parsed.feed(content)
     if parsed.base or sorted(parsed.images) != sorted(expected):
@@ -280,7 +286,8 @@ def _validate_html(content, html_path, expected):
         parts = urlsplit(url)
         if parts.scheme or parts.netloc or parts.query or parts.fragment:
             raise ValueError('Expected a relative artifact URL')
-        _png(html_path.parent / unquote(parts.path))
+        if verify_images:
+            _png(html_path.parent / unquote(parts.path))
 
 
 def _marker(content):
@@ -333,12 +340,12 @@ def _current(html_path, root, report_id):
         raise ValueError('Current publication manifest mismatch')
     urls = []
     for figure in manifest['figures']:
-        if figure['state'] == 'produced':
+        if figure['state'] in IMAGE_STATES:
             expected = root / 'generations' / generation / 'plots' / _relative_png(figure['filename'])
             if figure['path'] != 'plots/' + Path(figure['filename']).as_posix():
                 raise ValueError('Invalid manifest artifact path')
             urls.append(_url(expected, html_path))
-    _validate_html(content, html_path, urls)
+    _validate_existing_html(content, html_path, urls, manifest)
     return generation
 
 
@@ -397,6 +404,167 @@ def _prepared(value):
     if timestamp.tzinfo is None or timestamp.utcoffset().total_seconds() != 0:
         raise ValueError('Expected UTC preparation timestamp')
     return timestamp
+
+
+def _validate_existing_html(content, html_path, urls, manifest):
+    """Verify references/ownership independently of F fallback PNG availability.
+
+    Legacy publications retain their strict image checks. F records can recover
+    from missing/damaged PNGs: each candidate is decoded before copying, while
+    every image in the newly prepared report is still verified strictly.
+    """
+    _validate_html(content, html_path, urls, verify_images=False)
+    images = iter(urls)
+    for figure in manifest['figures']:
+        if figure['state'] in IMAGE_STATES and figure.get('compatibility') is None:
+            _png(html_path.parent / unquote(next(images)))
+        elif figure['state'] in IMAGE_STATES:
+            next(images)
+
+
+def _compatibility(cfg, figure):
+    """Versioned per-figure input contract, not a fingerprint of changing data."""
+    spec = deepcopy(figure)
+    for key in ('section', 'wide'):
+        spec.pop(key, None)
+    names = set()
+
+    def queries(value):
+        if isinstance(value, dict):
+            for key, child in value.items():
+                if key == 'datapoint_query':
+                    names.add(child)
+                else:
+                    queries(child)
+        elif isinstance(value, list):
+            for child in value:
+                queries(child)
+
+    queries(spec)
+    result = {'version': COMPATIBILITY_VERSION, 'figure': spec,
+              'queries': {name: deepcopy(cfg['plots']['datapoint_queries'][name])
+                          for name in sorted(names)},
+              'database': {'path': str(Path(cfg['paths']['qc_database']).resolve()),
+                           'schema_version': SCHEMA_VERSION}}
+    if figure['type'] == 'detector_linearity':
+        detlin = deepcopy(cfg['detector_linearity'])
+        arms = detlin.pop('arms', {})
+        detlin['arms'] = {figure['arm']: arms.get(figure['arm'])}
+        result['detector_linearity'] = detlin
+    return result
+
+
+def _discard_artifact(path):
+    """Remove only a confined staging artifact, never following a symlink."""
+    def empty(fd):
+        for name in os.listdir(fd):
+            info = os.stat(name, dir_fd=fd, follow_symlinks=False)
+            if stat.S_ISDIR(info.st_mode):
+                child = os.open(name, DIR_FLAGS, dir_fd=fd)
+                try:
+                    empty(child)
+                finally:
+                    os.close(child)
+                os.rmdir(name, dir_fd=fd)
+            else:
+                os.unlink(name, dir_fd=fd)
+
+    if not os.path.lexists(path):
+        return
+    with _directory(path.parent) as parent:
+        info = os.stat(path.name, dir_fd=parent, follow_symlinks=False)
+        if stat.S_ISDIR(info.st_mode):
+            child = os.open(path.name, DIR_FLAGS, dir_fd=parent)
+            try:
+                empty(child)
+            finally:
+                os.close(child)
+            os.rmdir(path.name, dir_fd=parent)
+        else:
+            os.unlink(path.name, dir_fd=parent)
+        os.fsync(parent)
+
+
+def _copy_png(source, destination):
+    data = _read(source)
+    _png_data(data)
+    _plain_directory(destination.parent)
+    with _directory(destination.parent) as parent:
+        fd = os.open(destination.name, os.O_WRONLY | os.O_CREAT | os.O_EXCL
+                     | os.O_NOFOLLOW, 0o644, dir_fd=parent)
+    with os.fdopen(fd, 'wb') as stream:
+        stream.write(data)
+        stream.flush()
+        os.fsync(stream.fileno())
+    _png(destination)
+
+
+def _reuse_figures(cfg, figures, root, previous, stage, stage_identity):
+    """Read only the current manifest; copy bytes, never follow origin links."""
+    candidates = {}
+    if previous is not None:
+        manifest = json.loads(_read(root / 'generations' / previous / 'manifest.json'))
+        for item in manifest['figures']:
+            if item['name'] in candidates:
+                raise ValueError('Duplicate current manifest figure')
+            candidates[item['name']] = item
+    for config, item in zip(cfg['plots']['figures'], figures):
+        contract = _compatibility(cfg, config)
+        item.compatibility = contract
+        if item.state == 'produced':
+            item.generated_utc = utc_now()
+            item.origin_generation_id = stage_identity['generation_id']
+            continue
+        if item.state != 'failed':
+            continue
+        candidate = candidates.get(item.name)
+        item.fallback = {'state': 'unavailable', 'reason_code': 'no_current_image',
+                         'source_generation_id': previous}
+        if candidate is None or candidate['state'] not in IMAGE_STATES:
+            continue
+        if candidate.get('compatibility') is None:
+            item.fallback['reason_code'] = 'missing_metadata'
+            continue
+        if _json(candidate['compatibility']) != _json(contract):
+            item.fallback['reason_code'] = 'incompatible'
+            continue
+        try:
+            _prepared(candidate.get('generated_utc'))
+            _uuid(candidate.get('origin_generation_id'))
+            if candidate['state'] == 'produced' and candidate['origin_generation_id'] != previous:
+                raise ValueError('Original generation mismatch')
+            if candidate['state'] == 'reused':
+                _uuid(candidate.get('reused_from_generation_id'))
+        except (ValueError, TypeError, AttributeError):
+            item.fallback['reason_code'] = 'missing_metadata'
+            continue
+        filename = _relative_png(candidate['filename'])
+        if candidate['path'] != 'plots/' + filename.as_posix():
+            raise ValueError('Invalid fallback artifact path')
+        source = root / 'generations' / previous / 'plots' / filename
+        try:
+            _png(source)
+        except Exception as exc:
+            item.fallback.update(reason_code='source_unreadable',
+                                 reason=str(exc), error_type=type(exc).__name__)
+            continue
+        destination = stage / 'plots' / _relative_png(item.filename)
+        _check_owned(stage, stage_identity)
+        # A failed renderer may have left a partial file or directory here.
+        _discard_artifact(destination)
+        try:
+            _copy_png(source, destination)
+        except Exception as exc:
+            item.fallback.update(reason_code='copy_failed', reason=str(exc),
+                                 error_type=type(exc).__name__)
+            _discard_artifact(destination)  # Failure here blocks the publication.
+            continue
+        item.state = 'reused'
+        item.path = str(destination)
+        item.generated_utc = candidate['generated_utc']
+        item.origin_generation_id = candidate['origin_generation_id']
+        item.reused_from_generation_id = previous
+        item.fallback.update(state='reused', reason_code='compatible_current_image')
 
 
 def _inventory(root, kind, identity):
@@ -466,14 +634,15 @@ def _history(root, identity, current, limit):
         _prepared(marker['prepared_utc'])
         urls = []
         for figure in manifest['figures']:
-            if figure['state'] == 'produced':
+            if figure['state'] in IMAGE_STATES:
                 filename = _relative_png(figure['filename'])
                 if figure['path'] != 'plots/' + filename.as_posix():
                     raise ValueError('Invalid retained manifest artifact path')
                 urls.append(_url(path / 'plots' / filename, path / 'report.html'))
             elif figure['state'] not in ('no_data', 'failed') or figure['path'] is not None:
                 raise ValueError('Invalid retained figure outcome')
-        _validate_html(_read(path / 'report.html').decode('utf-8'), path / 'report.html', urls)
+        _validate_existing_html(_read(path / 'report.html').decode('utf-8'),
+                                path / 'report.html', urls, manifest)
         retained.append(generation)
         generation = manifest['previous_generation_id']
         if generation is not None:
@@ -537,7 +706,7 @@ def publish_report(cfg, *, project_root, config_path, run_id, render, summary_pa
     """Publish under B leases; ``render(staging_plots_cfg)`` returns C outcomes.
 
     cfg must already be normalised. Errors raise PublicationError with the complete
-    result (including published state after the commit point). No SQLite writes or image fallback occur here.
+    result (including published state after the commit point). No SQLite writes occur here. Reuse is confined to the current generation.
     """
     result = PublicationResult()
     if not cfg['plots'].get('figures'):
@@ -612,9 +781,17 @@ def _publish(cfg, config_path, run_id, render, summary_path, result):
                 if Path(os.path.abspath(figure.path)) != expected:
                     raise ValueError(f'Figure path outside expected staging location: {figure.name}')
                 _png(expected)
+            elif figure.state == 'reused':
+                raise ValueError('Renderer cannot supply a reused image')
+        result.phase = 'fallback'
+        try:
+            _reuse_figures(cfg, figures, root, previous, stage, stage_identity)
+        finally:
+            result.figures = deepcopy(figures)
+        validate_figure_results(plots['figures'], figures)
         template = Path(plots['template']) if plots.get('template') else None
         archive_urls = {item.name: _url(stage / 'plots' / item.filename, stage / 'report.html')
-                        for item in figures if item.state == 'produced'}
+                        for item in figures if item.state in IMAGE_STATES}
         result.phase = 'archive_html'
         _write(stage / 'report.html', _render_html_report(
             plots, stage / 'report.html', template, figures, image_urls=archive_urls))
@@ -628,7 +805,7 @@ def _publish(cfg, config_path, run_id, render, summary_path, result):
         manifest_figures = []
         for item in figures:
             value = item.as_dict()
-            value['path'] = 'plots/' + Path(item.filename).as_posix() if item.state == 'produced' else None
+            value['path'] = 'plots/' + Path(item.filename).as_posix() if item.state in IMAGE_STATES else None
             value['data_utc'] = None
             manifest_figures.append(value)
         manifest = dict(identity, generation_id=run_id, run_id=run_id,
@@ -654,12 +831,12 @@ def _publish(cfg, config_path, run_id, render, summary_path, result):
             os.fsync(dst)
             os.fsync(src)
         for item in result.figures:
-            if item.state == 'produced':
+            if item.state in IMAGE_STATES:
                 item.path = str(final / 'plots' / item.filename)
         result.phase = 'live_html'
         temporary = html_path.parent / ('.qc-report-' + run_id + '.html')
         urls = {item.name: _url(final / 'plots' / item.filename, html_path)
-                for item in figures if item.state == 'produced'}
+                for item in figures if item.state in IMAGE_STATES}
         marker = {key: manifest[key] for key in ('owner', 'format_version', 'report_id',
                    'generation_id', 'previous_generation_id')}
         marker['manifest_sha256'] = hashlib.sha256(raw_manifest.encode()).hexdigest()
