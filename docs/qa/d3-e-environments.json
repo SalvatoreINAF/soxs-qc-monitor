@@ -4,7 +4,55 @@
   "baseline": "3285f5bf4eb6b6600d9eafd81ca41bf2aabce525",
   "package_version": "1.7.0",
   "sqlite_schema": 1,
-  "hosted": "pending on exact published candidate",
+  "hosted": {
+    "state": "formally_closed",
+    "run_id": 37981677957,
+    "attempt": 1,
+    "candidate_sha": "9e5cdd0310b7314b859457ee82a94d8a6648ba45",
+    "url": "https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37981677957",
+    "metadata": "tests/results/d3-e-hosted.json",
+    "jobs": [
+      {
+        "os": "Linux",
+        "python": "3.11",
+        "passed": 609,
+        "skipped": 0,
+        "seconds": 192.33,
+        "wheel": "PASS",
+        "checker": "PASS"
+      },
+      {
+        "os": "Linux",
+        "python": "3.12",
+        "passed": 609,
+        "skipped": 0,
+        "seconds": 232.66,
+        "wheel": "PASS",
+        "checker": "PASS"
+      },
+      {
+        "os": "Linux",
+        "python": "3.13",
+        "passed": 609,
+        "skipped": 0,
+        "seconds": 242.13,
+        "wheel": "PASS",
+        "checker": "PASS"
+      },
+      {
+        "os": "macOS",
+        "python": "3.12",
+        "passed": 608,
+        "skipped": 1,
+        "seconds": 336.86,
+        "wheel": "PASS",
+        "checker": "PASS",
+        "skip": "second writable filesystem unavailable"
+      }
+    ],
+    "warnings_as_errors": true,
+    "pip_check": "local only"
+  },
   "local": [
     {
       "python": "3.12.15",

@@ -1,10 +1,11 @@
-# D3-E — Validazione locale, 9 ottobre 2026
+# D3-E — Validazione locale e hosted, 9 ottobre 2026
 
-**D3-E consegnata e verificata localmente su dev: 1.7.0/schema 1. CI E pendente.**
+**D3-E formalmente chiusa su dev: 1.7.0/schema 1. CI hosted verde.**
 D3-A/B/C/D restano formalmente chiuse; D3-F non avviata.
 Baseline `3285f5bf4eb6b6600d9eafd81ca41bf2aabce525`, checkout inizialmente pulito.
 Commit applicativo **`c48380dddaa33d48d2b66db4380bd454f0f7782b`**; commit successivo solo documentale.
-Nessun candidato E pubblicato/hosted verificato, nessun push/merge/deploy.
+Candidato hosted `9e5cdd0310b7314b859457ee82a94d8a6648ba45`, pubblicato dall’utente.
+Nessun nuovo push/merge/deploy da questa sessione.
 [Audit baseline](d3-e-planning.md), [contratto E](../../docs/d3/d3-e.md).
 
 ## Implementazione e decisioni
@@ -100,3 +101,31 @@ Stima approvata 12–16 ore incluse verifiche/handover, non consuntivo.
 Chiusura formale E richiede CI sul candidato esatto Linux 3.11/3.12/3.13 e macOS
 3.12. CI D3-D non attribuita a E. Pubblicazione soltanto su richiesta;
 **fermata a D3-E, nessun D3-F/D4, push/merge/deploy/scheduler/rebuild operativo.**
+
+
+## D3-E — Chiusura formale, 9 ottobre 2026
+
+**D3-E completata e formalmente chiusa.** [CI 37981677957](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37981677957), attempt **1**,
+sul candidato **`9e5cdd0310b7314b859457ee82a94d8a6648ba45`**. Suite con warning come errori:
+
+| Job hosted | Esito suite | Durata | Wheel / checker isolato |
+|---|---|---|---|
+| Linux Python 3.11 | 609 PASS, 0 SKIP | 192,33 s | PASS |
+| Linux Python 3.12 | 609 PASS, 0 SKIP | 232,66 s | PASS |
+| Linux Python 3.13 | 609 PASS, 0 SKIP | 242,13 s | PASS |
+| macOS Python 3.12 | 608 PASS, 1 SKIP | 336,86 s | PASS |
+
+Nessun FAIL/XFAIL/XPASS. Lo skip macOS riguarda esclusivamente il secondo
+filesystem scrivibile assente; la stessa prova reale passa nei tre job Linux.
+Build wheel 1.7.0 e checker di installazione isolata PASS nei quattro job.
+`pip check` verificato localmente, non separatamente dal workflow hosted.
+
+Pacchetto **1.7.0**, SQLite **schema 1**. Commit applicativo **`c48380d`**,
+candidato hosted **`9e5cdd0`**: differenze soltanto documentali, verificate.
+**Nessuna verifica D3-E pendente.** Questa nota supera le indicazioni precedenti
+di CI pendente; le prove locali restano evidenze storiche distinte.
+
+L'utente ha pubblicato il candidato. Questa chiusura modifica soltanto documenti
+ed evidenze, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
+Ripresa: **pianificazione D3-F soltanto su nuova richiesta**, dopo controllo di
+checkout, indice, scheda F e handover. **D3-F non avviata; D3 non ancora chiusa.**

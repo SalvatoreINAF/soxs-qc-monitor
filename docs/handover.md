@@ -1,3 +1,32 @@
+# Handover — D3-E formalmente chiusa, 9 ottobre 2026
+
+**D3-E completata e formalmente chiusa su dev.** Pacchetto **1.7.0**,
+SQLite **schema 1**. D3-A/B/C/D restano chiuse; **D3-F non avviata**.
+
+- Commit applicativo `c48380dddaa33d48d2b66db4380bd454f0f7782b`.
+- Candidato hosted **`9e5cdd0310b7314b859457ee82a94d8a6648ba45`**, differenze solo documentali.
+- [CI 37981677957](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37981677957), attempt 1: **609 PASS per ciascun job Linux
+  Python 3.11/3.12/3.13**; **608 PASS, 1 SKIP macOS Python 3.12**.
+  Skip solo per secondo filesystem assente, prova passata su tutti i job Linux.
+- Warning come errori, build wheel/checker isolato PASS nei quattro job;
+  pip check verificato localmente. **Nessuna verifica D3-E pendente.**
+- [Evidenze](../tests/results/d3-e-validation.md),
+  [metadata CI](../tests/results/d3-e-hosted.json),
+  [ambienti/hash](qa/d3-e-environments.json), [contratto E](d3/d3-e.md).
+
+Punto di ripresa: **pianificazione D3-F soltanto su nuova richiesta**, dopo
+controllo dev/HEAD/working tree e lettura indice/scheda F. Non iniziare sviluppo
+né D4 automaticamente. D3 nel complesso non è ancora chiusa.
+
+CLI atomica e retention attive; nessun riuso su errore fino a F. Restano i limiti
+E documentati (quantità/età, file estranei/legacy esclusi, vecchi browser, hosting).
+Chiusura solo documentale; sorgenti/test/workflow/versione invariati. Nessun
+nuovo push/merge/deploy/scheduler o archivio operativo modificato. reference_docs
+aggiornata localmente e ignorata da Git. Questa apertura prevale sulle precedenti
+indicazioni di CI E pendente; le sezioni successive sono storiche.
+
+---
+
 # Handover — D3-E consegnata localmente, 9 ottobre 2026
 
 **D3-E implementata e verificata localmente su dev, 1.7.0/schema 1.**
