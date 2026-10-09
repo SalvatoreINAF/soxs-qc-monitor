@@ -98,7 +98,8 @@ def _infer_arm(figure: dict) -> str:
     return "OTHER"
 
 
-def _render_sections(figures: list[dict], plots_relative_dir: str, figure_results=None) -> str:
+def _render_sections(figures: list[dict], plots_relative_dir: str, figure_results=None,
+                     image_urls=None) -> str:
     grouped_by_arm: dict[str, dict[str, list[dict]]] = {
         "VIS": defaultdict(list),
         "NIR": defaultdict(list),
@@ -131,7 +132,8 @@ def _render_sections(figures: list[dict], plots_relative_dir: str, figure_result
             for fig in section_figures:
                 title = fig.get("title", fig.get("name", "Untitled plot"))
                 filename = fig["filename"]
-                img_path = f"{plots_relative_dir}/{filename}"
+                img_path = (image_urls[fig['name']] if image_urls is not None
+                            and fig['name'] in image_urls else f"{plots_relative_dir}/{filename}")
 
                 wide = fig.get("wide", False)
                 card_class = "plot-card wide" if wide else "plot-card"
@@ -167,11 +169,13 @@ def _render_sections(figures: list[dict], plots_relative_dir: str, figure_result
     ])
 
 
-def generate_html_report(
+def _render_html_report(
     plots_cfg: dict,
     output_html: Path,
     template_path: Path | None = None,
     figure_results=None,
+    *,
+    image_urls=None,
 ):
     figures = plots_cfg.get("figures", [])
     outcomes = (validate_figure_results(figures, figure_results)
@@ -196,6 +200,7 @@ def generate_html_report(
         figures=figures,
         plots_relative_dir=plots_relative_dir,
         figure_results=outcomes,
+        image_urls=image_urls,
     )
 
     template = _load_template(template_path)
@@ -206,6 +211,21 @@ def generate_html_report(
         .replace("{{ sections }}", sections)
     )
 
+    return rendered
+
+
+def generate_html_report(
+    plots_cfg: dict,
+    output_html: Path,
+    template_path: Path | None = None,
+    figure_results=None,
+    *,
+    image_urls=None,
+):
+    rendered = _render_html_report(plots_cfg, output_html, template_path,
+                                   figure_results, image_urls=image_urls)
+    if rendered is None:
+        return
     output_html.parent.mkdir(parents=True, exist_ok=True)
     output_html.write_text(rendered)
 

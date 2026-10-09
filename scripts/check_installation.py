@@ -102,7 +102,7 @@ with closing(sqlite3.connect(str(next(Path('.').glob('qc.sqlite.backup-*.sqlite'
                                  capture_output=True, text=True, timeout=60)
         assert partial.returncode == 2, partial.stderr
         diagnostic = json.loads(partial.stderr.split('RUN_SUMMARY ')[-1])
-        assert diagnostic['versions']['qc-monitor'] == '1.5.0'
+        assert diagnostic['versions']['qc-monitor'] == '1.6.0'
         assert diagnostic['plots']['counts'] == {'produced': 1, 'failed': 1, 'no_data': 0}
         assert diagnostic['report']['state'] == 'published'
         assert (root / 'plots/good.png').is_file()
@@ -119,7 +119,47 @@ assert matplotlib.get_backend().lower() == 'agg'
 '''], cwd=root, env=dict(env, MPLBACKEND='TkAgg'),
             capture_output=True, text=True, timeout=60)
         assert backend.returncode == 0, backend.stderr
-    print("Installed wheel: isolated imports, entry point, template, validated config, idempotence, immutable dry-run, protected rebuild, partial rendering and autonomous Agg verified")
+        assert diagnostic['publication']['state'] == 'skipped'
+        publication = subprocess.run([sys.executable, '-I', '-c', '''
+import json, uuid
+from pathlib import Path
+import pandas as pd
+from qc_monitor.config import normalize_runtime_config
+from qc_monitor.plotting import generate_plots_from_config
+from qc_monitor.publication import publish_report, PublicationError
+from qc_monitor.run_result import RunResult
+root = Path.cwd()
+cfg = normalize_runtime_config(json.loads((root / 'configs/qc_monitor.yaml').read_text()), root)
+cfg['plots']['output_dir'] = str(root / 'generation images')
+cfg['plots']['html_output'] = str(root / 'web/current.html')
+cfg['plots']['figures'] = cfg['plots']['figures'][:1]
+frame = pd.DataFrame({'qc_value': [1., 2., 3.], 'eso seq arm': ['VIS'] * 3})
+def publish(render):
+    return publish_report(cfg, project_root=root, config_path=root / 'configs/qc_monitor.yaml',
+                          run_id=str(uuid.uuid4()), render=render)
+good = publish(lambda plots: generate_plots_from_config(frame, plots, continue_on_error=True))
+assert good.state == 'published' and good.durability == 'confirmed'
+manifest = json.loads(Path(good.manifest_path).read_text())
+assert manifest['package_version'] == '1.6.0'
+assert (Path(good.manifest_path).parent / 'report.html').is_file()
+before = Path(good.report_path).read_bytes()
+def broken(plots):
+    raise OSError('installed failure injection')
+try:
+    publish(broken)
+except PublicationError as exc:
+    assert exc.result.state == 'failed' and exc.result.staging_cleanup == 'removed'
+    run = RunResult('run')
+    exc.result.apply_to(run)
+    run.finish()
+    assert run.exit_code == 2
+else:
+    raise AssertionError('failure incorrectly published')
+assert Path(good.report_path).read_bytes() == before
+'''], cwd=root, env=dict(env, MPLBACKEND='Agg'),
+            capture_output=True, text=True, timeout=60)
+        assert publication.returncode == 0, publication.stderr
+    print("Installed wheel: isolated imports, entry point, template, config, idempotence, dry-run, rebuild, partial rendering, Agg and internal atomic publication verified")
 
 
 if __name__ == "__main__":
