@@ -1,6 +1,6 @@
 # D2 — Configuration and storage contracts
 
-D2 package 1.2.0; current D3-D package 1.6.0; SQLite schema version 1. D2 is developed on `dev`. D1 remains
+D2 package 1.2.0; current D3-E package 1.7.0; SQLite schema version 1. D2 is developed on `dev`. D1 remains
 formally closed on its previously verified candidate. D2 delivery and current
 verification evidence are recorded in [handover](handover.md) and
 [test results](../tests/results/d2-validation.md).
@@ -396,3 +396,25 @@ documenti/evidenze, senza nuovo push/merge/deploy, scheduler o rebuild operativo
 CLI ordinaria ancora diretta; nessuna retention o riuso introdotti. Ripresa:
 **pianificazione D3-E soltanto su nuova richiesta**, dopo controllo del checkout
 e lettura di indice/scheda/handover. **D3-E/F non avviate.**
+
+
+## D3-E publication activation (1.7.0, SQLite schema 1 unchanged)
+
+The ordinary CLI now uses atomic publication and retention. Optional validated
+plots.publication defaults are 2 generations, 24 hours orphan staging age,
+2 orphan staging directories. Publication paths/properties/history are checked
+before archive writes; summary cannot target the managed namespace.
+No-plots/dry-run/empty figure configuration skip publication and cleanup;
+preflight checks without writes. Acquisition APIs and scientific values unchanged.
+
+Cleanup occurs under B leases before staging creation and after confirmed HTML
+commit. Current/retained archive references remain valid. Startup cleanup errors
+stop publication; final cleanup errors preserve the published report; both exit 2
+without reverting committed SQLite data. JSON v1 publication.cleanup separates
+these outcomes from storage and staging_cleanup. No image reuse or backup retention
+added. Details and limits: [D3-E contract](d3/d3-e.md).
+The D3-D sections above describe the historical 1.6.0 boundary.
+
+
+Commit applicativo D3-E **`c48380dddaa33d48d2b66db4380bd454f0f7782b`**; consegna locale verificata,
+CI E pendente sul candidato esatto. [Evidenze](../tests/results/d3-e-validation.md).

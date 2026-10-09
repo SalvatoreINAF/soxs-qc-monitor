@@ -8,6 +8,9 @@ Python 3.12.15, warning come errori; [registrazione](../../tests/results/d3-d-pl
 Stima approvata **10–14 ore**, inclusi test/documentazione, escluse attese CI;
 non è un consuntivo. Stato finale/evidenze: [validazione](../../tests/results/d3-d-validation.md).
 
+> Confine storico della versione 1.6.0: D3-E (1.7.0) attiva il motore nella CLI
+> e aggiunge retention; vedere [contratto E](d3-e.md).
+
 ## Risultato e confini
 
 Il motore interno prepara una generazione autosufficiente e rende visibile il

@@ -1,6 +1,6 @@
 # SOXS QC Monitor
 
-**Current: 1.6.0/schema 1; D3-D formally closed after hosted verification.**
+**Current: 1.7.0/schema 1; D3-E delivered and validated locally; hosted CI pending.**
 See [handover](docs/handover.md) for the current resume point.
 
 The SOXS QC Monitor is a lightweight monitoring tool that extracts Quality Control (QC) information from SOXS Pipeline products and generates a static HTML report with trend plots and diagnostic visualizations.
@@ -218,6 +218,10 @@ soxspipe_reductions/
         ├── qc.sqlite
         ├── index.html
         └── plots/
+            └── .qc-publication/<report-id>/generations/<uuid>/
+                ├── plots/
+                ├── manifest.json
+                └── report.html
 ```
 
 QC information is extracted from:
@@ -497,10 +501,10 @@ requests on Linux Python 3.11–3.13 and macOS Python 3.12, builds the wheel and
 checks its isolated installation. See [test instructions](tests/README.md),
 [operations](docs/operations.md) and [session handover](docs/handover.md).
 
-The report currently requires the standard HTML/`plots/` layout. D3-C displays
-explicit figure outcomes and excludes missing/stale images from the CLI report.
-Coherent publication remains D3-D/E work. Dry-run and whole-unit transaction
-guarantees are preserved.
+The CLI publishes self-contained generations atomically and retains two by default.
+Missing/failed figures have explicit cards without stale images. HTML and image
+destinations may be separate; see the D3-E operational contract below. Dry-run
+and whole-unit transaction guarantees are preserved.
 
 
 D1 è formalmente chiuso l’8 ottobre 2026: [matrice hosted verde](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37772436524)
@@ -716,15 +720,32 @@ Ripresa: pianificazione D3-D soltanto su nuova richiesta, dopo controllo del
 checkout e lettura di scheda/indice/handover. **D3-D…F non avviate.**
 
 
-## D3-D internal publication engine (1.6.0)
+## D3-E atomic publication and retention (1.7.0)
 
-The internal engine prepares self-contained generations and publishes the
-configured HTML atomically, with explicit filesystem sync and operation leases.
-It is **not enabled in the ordinary CLI**: reports still use the direct D3-C
-layout and the additive summary `publication.state` remains `skipped`.
-Retention and CLI activation belong to D3-E; fallback belongs to D3-F.
-See the [D3-D contract](docs/d3/d3-d.md), [validation](tests/results/d3-d-validation.md)
-and [handover](docs/handover.md). D3-D is formally closed after hosted verification.
+The ordinary CLI now uses the D3-D atomic engine. Images live under
+`plots.output_dir/.qc-publication/<report-id>/generations/<uuid>/plots/`;
+the configured HTML is the only commit point. Existing PNGs are preserved.
+
+```yaml
+plots:
+  publication:
+    retained_generations: 2
+    orphan_max_age_hours: 24
+    max_orphan_staging: 2
+```
+
+Settings are optional and validated. At least two generations are retained;
+zero orphan staging is allowed. Owned finalised orphans are removed at the next
+publication attempt; staging is limited by age and count. Cleanup failure yields
+exit 2 and does not roll back a published report or committed data. `--no-plots`,
+dry-run and preflight do not clean output. These are artifact counts, not a byte
+quota; foreign files, legacy PNGs and SQLite backups require operator management.
+Old browser pages may lose pruned images. The HTTP server must expose both
+configured destinations with matching relative URLs; no hosting change is automatic.
+
+See [D3-E contract](docs/d3/d3-e.md), [operations](docs/operations.md) and
+[handover](docs/handover.md). No image reuse; D3-F remains unstarted.
+The following D3-D closure is historical evidence for version 1.6.0.
 
 
 ## D3-D — Chiusura formale, 9 ottobre 2026

@@ -177,7 +177,7 @@ suite before re-enabling execution. Never run rebuild as an automatic recovery.
 
 ## Schema transition and protected rebuild
 
-Versions 1.2.0, 1.3.0 and 1.4.0 require SQLite schema version 1 for ordinary writes. An old
+Versions 1.2.0 through 1.7.0 require SQLite schema version 1 for ordinary writes. An old
 unversioned archive causes ordinary preflight to fail, preventing the update
 helper from reporting a usable deployment prematurely. Dry-run can still inspect
 recognized legacy registers. Verify source availability and stop all jobs before
@@ -202,12 +202,10 @@ Multiple DETLIN sequences now have independent fits and one atomic day/arm
 commit; cross-date sequences remain unsupported. D1/D2 fixtures provide an
 analytical baseline, not scientific acceptance on real instrument data.
 
-CLI HTML references only produced figures in `plots/` relative to the page;
-no_data/failed cards have no image. Direct legacy HTML calls without outcomes
-may still reference missing/stale files. Other layouts are not reliable. There
-is no generation manifest, atomic report generation or image retention yet.
-Use the standard layout and inspect representative outputs.
-`--no-plots` skips both PNG and HTML generation.
+The CLI uses atomic, self-contained image generations with bounded retention
+(1.7.0, D3-E). Produced figures alone have image references; no_data/failed have
+explicit cards. Direct legacy HTML calls keep their original semantics.
+`--no-plots` skips PNG, HTML and publication cleanup. See the D3-E section below.
 
 
 ## D3-B — Coordinamento operativo (1.4.0, schema 1)
@@ -363,29 +361,42 @@ Ripresa: pianificazione D3-D soltanto su nuova richiesta, dopo controllo del
 checkout e lettura di scheda/indice/handover. **D3-D…F non avviate.**
 
 
-## D3-D internal engine: current operational boundary
+## D3-E — Pubblicazione atomica e retention (1.7.0)
 
-Version 1.6.0 ships the internal atomic publisher without enabling it in the
-CLI. Continue existing run/update/preflight procedures: no publication YAML
-options, retention jobs, migration, rebuild or scheduler change is required.
-The ordinary summary adds `publication.state=skipped`.
+Il batch usa ora il motore D. Nessun nuovo comando, job di pulizia, migrazione,
+rebuild o cambio scheduler richiesto. Le impostazioni opzionali `plots.publication`
+sono: retained_generations=2 (intero >=2), orphan_max_age_hours=24 (finito >0),
+max_orphan_staging=2 (intero >=0). Valori booleani numerici e campi ignoti rifiutati.
 
-The [engine contract](d3/d3-d.md) describes managed generations, ownership
-markers and the live HTML as sole commit point. Explicit users of the internal
-engine must supply normalised configuration and a confined renderer callback.
-HTML/image destinations can live on different filesystems, but an HTTP server
-must expose both paths with the same relative URL mapping. Copies archived
-inside each generation resolve their own images. Symlinks, shared files and
-unmarked reserved directories are refused.
+Il report HTML configurato è l'unico commit; PNG/manifesti/HTML archiviato sono
+nella generazione autosufficiente sotto `.qc-publication/<report-id>/generations`.
+Preflight verifica percorsi, proprietà e storia prima delle scritture DB, senza
+modificare output. No-plots e dry-run ignorano le risorse grafiche inutilizzate.
 
-Before final HTML replacement, failure preserves the previous report. A sync
-failure after replacement means the new report is visible with durability
-unconfirmed; do not interpret this as rollback. PublicationError exposes the
-state reached; `result.apply_to(run)` records it and finish() yields 2.
-No automatic rollback, retention, orphan deletion or reuse is performed in D.
-Interrupted runs may leave owned staging/finalised orphans. Do not delete lock
-files or adopt markerless reserved directories to force a run through.
-D3-D is formally closed after hosted verification. D3-E requires a new planning request.
+All'avvio della pubblicazione, sotto lease: elimina generazioni possedute fuori
+dalla storia conservata e staging scaduti/eccedenti. Dopo commit e fsync HTML:
+retention delle ultime N pubblicazioni. Ordinamento staging per preparazione
+UTC e UUID, non mtime. N può aumentare: la storia eliminata non ritorna, quella
+disponibile cresce ai run successivi. Report correnti/archiviati conservati
+vengono verificati prima della cancellazione.
+
+`publication.cleanup.startup/retention` distingue stato, conteggi removed/remaining,
+ignored e limits_guaranteed. Null indica fase/inventario non verificato; false
+indica errore. Se cleanup iniziale fallisce, il report corrente resta e non si
+pubblica altro. Se fallisce dopo commit, il report nuovo resta disponibile.
+Entrambi danno codice 2; DB già committato indipendente dal cleanup.
+`published/unconfirmed` dopo fsync HTML fallito non è rollback e non avvia retention.
+
+Limiti di quantità/età, non byte, applicati ai run operativi. File estranei, PNG
+legacy, backup SQLite e temporanei HTML senza proprietà verificabile non sono
+cancellati. Ispezionare manualmente questi residui quando necessario; non adottare
+directory riservate senza marker, modificare marker o cancellare lock per forzare
+un run. Un browser con HTML molto vecchio può perdere le immagini già eliminate.
+Il server web deve esporre HTML e immagini con URL relativi coerenti anche su
+filesystem separati. Nessun riuso su errore fino a D3-F.
+
+[Contratto completo](d3/d3-e.md). Le sezioni di chiusura precedenti sono evidenze
+storiche; stato attuale e ripresa sono nell'handover.
 
 
 ## D3-D — Chiusura formale, 9 ottobre 2026
@@ -415,3 +426,7 @@ documenti/evidenze, senza nuovo push/merge/deploy, scheduler o rebuild operativo
 CLI ordinaria ancora diretta; nessuna retention o riuso introdotti. Ripresa:
 **pianificazione D3-E soltanto su nuova richiesta**, dopo controllo del checkout
 e lettura di indice/scheda/handover. **D3-E/F non avviate.**
+
+
+Commit applicativo D3-E **`c48380dddaa33d48d2b66db4380bd454f0f7782b`**; consegna locale verificata,
+CI E pendente sul candidato esatto. [Evidenze](../tests/results/d3-e-validation.md).

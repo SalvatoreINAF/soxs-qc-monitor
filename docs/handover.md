@@ -1,3 +1,51 @@
+# Handover — D3-E consegnata localmente, 9 ottobre 2026
+
+**D3-E implementata e verificata localmente su dev, 1.7.0/schema 1.**
+D3-A/B/C/D formalmente chiuse; **CI hosted E pendente, D3-F non avviata**.
+
+## Scheda sintetica di consegna
+
+- Baseline `3285f5bf4eb6b6600d9eafd81ca41bf2aabce525`, checkout inizialmente pulito.
+  Commit applicativo **`c48380dddaa33d48d2b66db4380bd454f0f7782b`**. Il successivo commit di consegna
+  modifica soltanto documenti/evidenze; nessun candidato E pubblicato o hosted verificato.
+- CLI usa il motore atomico D; default YAML 2 generazioni, 24 ore e 2 staging.
+  Retention protegge corrente/storia e tutti i riferimenti degli HTML conservati.
+  Orfani finalizzati eliminati al prossimo avvio; staging ordinati per UTC/UUID.
+- Cleanup iniziale fallito blocca pubblicazione; cleanup finale fallito mantiene
+  report valido; uscita 2 senza rollback di report o dati committati.
+  JSON v1 cleanup startup/retention, conteggi e limiti verificati; controlli prima
+  del writer DB e summary fuori dal namespace anche tramite symlink.
+- 60 casi E nuovi, 609 totali. **608 PASS/1 SKIP** per macOS Python
+  3.11.17/3.12.15/3.13.16, warning come errori. Skip esclusivamente per secondo
+  filesystem assente; Linux ARM64 E+D **119 PASS/0 SKIP**, utente normale,
+  incluse prove reali filesystem/permessi. Wheel/checker fuori checkout/pip check
+  e confronto byte per byte checkout/wheel/installed PASS sui tre interpreti.
+- QA nominale/parziale/archiviata ispezionata. API legacy renderer/HTML mantenute;
+  sorgenti scientifici, acquisizione, storage/schema/retry e supervisore B identici
+  alla baseline. Nessun riuso F o nuova migrazione.
+- [Contratto E](d3/d3-e.md), [evidenze](../tests/results/d3-e-validation.md),
+  [audit](../tests/results/d3-e-planning.md), [ambienti/hash](qa/d3-e-environments.json).
+  Stima 12–16 ore inclusi test/documentazione, escluse attese CI; non consuntivo.
+- Documentazione versionata e reference_docs locale aggiornate; nessun
+  push/merge/deploy/scheduler o archivio operativo modificato.
+
+## Limiti e punto di ripresa vincolante
+
+Limiti di quantità/età, non byte; cleanup applicato ai run operativi. Filesystem
+non disponibile può impedirlo con codice 2. Estranei, PNG legacy, backup SQLite e
+temporanei HTML senza proprietà verificabile preservati. Vecchi browser possono
+perdere immagini eliminate; server HTTP deve esporre entrambe le destinazioni.
+Non cancellare lock, modificare marker o adottare directory per forzare un run.
+
+Controllare dev/HEAD/working tree e leggere scheda/evidenze. Dopo pubblicazione
+esplicitamente richiesta del candidato, verificare la CI sul suo SHA esatto:
+Linux 3.11/3.12/3.13 e macOS 3.12, suite/wheel/checker. Registrare solo allora
+chiusura formale E. CI D3-D e Docker locale non equivalgono alla CI E.
+**Fermarsi a D3-E: nessun D3-F/D4 senza nuova richiesta e chiusura E.**
+Le sezioni successive sono storiche; questa apertura prevale sulle riprese precedenti.
+
+---
+
 # Handover — D3-D formalmente chiusa, 9 ottobre 2026
 
 **D3-D completata e formalmente chiusa su dev.** Pacchetto **1.6.0**,

@@ -1,7 +1,7 @@
 # D3 — Roadmap delle milestone
 
 **Aggiornamento: 9 ottobre 2026.** D3-0 documentale consegnato; D3-A
-completata e formalmente chiusa; D3-B formalmente chiusa il 9 ottobre 2026; D3-C formalmente chiusa; D3-D formalmente chiusa (1.6.0/schema 1); D3-E/F pianificate e non implementate.
+completata e formalmente chiusa; D3-B formalmente chiusa il 9 ottobre 2026; D3-C formalmente chiusa; D3-D formalmente chiusa (1.6.0/schema 1); D3-E consegnata localmente (1.7.0/schema 1), CI hosted pendente; D3-F non avviata.
 Questo indice è il riferimento versionato per le nuove sessioni. La roadmap e
 la valutazione in `reference_docs/` restano locali e intenzionalmente escluse da Git.
 
@@ -41,7 +41,7 @@ D3-D formalmente chiusa; stato corrente e ripresa nella sezione finale D3-D.
 | [D3-B](d3/d3-b.md) | Coordinamento run, rebuild e update | D3-0 | Formalmente chiusa | 8–12 ore |
 | [D3-C](d3/d3-c.md) | Esiti delle figure e gestione dei renderer | D3-0 | Formalmente chiusa | 10–14 ore |
 | [D3-D](d3/d3-d.md) | Motore di pubblicazione atomica, non attivo nella CLI | D3-B, D3-C | Formalmente chiusa | 10–14 ore |
-| [D3-E](d3/d3-e.md) | Retention sicura e attivazione nella CLI | D3-D | Pianificata | 6–10 ore |
+| [D3-E](d3/d3-e.md) | Retention sicura e attivazione nella CLI | D3-D | Consegnata localmente; CI pendente | 12–16 ore |
 | [D3-F](d3/d3-f.md) | Riuso su errore e chiusura integrata | D3-A, D3-E | Pianificata | 6–10 ore |
 
 Ordine operativo: **D3-0 → A → B → C → D → E → F**. A, B e C possono essere
@@ -49,7 +49,7 @@ consegnate separatamente a partire da D3-0; non è richiesto lavoro parallelo.
 D verifica il motore senza attivarlo nel batch; E lo attiva quando il controllo
 dello spazio è disponibile; F aggiunge il riuso su errore.
 
-Stima complessiva ricalcolata sulle righe della tabella: **48–72 ore, circa 6–9 giornate**, incluse verifiche e
+Stima complessiva ricalcolata sulle righe della tabella: **54–78 ore, circa 7–10 giornate**, incluse verifiche e
 documentazione, escluse attese CI. Sono stime di lavoro, non durate dei test.
 La stima D3-A iniziale di 4–6 ore è aggiornata a 6–8 dopo la pianificazione
 dettagliata: include preflight, cause SQLite avvolte e contese reali.
@@ -261,3 +261,35 @@ documenti/evidenze, senza nuovo push/merge/deploy, scheduler o rebuild operativo
 CLI ordinaria ancora diretta; nessuna retention o riuso introdotti. Ripresa:
 **pianificazione D3-E soltanto su nuova richiesta**, dopo controllo del checkout
 e lettura di indice/scheda/handover. **D3-E/F non avviate.**
+
+
+## D3-E — Pianificazione e implementazione, 9 ottobre 2026
+
+Baseline dev `3285f5b`, pulita, 1.6.0/schema 1. [Audit](../tests/results/d3-e-planning.md):
+248 PASS/1 SKIP, 92,83 s Python 3.12.15, -W error; non collaudo E.
+[Contratto E](d3/d3-e.md): attivazione CLI, retention posseduta sotto lease,
+protezione della storia pubblicata, pulizia startup/finale e JSON v1 additivo.
+Decisioni dell'utente: cleanup iniziale fallito blocca nuova pubblicazione;
+orfani finalizzati rimossi al prossimo avvio. Nessun riuso F.
+Stima E 12–16 ore incluse verifiche/handover, escluse attese CI, supera 6–10.
+Totale pianificato D3 54–78 ore (7–10 giornate), non lavoro residuo.
+Consegna locale verificata; pacchetto 1.7.0/schema 1. CI E pendente. Nessun push/merge/deploy.
+
+
+## D3-E — Consegna locale verificata, 9 ottobre 2026
+
+Pacchetto **1.7.0**, SQLite **schema 1**. Baseline dev `3285f5b`.
+CLI atomica, retention della storia pubblicata e orfani riconosciuti, cleanup
+startup/finale sotto lease, protezioni prima delle scritture DB e JSON v1 additivo.
+**608 PASS/1 SKIP per ciascuno di Python 3.11/3.12/3.13 macOS**; skip solo per
+secondo filesystem assente. Linux ARM64 mirato E+D **119 PASS/0 SKIP**,
+wheel/checker isolato/pip check/identità sorgenti e QA nominale/parziale/archiviata PASS.
+[Evidenze](../tests/results/d3-e-validation.md), [contratto E](d3/d3-e.md).
+Consegna locale distinta da chiusura formale: **CI E pendente sul candidato esatto**.
+Stima E 12–16 ore, inclusi test/handover, escluse attese CI, non consuntivo.
+Ripresa: solo verifica hosted E dopo pubblicazione richiesta. D3-F non avviata;
+nessun push/merge/deploy/scheduler/rebuild operativo implicito.
+
+
+Commit applicativo D3-E **`c48380dddaa33d48d2b66db4380bd454f0f7782b`**; consegna locale verificata,
+CI E pendente sul candidato esatto. [Evidenze](../tests/results/d3-e-validation.md).

@@ -1,6 +1,7 @@
 # Verifica batch, scientifica e di installazione
 
-Suite corrente su `dev`: **549 casi**, D3-D formalmente chiusa con CI hosted verde.
+Suite corrente su `dev`: **609 casi**, D3-E consegnata localmente (1.7.0/schema 1),
+CI E pendente. D3-D formalmente chiusa.
 D3-A/B/C restano formalmente chiuse. Il caso su due filesystem può essere
 saltato quando il runner non dispone di un secondo dispositivo scrivibile.
 La consegna D1 storica aveva 216 casi (177 di baseline e 39 nuovi D1).
@@ -598,3 +599,38 @@ documenti/evidenze, senza nuovo push/merge/deploy, scheduler o rebuild operativo
 CLI ordinaria ancora diretta; nessuna retention o riuso introdotti. Ripresa:
 **pianificazione D3-E soltanto su nuova richiesta**, dopo controllo del checkout
 e lettura di indice/scheda/handover. **D3-E/F non avviate.**
+
+
+## D3-E — Retention e CLI atomica
+
+60 nuovi casi in test_d3e_retention.py, con dati temporanei: conservazione N=2/4,
+variazione di N, storia/HTML/PNG, orfani per età/numero/spareggio/zero, SIGKILL
+in tre fasi, contese reali durante cleanup, permessi reali, marker/link/estranei,
+collisioni UUID e destinazioni, summary anche attraverso symlink, fsync cleanup,
+DB acquisito prima del fallimento cleanup, modalità senza effetti grafici.
+I casi C/D mantengono gli stessi contratti funzionali ma usano lo staging nuovo
+per provocare save failure; non creare ostacoli nei percorsi PNG legacy.
+
+```sh
+python -m pytest tests/test_d3e_retention.py tests/test_d3d_publication.py tests/test_d3c_rendering.py -ra --tb=short -W error
+python -m pytest -ra --tb=short -W error
+python -m build --wheel --no-isolation --outdir /tmp/qc-d3e-wheel
+/path/to/isolated-env/bin/python scripts/check_installation.py
+/path/to/isolated-env/bin/python -m pip check
+python scripts/render_d3e_qa.py /tmp/qc-d3e-qa
+```
+
+Per la suite completa il runner deve consentire ps e gestione dei gruppi di
+processi: il sandbox Codex può bloccare ps e richiedere esecuzione autorizzata
+fuori sandbox. Non cambiare test/aspettative per mascherare tale limite.
+Linux non privilegiato per verificare i permessi; due filesystem reali quando
+disponibili, altrimenti skip motivato. Il checker wheel usa import isolati,
+CLI senza figure e con rendering parziale, Agg e pubblicazioni ripetute/retention.
+
+Chiusura formale soltanto con matrice hosted verde sul candidato E esatto;
+non attribuire CI D3-D al nuovo codice. Evidenze: tests/results/d3-e-validation.md,
+ambiente/hash/QA: docs/qa/d3-e-environments.json. D3-F non avviata.
+
+
+Commit applicativo D3-E **`c48380dddaa33d48d2b66db4380bd454f0f7782b`**; consegna locale verificata,
+CI E pendente sul candidato esatto. [Evidenze](results/d3-e-validation.md).
