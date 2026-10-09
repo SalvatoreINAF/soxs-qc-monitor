@@ -245,3 +245,37 @@ simulati, backup e controlli figli eseguiti su fixture temporanee reali.
 Vedere [scheda D3-B](d3/d3-b.md).
 Implementazione locale e chiusura formale sono distinte: CI D3-B pendente,
 D3-C non avviata. Questa nota aggiorna le precedenti indicazioni di ripresa.
+
+
+## Correzione timeout dopo CI — 9 ottobre 2026
+
+CI 37818741442 sul candidato `0df371c`: Linux 3.11/3.12/3.13, 399 PASS
+più lo stesso fallimento nel rilascio della lease dopo timeout; macOS 3.12 verde.
+Il supervisore attendeva soltanto il processo principale dopo SIGKILL.
+Riproduzione Linux del vecchio codice: **20 contese immediate su 20 prove**.
+
+Correzione applicativa **`179f3ecaa7cb1fce0faa2ffe79931650bf359cb4`**:
+attesa verificabile della fine dei processi attivi del gruppo, limite **5 s**,
+scansioni `ps` ogni massimo 20 ms. Processi zombie/dead, che hanno già chiuso
+le risorse, non impediscono il completamento. Mancata terminazione o errore
+nell’ispezione resta bloccante; nessuna pausa fissa usata come prova di rilascio.
+Richiesto `ps` di sistema (macOS; pacchetto `procps` su Linux minimale).
+Pacchetto 1.4.0/schema 1 conservati, moduli della wheel invariati.
+
+Suite aggiornata: **405 casi**, cinque nuovi rispetto alla consegna iniziale.
+macOS Python 3.12.15: **405 PASS / 207,52 s**, `-W error`.
+Docker Linux ARM64 Python 3.12.15: **404 PASS, 1 SKIP / 174,76 s** sotto root;
+il caso sui permessi è poi passato con utente normale (**1 PASS / 1,04 s**).
+Sei casi mirati del timeout, tutti PASS: Linux utente normale (2,57 s),
+macOS Python 3.11.17 (2,33 s) e 3.13.16 (2,31 s).
+Il test aggiunto ritarda la consegna di SIGKILL al figlio e pretende la lease
+libera al ritorno del supervisore; verifica anche gruppi con zombie e limite
+massimo dell’attesa. Formule, tolleranze, schema e retry invariati.
+
+Questa correzione aggiorna la consegna locale precedente. **Nuova CI pendente**
+sul nuovo candidato: Linux x86_64 3.11/3.12/3.13 e macOS 3.12. Le prove locali
+Docker ARM64 non equivalgono alla matrice hosted. D3-B non formalmente chiusa;
+nessun push/merge/deploy, nessun D3-C.
+Dettagli: tests/results/d3-b-timeout-correction.md e
+ docs/qa/d3-b-environments.json. Le verifiche wheel precedenti restano valide
+per i moduli Python/template invariati; il supervisore corretto vive nel checkout.

@@ -1,3 +1,25 @@
+# Aggiornamento handover — 9 ottobre 2026
+
+**D3-B corretta localmente dopo il fallimento CI; nuova CI pendente.**
+Il candidato iniziale `0df371c` non può chiudere la milestone.
+Commit correttivo verificato: **`179f3ecaa7cb1fce0faa2ffe79931650bf359cb4`**.
+Pacchetto **1.4.0**, schema **1**. **D3-C non avviata**.
+
+Il timeout ora attende la conclusione effettiva dei figli prima di liberare
+le protezioni, con limite di 5 s e controllo dei processi attivi via `ps`.
+Linux ha riprodotto il difetto precedente 20 volte su 20; la correzione è verde.
+405 PASS macOS 3.12; Linux 404 PASS/1 SKIP root, caso saltato poi PASS utente
+normale. Sei test mirati PASS anche su Linux non privilegiato e Python 3.11/3.13.
+Moduli scientifici, schema, retry e file Python/template della wheel invariati.
+[Correzione ed evidenze](../tests/results/d3-b-timeout-correction.md).
+
+Ripresa: pubblicare il nuovo candidato soltanto su richiesta e verificarne
+la CI esatta Linux 3.11/3.12/3.13 e macOS 3.12 prima della chiusura formale.
+Nessun push, deploy o rebuild operativo eseguito. Le sezioni successive sono
+storiche e questa apertura aggiorna le loro indicazioni sul candidato.
+
+---
+
 # Handover D3-B — 8 ottobre 2026
 
 **D3-B consegnata e verificata localmente su `dev`; CI hosted pendente.** Pacchetto **1.4.0**, SQLite **schema 1**. D3-A resta

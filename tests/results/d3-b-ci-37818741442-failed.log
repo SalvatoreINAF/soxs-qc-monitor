@@ -1,0 +1,1349 @@
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	﻿2026-10-08T17:43:20.3572263Z Current runner version: '2.337.0'
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3598108Z ##[group]Runner Image Provisioner
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3599021Z Hosted Compute Agent
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3599947Z Version: 20261002.596
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3600603Z Commit: c3d12f3313a95f25162a1503be624f3b0617f8c0
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3601412Z Build Date: 2026-10-02T22:28:27Z
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3602127Z Worker ID: {f142a27e-6bd3-4eb5-b3b3-ee3221d71f0a}
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3602845Z Region: northcentralus
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3603555Z Cloud: Azure
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3604129Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3605954Z ##[group]Operating System
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3606617Z Ubuntu
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3607261Z 24.04.5
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3607819Z LTS
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3608374Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3609004Z ##[group]Runner Image
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3610044Z Image: ubuntu-24.04
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3610716Z Version: 20261004.327.1
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3612081Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261004.327/images/ubuntu/Ubuntu2404-Readme.md
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3613732Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261004.327
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3614743Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3616128Z ##[group]GITHUB_TOKEN Permissions
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3618368Z Contents: read
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3619369Z Metadata: read
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3619999Z Packages: read
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3620599Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3623013Z Secret source: Actions
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3623959Z Cache mode: write
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.3624786Z Prepare workflow directory
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.4031688Z Prepare all required actions
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.4078981Z Getting action download info
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.6288918Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.7109854Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.8869614Z Complete job name: tests (ubuntu-latest, 3.13)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9619379Z ##[group]Run actions/checkout@v4
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9620255Z with:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9620732Z   repository: SalvatoreINAF/soxs-qc-monitor
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9624644Z   token: ***
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9625083Z   ssh-strict: true
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9625526Z   ssh-user: git
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9625977Z   persist-credentials: true
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9626461Z   clean: true
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9626914Z   sparse-checkout-cone-mode: true
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9627428Z   fetch-depth: 1
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9627867Z   fetch-tags: false
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9628314Z   show-progress: true
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9628769Z   lfs: false
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9629344Z   submodules: false
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9629795Z   set-safe-directory: true
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9630299Z   allow-unsafe-pr-checkout: false
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9631059Z env:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9631469Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9631944Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:20.9632452Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0625499Z Syncing repository: SalvatoreINAF/soxs-qc-monitor
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0627285Z ##[group]Getting Git version info
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0628063Z Working directory is '/home/runner/work/soxs-qc-monitor/soxs-qc-monitor'
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0629377Z [command]/usr/bin/git version
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0663740Z git version 2.55.0
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0681867Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0695191Z Temporarily overriding HOME='/home/runner/work/_temp/aa364e73-44b7-4084-8456-5d8ec916aec2' before making global git config changes
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0697132Z Adding repository directory to the temporary git global config as a safe directory
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0700190Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/soxs-qc-monitor/soxs-qc-monitor
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0743616Z Deleting the contents of '/home/runner/work/soxs-qc-monitor/soxs-qc-monitor'
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0747260Z ##[group]Initializing the repository
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0751279Z [command]/usr/bin/git init /home/runner/work/soxs-qc-monitor/soxs-qc-monitor
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0825562Z hint: Using 'master' as the name for the initial branch. This default branch name
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0826724Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0827906Z hint: to use in all of your new repositories, which will suppress this warning,
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0828680Z hint: call:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0829526Z hint:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0830128Z hint: 	git config --global init.defaultBranch <name>
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0830763Z hint:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0831345Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0832265Z hint: 'development'. The just-created branch can be renamed via this command:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0833174Z hint:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0833602Z hint: 	git branch -m <name>
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0834086Z hint:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0834710Z hint: Disable this message with "git config set advice.defaultBranchName false"
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0835808Z Initialized empty Git repository in /home/runner/work/soxs-qc-monitor/soxs-qc-monitor/.git/
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0839735Z [command]/usr/bin/git remote add origin https://github.com/SalvatoreINAF/soxs-qc-monitor
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0881063Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0881856Z ##[group]Disabling automatic garbage collection
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0884723Z [command]/usr/bin/git config --local gc.auto 0
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0914464Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0915202Z ##[group]Setting up auth
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0921493Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.0952837Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.1258168Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.1292162Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.1522189Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.1554046Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.1783964Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.1818912Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.1827401Z ##[group]Fetching the repository
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.1828752Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +0df371c43dfc3436dbb880525517bb12a618cf55:refs/remotes/origin/dev
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.8421168Z From https://github.com/SalvatoreINAF/soxs-qc-monitor
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.8422795Z  * [new ref]         0df371c43dfc3436dbb880525517bb12a618cf55 -> origin/dev
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.8425741Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.8426954Z ##[group]Determining the checkout info
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.8437699Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.8440911Z [command]/usr/bin/git sparse-checkout disable
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.8488717Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.8516981Z ##[group]Checking out the ref
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.8522580Z [command]/usr/bin/git checkout --progress --force -B dev refs/remotes/origin/dev
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.8765618Z Switched to a new branch 'dev'
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.8770383Z branch 'dev' set up to track 'origin/dev'.
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.8777073Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.8815132Z [command]/usr/bin/git log -1 --format=%H
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.8838482Z 0df371c43dfc3436dbb880525517bb12a618cf55
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.9161145Z ##[group]Run actions/setup-python@v5
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.9161930Z with:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.9162407Z   python-version: 3.13
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.9163175Z   check-latest: false
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.9171404Z   token: ***
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.9171927Z   update-environment: true
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.9172591Z   allow-prereleases: false
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.9173232Z   freethreaded: false
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.9173775Z env:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.9174222Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.9174792Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:21.9175444Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.0497197Z ##[group]Installed versions
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.0577217Z (node:2319) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.0588209Z (Use `node --trace-deprecation ...` to show where the warning was created)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.0590232Z Successfully set up CPython (3.13.16)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.0591789Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.0854452Z ##[group]Run mkdir -p "$RUNNER_TEMP/qc-mpl" "$RUNNER_TEMP/qc-cache"
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.0856333Z ^[[36;1mmkdir -p "$RUNNER_TEMP/qc-mpl" "$RUNNER_TEMP/qc-cache"^[[0m
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.0857787Z ^[[36;1m{^[[0m
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.0858736Z ^[[36;1m  echo "MPLCONFIGDIR=$RUNNER_TEMP/qc-mpl"^[[0m
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.0860319Z ^[[36;1m  echo "XDG_CACHE_HOME=$RUNNER_TEMP/qc-cache"^[[0m
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.0861646Z ^[[36;1m} >> "$GITHUB_ENV"^[[0m
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1091353Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1092742Z env:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1093541Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1094457Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1095708Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.16/x64
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1097445Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.16/x64/lib/pkgconfig
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1099342Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.16/x64
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1101025Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.16/x64
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1102624Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.16/x64
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1104263Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.16/x64/lib
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1105671Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1330055Z ##[group]Run sudo apt-get update && sudo apt-get install -y tcsh
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1331745Z ^[[36;1msudo apt-get update && sudo apt-get install -y tcsh^[[0m
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1396451Z shell: /usr/bin/bash -e {0}
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1397373Z env:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1398098Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1398947Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1400328Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.16/x64
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1402027Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.16/x64/lib/pkgconfig
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1403701Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.16/x64
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1405208Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.16/x64
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1406734Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.16/x64
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1408260Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.16/x64/lib
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1409861Z   MPLCONFIGDIR: /home/runner/work/_temp/qc-mpl
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1411174Z   XDG_CACHE_HOME: /home/runner/work/_temp/qc-cache
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.1412330Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.2180533Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.2520164Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.2524388Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.2528350Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.2626177Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.2658490Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.3800822Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main armhf Packages [12.3 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.3900092Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [531 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.3991475Z Get:9 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [474 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.4043574Z Get:10 https://packages.microsoft.com/ubuntu/24.04/prod noble/main all Packages [640 B]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.4316150Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1375 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.4395853Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [306 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.4425468Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1702 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.4531347Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [342 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.4561197Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1761 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.4677238Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [401 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.4702032Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.0 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.4713772Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [14.3 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.5488440Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1115 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.5556121Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [227 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.6038090Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1218 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.6112135Z Get:22 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [245 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.6137879Z Get:23 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1632 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.6264337Z Get:24 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [376 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:22.6271598Z Get:25 http://azure.archive.ubuntu.com/ubuntu noble-security/multiverse Translation-en [11.6 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:25.5143910Z Fetched 12.2 MB in 1s (9264 kB/s)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:26.3298227Z Reading package lists...
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:26.3616138Z Reading package lists...
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:26.5576856Z Building dependency tree...
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:26.5583713Z Reading state information...
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:26.7307162Z The following NEW packages will be installed:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:26.7307810Z   tcsh
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:26.7482767Z 0 upgraded, 1 newly installed, 0 to remove and 21 not upgraded.
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:26.7483660Z Need to get 450 kB of archives.
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:26.7484349Z After this operation, 1418 kB of additional disk space will be used.
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:26.7485123Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:26.7870975Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 tcsh amd64 6.24.10-4build1 [450 kB]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.0405478Z Fetched 450 kB in 0s (8000 kB/s)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.0624716Z Selecting previously unselected package tcsh.
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.0828010Z (Reading database ... 
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.0828703Z (Reading database ... 5%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.0829451Z (Reading database ... 10%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.0829928Z (Reading database ... 15%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.0830370Z (Reading database ... 20%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.0830868Z (Reading database ... 25%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.0831304Z (Reading database ... 30%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.0831740Z (Reading database ... 35%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.0832236Z (Reading database ... 40%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.0832673Z (Reading database ... 45%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.0833127Z (Reading database ... 50%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.0860132Z (Reading database ... 55%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.1591720Z (Reading database ... 60%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.3655384Z (Reading database ... 65%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.5555895Z (Reading database ... 70%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.7556928Z (Reading database ... 75%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.8575691Z (Reading database ... 80%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:27.9875533Z (Reading database ... 85%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:28.1093706Z (Reading database ... 90%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:28.2621255Z (Reading database ... 95%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:28.2621591Z (Reading database ... 100%
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:28.2621963Z (Reading database ... 203191 files and directories currently installed.)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:28.2668952Z Preparing to unpack .../tcsh_6.24.10-4build1_amd64.deb ...
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:28.2698342Z Unpacking tcsh (6.24.10-4build1) ...
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:28.3564109Z Setting up tcsh (6.24.10-4build1) ...
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:28.3668487Z update-alternatives: using /bin/tcsh to provide /bin/csh (csh) in auto mode
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:28.3698007Z Processing triggers for debianutils (5.17build1) ...
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:28.4197350Z Processing triggers for man-db (2.12.0-4build2) ...
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:28.4215685Z Not building database; man-db/auto-update is not 'true'.
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.0083191Z 
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.0083742Z Running kernel seems to be up-to-date.
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.0084096Z 
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.0084247Z No services need to be restarted.
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.0084870Z 
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.0085041Z No containers need to be restarted.
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.0085308Z 
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.0085504Z No user sessions are running outdated binaries.
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.0085824Z 
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.0086132Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9542667Z ##[group]Run mkdir -p "$MPLCONFIGDIR"
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9543033Z ^[[36;1mmkdir -p "$MPLCONFIGDIR"^[[0m
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9543303Z ^[[36;1mif [ '3.13' = '3.12' ]; then^[[0m
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9543812Z ^[[36;1m  python -m pip install -c requirements/reference-py312.txt '.[test]' build setuptools wheel^[[0m
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9544300Z ^[[36;1melse^[[0m
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9544589Z ^[[36;1m  python -m pip install '.[test]' build setuptools wheel^[[0m
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9544921Z ^[[36;1mfi^[[0m
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9616562Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9616921Z env:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9617123Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9617376Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9617695Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.16/x64
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9618157Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.16/x64/lib/pkgconfig
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9618599Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.16/x64
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9619018Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.16/x64
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9619655Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.16/x64
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9620053Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.16/x64/lib
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9620416Z   MPLCONFIGDIR: /home/runner/work/_temp/qc-mpl
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9620742Z   XDG_CACHE_HOME: /home/runner/work/_temp/qc-cache
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:29.9621037Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:30.6349974Z Processing ./.
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:30.6366270Z   Installing build dependencies: started
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:31.2967495Z   Installing build dependencies: finished with status 'done'
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:31.2973445Z   Getting requirements to build wheel: started
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:31.7844680Z   Getting requirements to build wheel: finished with status 'done'
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:31.7853353Z   Preparing metadata (pyproject.toml): started
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:32.2687776Z   Preparing metadata (pyproject.toml): finished with status 'done'
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:32.3278211Z Collecting build
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:32.3710807Z   Downloading build-1.6.1-py3-none-any.whl.metadata (5.6 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:32.4499564Z Collecting setuptools
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:32.4513258Z   Using cached setuptools-84.0.0-py3-none-any.whl.metadata (6.6 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:32.4716107Z Collecting wheel
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:32.4747887Z   Downloading wheel-0.48.0-py3-none-any.whl.metadata (2.3 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:32.6461116Z Collecting numpy==2.1.0 (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:32.6501869Z   Downloading numpy-2.1.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (60 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:32.7697879Z Collecting pandas<3,>=2.2.2 (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:32.7733457Z   Downloading pandas-2.3.3-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (91 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:32.8299716Z Collecting pyyaml==6.0.2 (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:32.8332388Z   Downloading PyYAML-6.0.2-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (2.1 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:32.9253627Z Collecting astropy==6.1.2 (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:32.9538666Z   Downloading astropy-6.1.2.tar.gz (7.1 MB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:33.0396081Z      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.1/7.1 MB 84.8 MB/s  0:00:00
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:33.6480384Z   Installing build dependencies: started
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:35.3173863Z   Installing build dependencies: finished with status 'done'
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:35.3179438Z   Getting requirements to build wheel: started
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:37.3236578Z   Getting requirements to build wheel: finished with status 'done'
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:37.3244860Z   Preparing metadata (pyproject.toml): started
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.5847144Z   Preparing metadata (pyproject.toml): finished with status 'done'
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.6981894Z Collecting matplotlib (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.7016555Z   Downloading matplotlib-3.11.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (80 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.7381589Z Collecting pytest<9,>=8 (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.7412275Z   Downloading pytest-8.4.2-py3-none-any.whl.metadata (7.7 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.7636352Z Collecting pyerfa>=2.0.1.1 (from astropy==6.1.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.7668238Z   Downloading pyerfa-2.0.1.5-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.7 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.7927321Z Collecting astropy-iers-data>=0.2024.7.1.0.34.3 (from astropy==6.1.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.7972958Z   Downloading astropy_iers_data-0.2026.10.5.1.0.7-py3-none-any.whl.metadata (3.4 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.8086587Z Collecting packaging>=19.0 (from astropy==6.1.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.8098210Z   Using cached packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.8210696Z Collecting python-dateutil>=2.8.2 (from pandas<3,>=2.2.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.8241471Z   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.8558736Z Collecting pytz>=2020.1 (from pandas<3,>=2.2.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.8593091Z   Downloading pytz-2026.5-py2.py3-none-any.whl.metadata (22 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.8739030Z Collecting tzdata>=2022.7 (from pandas<3,>=2.2.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.8771158Z   Downloading tzdata-2026.5-py2.py3-none-any.whl.metadata (1.4 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.8876424Z Collecting iniconfig>=1 (from pytest<9,>=8->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.8907310Z   Downloading iniconfig-2.3.1-py3-none-any.whl.metadata (2.8 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.9027141Z Collecting pluggy<2,>=1.5 (from pytest<9,>=8->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.9057773Z   Downloading pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.9219487Z Collecting pygments>=2.7.2 (from pytest<9,>=8->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.9250367Z   Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.9359248Z Collecting pyproject_hooks (from build)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.9390827Z   Downloading pyproject_hooks-1.3.3-py3-none-any.whl.metadata (1.3 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.9533402Z Collecting six>=1.5 (from python-dateutil>=2.8.2->pandas<3,>=2.2.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:38.9563959Z   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.0086627Z Collecting contourpy>=1.0.1 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.0120374Z   Downloading contourpy-1.4.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (3.8 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.0220853Z Collecting cycler>=0.10 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.0252376Z   Downloading cycler-0.12.1-py3-none-any.whl.metadata (3.8 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.1511124Z Collecting fonttools>=4.28.2 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.1545080Z   Downloading fonttools-4.66.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (130 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.2205042Z Collecting kiwisolver>=1.3.1 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.2238591Z   Downloading kiwisolver-1.5.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (5.2 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.3678235Z Collecting pillow>=9 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.3713110Z   Downloading pillow-12.3.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.1 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.3928639Z Collecting pyparsing>=3 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.3963342Z   Downloading pyparsing-3.3.3-py3-none-any.whl.metadata (5.9 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.4073464Z Downloading numpy-2.1.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.0 MB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.4599911Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.0/16.0 MB 314.8 MB/s  0:00:00
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.4635137Z Downloading PyYAML-6.0.2-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (759 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.4683997Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 759.5/759.5 kB 173.0 MB/s  0:00:00
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.4719575Z Downloading pandas-2.3.3-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.3 MB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5165570Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.3/12.3 MB 284.2 MB/s  0:00:00
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5200926Z Downloading pytest-8.4.2-py3-none-any.whl (365 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5257566Z Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5306605Z Downloading build-1.6.1-py3-none-any.whl (31 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5333819Z Using cached setuptools-84.0.0-py3-none-any.whl (818 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5368200Z Downloading wheel-0.48.0-py3-none-any.whl (33 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5418037Z Downloading astropy_iers_data-0.2026.10.5.1.0.7-py3-none-any.whl (2.0 MB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5516015Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 244.5 MB/s  0:00:00
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5548220Z Downloading iniconfig-2.3.1-py3-none-any.whl (7.6 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5574050Z Using cached packaging-26.3-py3-none-any.whl (129 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5607535Z Downloading pyerfa-2.0.1.5-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (738 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5659224Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 738.7/738.7 kB 163.3 MB/s  0:00:00
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5692802Z Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5753645Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 258.3 MB/s  0:00:00
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5785948Z Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5840695Z Downloading pytz-2026.5-py2.py3-none-any.whl (506 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5902545Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.5950720Z Downloading tzdata-2026.5-py2.py3-none-any.whl (347 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.6005494Z Downloading matplotlib-3.11.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (9.9 MB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.6348282Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.9/9.9 MB 304.3 MB/s  0:00:00
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.6386419Z Downloading contourpy-1.4.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (384 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.6442331Z Downloading cycler-0.12.1-py3-none-any.whl (8.3 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.6491165Z Downloading fonttools-4.66.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (5.4 MB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.6673957Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.4/5.4 MB 326.4 MB/s  0:00:00
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.6708734Z Downloading kiwisolver-1.5.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (1.5 MB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.6777207Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.5/1.5 MB 282.4 MB/s  0:00:00
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.6807651Z Downloading pillow-12.3.0-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.9 MB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.7006123Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.9/6.9 MB 374.2 MB/s  0:00:00
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.7037622Z Downloading pyparsing-3.3.3-py3-none-any.whl (126 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.7087911Z Downloading pyproject_hooks-1.3.3-py3-none-any.whl (10 kB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.8838945Z Building wheels for collected packages: qc-monitor, astropy
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:39.8847535Z   Building wheel for qc-monitor (pyproject.toml): started
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:40.4017810Z   Building wheel for qc-monitor (pyproject.toml): finished with status 'done'
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:40.4023741Z   Created wheel for qc-monitor: filename=qc_monitor-1.4.0-py3-none-any.whl size=71892 sha256=a81625bfdb07c1d4e32aeb588303f443e0b48def930327c51fd54c58f8493dc1
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:40.4025319Z   Stored in directory: /tmp/pip-ephem-wheel-cache-i5yc2ae9/wheels/bd/ba/33/2f14a0e4716ee0b4045ddadd334166aa1128b2d5b94e1132a2
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:43:40.4058735Z   Building wheel for astropy (pyproject.toml): started
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:44:44.5039041Z   Building wheel for astropy (pyproject.toml): still running...
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:44:53.9975617Z   Building wheel for astropy (pyproject.toml): finished with status 'done'
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:44:54.0067559Z   Created wheel for astropy: filename=astropy-6.1.2-cp313-cp313-linux_x86_64.whl size=10292283 sha256=a366f503dc279790042042ff04a85450dce615b2e549e4b414da2e22e1081f90
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:44:54.0068728Z   Stored in directory: /home/runner/work/_temp/qc-cache/pip/wheels/6a/a7/86/3709849eeff771348ed569af7ae6e9422fbb80b40ed98a4771
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:44:54.0152772Z Successfully built qc-monitor astropy
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:44:54.1240895Z Installing collected packages: pytz, tzdata, six, setuptools, pyyaml, pyproject_hooks, pyparsing, pygments, pluggy, pillow, packaging, numpy, kiwisolver, iniconfig, fonttools, cycler, astropy-iers-data, wheel, python-dateutil, pytest, pyerfa, contourpy, build, pandas, matplotlib, astropy, qc-monitor
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.4896000Z 
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.4926967Z Successfully installed astropy-6.1.2 astropy-iers-data-0.2026.10.5.1.0.7 build-1.6.1 contourpy-1.4.0 cycler-0.12.1 fonttools-4.66.1 iniconfig-2.3.1 kiwisolver-1.5.1 matplotlib-3.11.2 numpy-2.1.0 packaging-26.3 pandas-2.3.3 pillow-12.3.0 pluggy-1.6.0 pyerfa-2.0.1.5 pygments-2.21.0 pyparsing-3.3.3 pyproject_hooks-1.3.3 pytest-8.4.2 python-dateutil-2.9.0.post0 pytz-2026.5 pyyaml-6.0.2 qc-monitor-1.4.0 setuptools-84.0.0 six-1.17.0 tzdata-2026.5 wheel-0.48.0
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.9865181Z ##[group]Run python -m pytest -ra --tb=short -W error
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.9865585Z ^[[36;1mpython -m pytest -ra --tb=short -W error^[[0m
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.9935024Z shell: /usr/bin/bash -e {0}
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.9935294Z env:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.9935493Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.9935729Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.9936068Z   pythonLocation: /opt/hostedtoolcache/Python/3.13.16/x64
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.9936501Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.13.16/x64/lib/pkgconfig
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.9936916Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.16/x64
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.9937306Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.16/x64
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.9937677Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.13.16/x64
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.9938043Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.13.16/x64/lib
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.9938398Z   MPLCONFIGDIR: /home/runner/work/_temp/qc-mpl
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.9938759Z   XDG_CACHE_HOME: /home/runner/work/_temp/qc-cache
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:08.9939050Z ##[endgroup]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:10.9277661Z ============================= test session starts ==============================
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:10.9278336Z platform linux -- Python 3.13.16, pytest-8.4.2, pluggy-1.6.0
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:10.9278962Z rootdir: /home/runner/work/soxs-qc-monitor/soxs-qc-monitor
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:10.9279688Z configfile: pyproject.toml
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:10.9280049Z testpaths: tests
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:10.9280299Z collected 400 items
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:10.9280432Z 
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:11.5037161Z tests/test_batch_wrappers.py ..............                              [  3%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:45:18.0177100Z tests/test_completeness.py .................                             [  7%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:46:07.7737606Z tests/test_d2_config.py ................................................ [ 19%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:46:11.1985342Z .........                                                                [ 22%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:46:17.0560413Z tests/test_d2_detlin.py .................                                [ 26%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:46:41.0745704Z tests/test_d2_storage.py .........................                       [ 32%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:47:06.5813255Z tests/test_d3a_resilience.py ........................................... [ 43%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:47:07.0934849Z .....                                                                    [ 44%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:47:43.1678100Z tests/test_d3b_coordination.py .............................F.......     [ 53%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:47:43.2006745Z tests/test_detlin_classification.py .................................... [ 62%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:47:47.6651624Z ............................                                             [ 69%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:48:00.3025277Z tests/test_dry_run.py ...............                                    [ 73%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:48:17.8251191Z tests/test_read_only.py ...............................                  [ 81%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:48:59.1318711Z tests/test_run_result.py .................                               [ 85%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:04.8780818Z tests/test_scientific_rendering.py ........                              [ 87%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:13.5398288Z tests/test_unit_recovery.py ............................................ [ 98%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1800942Z ......                                                                   [100%]
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1801246Z 
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1801414Z =================================== FAILURES ===================================
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1802058Z _______________ test_timeout_kills_descendant_after_leader_exits _______________
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1802716Z qc_monitor/coordination.py:108: in _lease
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1803355Z     fcntl.flock(fd, (fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH) | fcntl.LOCK_NB)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1804109Z E   BlockingIOError: [Errno 11] Resource temporarily unavailable
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1804528Z 
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1804819Z The above exception was the direct cause of the following exception:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1806112Z tests/test_d3b_coordination.py:310: in test_timeout_kills_descendant_after_leader_exits
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1806847Z     with leases([('resource', resource, True)]):
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1807309Z          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1807959Z /opt/hostedtoolcache/Python/3.13.16/x64/lib/python3.13/contextlib.py:141: in __enter__
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1808641Z     return next(self.gen)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1808875Z            ^^^^^^^^^^^^^^
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1809400Z qc_monitor/coordination.py:141: in leases
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1809842Z     fds.append(stack.enter_context(_lease(kind, path, exclusive)))
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1810221Z                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1810673Z /opt/hostedtoolcache/Python/3.13.16/x64/lib/python3.13/contextlib.py:530: in enter_context
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1811102Z     result = _enter(cm)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1811319Z              ^^^^^^^^^^
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1811670Z /opt/hostedtoolcache/Python/3.13.16/x64/lib/python3.13/contextlib.py:141: in __enter__
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1812077Z     return next(self.gen)
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1812292Z            ^^^^^^^^^^^^^^
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1812521Z qc_monitor/coordination.py:111: in _lease
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1812851Z     raise CoordinationBusyError(f'{kind}:{path}') from exc
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1813647Z E   qc_monitor.coordination.CoordinationBusyError: Operational resource already in use: resource:/tmp/pytest-of-runner/pytest-0/test_timeout_kills_descendant_0/timeout-resource
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1814466Z =========================== short test summary info ============================
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1815947Z FAILED tests/test_d3b_coordination.py::test_timeout_kills_descendant_after_leader_exits - qc_monitor.coordination.CoordinationBusyError: Operational resource already in use: resource:/tmp/pytest-of-runner/pytest-0/test_timeout_kills_descendant_0/timeout-resource
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.1817054Z ================== 1 failed, 399 passed in 244.17s (0:04:04) ===================
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.3423789Z ##[error]Process completed with exit code 1.
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.3575102Z Post job cleanup.
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.4396211Z [command]/usr/bin/git version
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.4437030Z git version 2.55.0
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.4478213Z Temporarily overriding HOME='/home/runner/work/_temp/fd3c0082-2afa-45b6-8dfb-866ce6ed6a57' before making global git config changes
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.4481568Z Adding repository directory to the temporary git global config as a safe directory
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.4485068Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/soxs-qc-monitor/soxs-qc-monitor
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.4523336Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.4556831Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.4794580Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.4820575Z http.https://github.com/.extraheader
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.4832294Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.4865615Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.5116480Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.5149493Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.5568187Z Cleaning up orphan processes
+tests (ubuntu-latest, 3.13)	UNKNOWN STEP	2026-10-08T17:49:14.5949628Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	﻿2026-10-08T17:43:20.2300804Z Current runner version: '2.337.0'
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2327976Z ##[group]Runner Image Provisioner
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2329404Z Hosted Compute Agent
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2330503Z Version: 20261002.596
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2331569Z Commit: c3d12f3313a95f25162a1503be624f3b0617f8c0
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2332868Z Build Date: 2026-10-02T22:28:27Z
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2334066Z Worker ID: {3c939165-13fa-46b3-9948-5ed0a3d3a827}
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2335547Z Region: eastus
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2336996Z Cloud: Azure
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2338065Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2341042Z ##[group]Operating System
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2342255Z Ubuntu
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2343117Z 24.04.5
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2344172Z LTS
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2345349Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2346297Z ##[group]Runner Image
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2347259Z Image: ubuntu-24.04
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2348192Z Version: 20261004.327.1
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2350399Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261004.327/images/ubuntu/Ubuntu2404-Readme.md
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2353282Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261004.327
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2355345Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2357548Z ##[group]GITHUB_TOKEN Permissions
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2360465Z Contents: read
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2361452Z Metadata: read
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2362573Z Packages: read
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2363545Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2367263Z Secret source: Actions
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2368674Z Cache mode: write
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2370293Z Prepare workflow directory
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.2936487Z Prepare all required actions
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.3008211Z Getting action download info
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.5072810Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.6166379Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8017216Z Complete job name: tests (ubuntu-latest, 3.12)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8783079Z ##[group]Run actions/checkout@v4
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8783976Z with:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8784721Z   repository: SalvatoreINAF/soxs-qc-monitor
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8788872Z   token: ***
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8789300Z   ssh-strict: true
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8789738Z   ssh-user: git
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8790186Z   persist-credentials: true
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8790682Z   clean: true
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8791127Z   sparse-checkout-cone-mode: true
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8791643Z   fetch-depth: 1
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8792070Z   fetch-tags: false
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8792514Z   show-progress: true
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8792958Z   lfs: false
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8793383Z   submodules: false
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8793831Z   set-safe-directory: true
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8794334Z   allow-unsafe-pr-checkout: false
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8795263Z env:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8795673Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8796126Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.8796626Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.9789283Z Syncing repository: SalvatoreINAF/soxs-qc-monitor
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.9791360Z ##[group]Getting Git version info
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.9792181Z Working directory is '/home/runner/work/soxs-qc-monitor/soxs-qc-monitor'
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.9793297Z [command]/usr/bin/git version
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.9870657Z git version 2.55.0
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.9892263Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.9906810Z Temporarily overriding HOME='/home/runner/work/_temp/dfdc0638-30a4-4d42-b6c6-75884e3a533f' before making global git config changes
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.9908880Z Adding repository directory to the temporary git global config as a safe directory
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.9912772Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/soxs-qc-monitor/soxs-qc-monitor
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.9961398Z Deleting the contents of '/home/runner/work/soxs-qc-monitor/soxs-qc-monitor'
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.9965683Z ##[group]Initializing the repository
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:20.9969660Z [command]/usr/bin/git init /home/runner/work/soxs-qc-monitor/soxs-qc-monitor
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0079809Z hint: Using 'master' as the name for the initial branch. This default branch name
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0081516Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0082520Z hint: to use in all of your new repositories, which will suppress this warning,
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0083288Z hint: call:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0083691Z hint:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0084216Z hint: 	git config --global init.defaultBranch <name>
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0085122Z hint:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0085716Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0086667Z hint: 'development'. The just-created branch can be renamed via this command:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0087425Z hint:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0087843Z hint: 	git branch -m <name>
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0088326Z hint:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0088973Z hint: Disable this message with "git config set advice.defaultBranchName false"
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0094243Z Initialized empty Git repository in /home/runner/work/soxs-qc-monitor/soxs-qc-monitor/.git/
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0103482Z [command]/usr/bin/git remote add origin https://github.com/SalvatoreINAF/soxs-qc-monitor
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0157426Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0158209Z ##[group]Disabling automatic garbage collection
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0162660Z [command]/usr/bin/git config --local gc.auto 0
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0193010Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0194599Z ##[group]Setting up auth
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0200142Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0230753Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0585345Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0619584Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0846559Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.0878607Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.1096571Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.1131950Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.1133858Z ##[group]Fetching the repository
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.1142280Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +0df371c43dfc3436dbb880525517bb12a618cf55:refs/remotes/origin/dev
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.4387918Z From https://github.com/SalvatoreINAF/soxs-qc-monitor
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.4389026Z  * [new ref]         0df371c43dfc3436dbb880525517bb12a618cf55 -> origin/dev
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.4392467Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.4393340Z ##[group]Determining the checkout info
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.4395360Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.4400766Z [command]/usr/bin/git sparse-checkout disable
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.4448581Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.4478025Z ##[group]Checking out the ref
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.4483542Z [command]/usr/bin/git checkout --progress --force -B dev refs/remotes/origin/dev
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.4733038Z Switched to a new branch 'dev'
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.4738831Z branch 'dev' set up to track 'origin/dev'.
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.4746829Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.4787367Z [command]/usr/bin/git log -1 --format=%H
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.4810826Z 0df371c43dfc3436dbb880525517bb12a618cf55
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.5098534Z ##[group]Run actions/setup-python@v5
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.5099187Z with:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.5099640Z   python-version: 3.12
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.5100354Z   check-latest: false
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.5104701Z   token: ***
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.5105202Z   update-environment: true
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.5105739Z   allow-prereleases: false
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.5106257Z   freethreaded: false
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.5106726Z env:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.5107147Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.5107627Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.5108153Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.6422951Z ##[group]Installed versions
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.6514941Z (node:2402) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.6517554Z (Use `node --trace-deprecation ...` to show where the warning was created)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.6518723Z Successfully set up CPython (3.12.15)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.6520173Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.6774663Z ##[group]Run mkdir -p "$RUNNER_TEMP/qc-mpl" "$RUNNER_TEMP/qc-cache"
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.6775812Z ^[[36;1mmkdir -p "$RUNNER_TEMP/qc-mpl" "$RUNNER_TEMP/qc-cache"^[[0m
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.6776552Z ^[[36;1m{^[[0m
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.6777081Z ^[[36;1m  echo "MPLCONFIGDIR=$RUNNER_TEMP/qc-mpl"^[[0m
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.6777807Z ^[[36;1m  echo "XDG_CACHE_HOME=$RUNNER_TEMP/qc-cache"^[[0m
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.6778462Z ^[[36;1m} >> "$GITHUB_ENV"^[[0m
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7046904Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7047670Z env:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7048117Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7048634Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7049311Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7050239Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7051161Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7052066Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7052914Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7053726Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7054629Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7240927Z ##[group]Run sudo apt-get update && sudo apt-get install -y tcsh
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7241868Z ^[[36;1msudo apt-get update && sudo apt-get install -y tcsh^[[0m
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7302985Z shell: /usr/bin/bash -e {0}
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7303527Z env:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7303959Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7304805Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7305502Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7306377Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7307238Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7308021Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7308796Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7309591Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7310348Z   MPLCONFIGDIR: /home/runner/work/_temp/qc-mpl
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7311057Z   XDG_CACHE_HOME: /home/runner/work/_temp/qc-cache
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.7311679Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.8183515Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.8491466Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.8494684Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.8521479Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.8576456Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.8606231Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.9819181Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main all Packages [640 B]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:21.9991398Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [474 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.0001721Z Get:9 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [531 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.0128102Z Get:10 https://packages.microsoft.com/ubuntu/24.04/prod noble/main armhf Packages [12.3 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.0447723Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1375 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.0506933Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [306 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.0521252Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1702 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.0622717Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [342 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.0628088Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1761 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.0716278Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [401 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.0748341Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.0 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.0752551Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [14.3 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.1491529Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1115 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.1547386Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [227 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.1983789Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1218 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.2045031Z Get:22 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [245 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.2061765Z Get:23 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1632 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.2134645Z Get:24 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [376 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:22.2154998Z Get:25 http://azure.archive.ubuntu.com/ubuntu noble-security/multiverse Translation-en [11.6 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:25.1295717Z Fetched 12.2 MB in 1s (9656 kB/s)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:25.9950230Z Reading package lists...
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.0257940Z Reading package lists...
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.2181253Z Building dependency tree...
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.2188570Z Reading state information...
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.3907010Z The following NEW packages will be installed:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.3907678Z   tcsh
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.4080690Z 0 upgraded, 1 newly installed, 0 to remove and 21 not upgraded.
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.4081484Z Need to get 450 kB of archives.
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.4082578Z After this operation, 1418 kB of additional disk space will be used.
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.4083453Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.5075344Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 tcsh amd64 6.24.10-4build1 [450 kB]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.7778822Z Fetched 450 kB in 0s (3742 kB/s)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.8133141Z Selecting previously unselected package tcsh.
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.8487348Z (Reading database ... 
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.8488052Z (Reading database ... 5%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.8495951Z (Reading database ... 10%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.8496645Z (Reading database ... 15%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.8497150Z (Reading database ... 20%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.8497582Z (Reading database ... 25%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.8498059Z (Reading database ... 30%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.8498524Z (Reading database ... 35%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.8499018Z (Reading database ... 40%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.8499468Z (Reading database ... 45%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.8499950Z (Reading database ... 50%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.8533109Z (Reading database ... 55%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:26.9773477Z (Reading database ... 60%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:27.1708687Z (Reading database ... 65%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:27.3760378Z (Reading database ... 70%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:27.5734762Z (Reading database ... 75%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:27.7209036Z (Reading database ... 80%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:27.8770253Z (Reading database ... 85%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:27.9943856Z (Reading database ... 90%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:28.1327930Z (Reading database ... 95%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:28.1328400Z (Reading database ... 100%
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:28.1328965Z (Reading database ... 203191 files and directories currently installed.)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:28.1371212Z Preparing to unpack .../tcsh_6.24.10-4build1_amd64.deb ...
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:28.1397274Z Unpacking tcsh (6.24.10-4build1) ...
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:28.2468820Z Setting up tcsh (6.24.10-4build1) ...
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:28.2576650Z update-alternatives: using /bin/tcsh to provide /bin/csh (csh) in auto mode
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:28.2612607Z Processing triggers for debianutils (5.17build1) ...
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:28.4101444Z Processing triggers for man-db (2.12.0-4build2) ...
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:28.4124297Z Not building database; man-db/auto-update is not 'true'.
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:30.1443620Z 
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:30.1444223Z Running kernel seems to be up-to-date.
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:30.1444964Z 
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:30.1445190Z No services need to be restarted.
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:30.1445597Z 
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:30.1445824Z No containers need to be restarted.
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:30.1446203Z 
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:30.1446467Z No user sessions are running outdated binaries.
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:30.1446912Z 
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:30.1447339Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0582817Z ##[group]Run mkdir -p "$MPLCONFIGDIR"
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0583196Z ^[[36;1mmkdir -p "$MPLCONFIGDIR"^[[0m
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0583469Z ^[[36;1mif [ '3.12' = '3.12' ]; then^[[0m
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0583961Z ^[[36;1m  python -m pip install -c requirements/reference-py312.txt '.[test]' build setuptools wheel^[[0m
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0584791Z ^[[36;1melse^[[0m
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0585120Z ^[[36;1m  python -m pip install '.[test]' build setuptools wheel^[[0m
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0585457Z ^[[36;1mfi^[[0m
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0649905Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0650262Z env:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0650457Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0650702Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0651033Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0651478Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0651938Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0652369Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0652787Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0653189Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0653570Z   MPLCONFIGDIR: /home/runner/work/_temp/qc-mpl
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0653904Z   XDG_CACHE_HOME: /home/runner/work/_temp/qc-cache
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.0654203Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.8548985Z Processing ./.
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:31.8570542Z   Installing build dependencies: started
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:32.6419611Z   Installing build dependencies: finished with status 'done'
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:32.6426149Z   Getting requirements to build wheel: started
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:33.1652926Z   Getting requirements to build wheel: finished with status 'done'
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:33.1662150Z   Preparing metadata (pyproject.toml): started
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:33.6560295Z   Preparing metadata (pyproject.toml): finished with status 'done'
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:33.7199503Z Collecting build
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:33.7728091Z   Downloading build-1.3.0-py3-none-any.whl.metadata (5.6 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:33.8424930Z Collecting setuptools
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:33.8471920Z   Downloading setuptools-80.10.1-py3-none-any.whl.metadata (6.7 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:33.8868955Z Collecting wheel
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:33.8909366Z   Downloading wheel-0.46.3-py3-none-any.whl.metadata (2.4 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.0962286Z Collecting numpy==2.1.0 (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.1012679Z   Downloading numpy-2.1.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (60 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.2333609Z Collecting pandas<3,>=2.2.2 (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.2380375Z   Downloading pandas-2.3.3-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (91 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.2995698Z Collecting pyyaml==6.0.2 (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.3036664Z   Downloading PyYAML-6.0.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (2.1 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.4114219Z Collecting astropy==6.1.2 (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.4239118Z   Downloading astropy-6.1.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (10 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.5594716Z Collecting matplotlib (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.5660562Z   Downloading matplotlib-3.10.8-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (52 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.6028406Z Collecting pytest<9,>=8 (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.6069824Z   Downloading pytest-8.4.2-py3-none-any.whl.metadata (7.7 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.6450344Z Collecting pyerfa>=2.0.1.1 (from astropy==6.1.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.6494883Z   Downloading pyerfa-2.0.1.5-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.7 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.6929126Z Collecting astropy-iers-data>=0.2024.7.1.0.34.3 (from astropy==6.1.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.6983629Z   Downloading astropy_iers_data-0.2026.1.26.0.43.56-py3-none-any.whl.metadata (3.4 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.7135459Z Collecting packaging>=19.0 (from astropy==6.1.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.7174108Z   Downloading packaging-26.0-py3-none-any.whl.metadata (3.3 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.7321496Z Collecting python-dateutil>=2.8.2 (from pandas<3,>=2.2.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.7369613Z   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.7701618Z Collecting pytz>=2020.1 (from pandas<3,>=2.2.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.7743625Z   Downloading pytz-2026.2-py2.py3-none-any.whl.metadata (22 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.7889126Z Collecting tzdata>=2022.7 (from pandas<3,>=2.2.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.7926928Z   Downloading tzdata-2026.2-py2.py3-none-any.whl.metadata (1.4 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.8040391Z Collecting iniconfig>=1 (from pytest<9,>=8->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.8078949Z   Downloading iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.8203428Z Collecting pluggy<2,>=1.5 (from pytest<9,>=8->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.8243996Z   Downloading pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.8415171Z Collecting pygments>=2.7.2 (from pytest<9,>=8->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.8465984Z   Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.8588327Z Collecting pyproject_hooks (from build)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.8633040Z   Downloading pyproject_hooks-1.2.0-py3-none-any.whl.metadata (1.3 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.8793527Z Collecting six>=1.5 (from python-dateutil>=2.8.2->pandas<3,>=2.2.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.8833702Z   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.9458885Z Collecting contourpy>=1.0.1 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.9503149Z   Downloading contourpy-1.3.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (5.5 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.9623265Z Collecting cycler>=0.10 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:34.9673872Z   Downloading cycler-0.12.1-py3-none-any.whl.metadata (3.8 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.1071603Z Collecting fonttools>=4.22.0 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.1132713Z   Downloading fonttools-4.61.1-cp312-cp312-manylinux1_x86_64.manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_5_x86_64.whl.metadata (114 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.1894989Z Collecting kiwisolver>=1.3.1 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.1935904Z   Downloading kiwisolver-1.4.9-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (6.3 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.3603291Z Collecting pillow>=8 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.3649839Z   Downloading pillow-12.1.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (8.8 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.3885636Z Collecting pyparsing>=3 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.3925553Z   Downloading pyparsing-3.3.2-py3-none-any.whl.metadata (5.8 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.4102692Z Downloading astropy-6.1.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (10.3 MB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.5795962Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.3/10.3 MB 61.3 MB/s  0:00:00
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.5912743Z Downloading numpy-2.1.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.0 MB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.6863240Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.0/16.0 MB 170.9 MB/s  0:00:00
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.6907033Z Downloading PyYAML-6.0.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (767 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.6961222Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 767.5/767.5 kB 164.6 MB/s  0:00:00
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.7005465Z Downloading pandas-2.3.3-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.4 MB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.7399791Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.4/12.4 MB 329.5 MB/s  0:00:00
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.7443400Z Downloading pytest-8.4.2-py3-none-any.whl (365 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.7515902Z Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.7576790Z Downloading build-1.3.0-py3-none-any.whl (23 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.7708443Z Downloading setuptools-80.10.1-py3-none-any.whl (1.1 MB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.7772078Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.1/1.1 MB 203.0 MB/s  0:00:00
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.7811986Z Downloading wheel-0.46.3-py3-none-any.whl (30 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.7896881Z Downloading astropy_iers_data-0.2026.1.26.0.43.56-py3-none-any.whl (2.0 MB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.8071143Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 112.3 MB/s  0:00:00
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.8112001Z Downloading iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.8172379Z Downloading packaging-26.0-py3-none-any.whl (74 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.8255533Z Downloading pyerfa-2.0.1.5-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (738 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.8326719Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 738.7/738.7 kB 95.4 MB/s  0:00:00
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.8380121Z Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.8453963Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 189.3 MB/s  0:00:00
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.8496306Z Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.8563575Z Downloading pytz-2026.2-py2.py3-none-any.whl (510 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.8642147Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.8703071Z Downloading tzdata-2026.2-py2.py3-none-any.whl (349 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.8796828Z Downloading matplotlib-3.10.8-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (8.7 MB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.9308993Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 8.7/8.7 MB 177.1 MB/s  0:00:00
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.9353436Z Downloading contourpy-1.3.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (362 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.9492762Z Downloading cycler-0.12.1-py3-none-any.whl (8.3 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.9576002Z Downloading fonttools-4.61.1-cp312-cp312-manylinux1_x86_64.manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_5_x86_64.whl (5.0 MB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.9940027Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.0/5.0 MB 137.2 MB/s  0:00:00
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:35.9986462Z Downloading kiwisolver-1.4.9-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (1.5 MB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:36.0061168Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.5/1.5 MB 233.1 MB/s  0:00:00
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:36.0139986Z Downloading pillow-12.1.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (7.0 MB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:36.0780373Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.0/7.0 MB 111.7 MB/s  0:00:00
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:36.0825385Z Downloading pyparsing-3.3.2-py3-none-any.whl (122 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:36.0887723Z Downloading pyproject_hooks-1.2.0-py3-none-any.whl (10 kB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:36.2758041Z Building wheels for collected packages: qc-monitor
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:36.2767016Z   Building wheel for qc-monitor (pyproject.toml): started
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:36.7942242Z   Building wheel for qc-monitor (pyproject.toml): finished with status 'done'
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:36.7949603Z   Created wheel for qc-monitor: filename=qc_monitor-1.4.0-py3-none-any.whl size=71892 sha256=545c86a14b5e2415764b2c24edb8512f30bba5df2dc888ffb36786ffc280a3e9
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:36.7951702Z   Stored in directory: /tmp/pip-ephem-wheel-cache-6e63fc00/wheels/9f/75/c1/7e8e9db23a5c2a8ce0a9ebeb8b3dab46b98611c2605b268ae4
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:36.7979121Z Successfully built qc-monitor
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:36.9112877Z Installing collected packages: pytz, tzdata, six, setuptools, pyyaml, pyproject_hooks, pyparsing, pygments, pluggy, pillow, packaging, numpy, kiwisolver, iniconfig, fonttools, cycler, astropy-iers-data, wheel, python-dateutil, pytest, pyerfa, contourpy, build, pandas, matplotlib, astropy, qc-monitor
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.1563420Z 
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.1594249Z Successfully installed astropy-6.1.2 astropy-iers-data-0.2026.1.26.0.43.56 build-1.3.0 contourpy-1.3.3 cycler-0.12.1 fonttools-4.61.1 iniconfig-2.3.0 kiwisolver-1.4.9 matplotlib-3.10.8 numpy-2.1.0 packaging-26.0 pandas-2.3.3 pillow-12.1.0 pluggy-1.6.0 pyerfa-2.0.1.5 pygments-2.21.0 pyparsing-3.3.2 pyproject_hooks-1.2.0 pytest-8.4.2 python-dateutil-2.9.0.post0 pytz-2026.2 pyyaml-6.0.2 qc-monitor-1.4.0 setuptools-80.10.1 six-1.17.0 tzdata-2026.2 wheel-0.46.3
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.2724629Z ##[group]Run python -m pytest -ra --tb=short -W error
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.2725108Z ^[[36;1mpython -m pytest -ra --tb=short -W error^[[0m
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.2787934Z shell: /usr/bin/bash -e {0}
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.2788189Z env:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.2788382Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.2788610Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.2788943Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.15/x64
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.2789401Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib/pkgconfig
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.2789846Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.2790231Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.2790617Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.15/x64
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.2791002Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.15/x64/lib
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.2791362Z   MPLCONFIGDIR: /home/runner/work/_temp/qc-mpl
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.2791728Z   XDG_CACHE_HOME: /home/runner/work/_temp/qc-cache
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:51.2792024Z ##[endgroup]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:54.7539747Z ============================= test session starts ==============================
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:54.7540762Z platform linux -- Python 3.12.15, pytest-8.4.2, pluggy-1.6.0
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:54.7541613Z rootdir: /home/runner/work/soxs-qc-monitor/soxs-qc-monitor
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:54.7542382Z configfile: pyproject.toml
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:54.7542944Z testpaths: tests
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:54.7543438Z collected 400 items
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:54.7543760Z 
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:43:55.3299119Z tests/test_batch_wrappers.py ..............                              [  3%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:44:02.4119249Z tests/test_completeness.py .................                             [  7%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:44:54.3533381Z tests/test_d2_config.py ................................................ [ 19%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:44:57.9635705Z .........                                                                [ 22%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:45:04.6013661Z tests/test_d2_detlin.py .................                                [ 26%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:45:32.1073480Z tests/test_d2_storage.py .........................                       [ 32%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:45:58.8374099Z tests/test_d3a_resilience.py ........................................... [ 43%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:45:59.3860752Z .....                                                                    [ 44%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:46:41.4268699Z tests/test_d3b_coordination.py .............................F.......     [ 53%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:46:41.4652123Z tests/test_detlin_classification.py .................................... [ 62%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:46:46.7895233Z ............................                                             [ 69%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:47:01.9140899Z tests/test_dry_run.py ...............                                    [ 73%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:47:22.1273630Z tests/test_read_only.py ...............................                  [ 81%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:06.5625275Z tests/test_run_result.py .................                               [ 85%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:12.6400410Z tests/test_scientific_rendering.py ........                              [ 87%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:22.5101496Z tests/test_unit_recovery.py ............................................ [ 98%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2546851Z ......                                                                   [100%]
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2547434Z 
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2547731Z =================================== FAILURES ===================================
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2548651Z _______________ test_timeout_kills_descendant_after_leader_exits _______________
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2549564Z qc_monitor/coordination.py:108: in _lease
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2550493Z     fcntl.flock(fd, (fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH) | fcntl.LOCK_NB)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2551642Z E   BlockingIOError: [Errno 11] Resource temporarily unavailable
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2552680Z 
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2553118Z The above exception was the direct cause of the following exception:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2555209Z tests/test_d3b_coordination.py:310: in test_timeout_kills_descendant_after_leader_exits
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2555972Z     with leases([('resource', resource, True)]):
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2556429Z          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2557040Z /opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/contextlib.py:137: in __enter__
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2557570Z     return next(self.gen)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2557818Z            ^^^^^^^^^^^^^^
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2558088Z qc_monitor/coordination.py:141: in leases
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2558495Z     fds.append(stack.enter_context(_lease(kind, path, exclusive)))
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2558913Z                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2559417Z /opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/contextlib.py:526: in enter_context
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2559910Z     result = _enter(cm)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2560161Z              ^^^^^^^^^^
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2560562Z /opt/hostedtoolcache/Python/3.12.15/x64/lib/python3.12/contextlib.py:137: in __enter__
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2561034Z     return next(self.gen)
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2561273Z            ^^^^^^^^^^^^^^
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2561533Z qc_monitor/coordination.py:111: in _lease
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2561913Z     raise CoordinationBusyError(f'{kind}:{path}') from exc
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2562860Z E   qc_monitor.coordination.CoordinationBusyError: Operational resource already in use: resource:/tmp/pytest-of-runner/pytest-0/test_timeout_kills_descendant_0/timeout-resource
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2563809Z =========================== short test summary info ============================
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2565517Z FAILED tests/test_d3b_coordination.py::test_timeout_kills_descendant_after_leader_exits - qc_monitor.coordination.CoordinationBusyError: Operational resource already in use: resource:/tmp/pytest-of-runner/pytest-0/test_timeout_kills_descendant_0/timeout-resource
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.2566863Z ================== 1 failed, 399 passed in 270.61s (0:04:30) ===================
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.4196936Z ##[error]Process completed with exit code 1.
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.4350495Z Post job cleanup.
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.5182638Z [command]/usr/bin/git version
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.5220807Z git version 2.55.0
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.5261578Z Temporarily overriding HOME='/home/runner/work/_temp/90a63491-de2d-4eb1-9cc1-77fcc14af2f2' before making global git config changes
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.5263330Z Adding repository directory to the temporary git global config as a safe directory
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.5268310Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/soxs-qc-monitor/soxs-qc-monitor
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.5305089Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.5340340Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.5570419Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.5597258Z http.https://github.com/.extraheader
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.5608416Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.5641421Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.5865031Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.5899015Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.6283126Z Cleaning up orphan processes
+tests (ubuntu-latest, 3.12)	UNKNOWN STEP	2026-10-08T17:48:23.6575983Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	﻿2026-10-08T17:43:20.1445908Z Current runner version: '2.337.0'
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1472853Z ##[group]Runner Image Provisioner
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1473858Z Hosted Compute Agent
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1474476Z Version: 20261002.596
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1475144Z Commit: c3d12f3313a95f25162a1503be624f3b0617f8c0
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1475935Z Build Date: 2026-10-02T22:28:27Z
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1476633Z Worker ID: {c6f00de8-9289-4f5f-af59-36f41c6185d1}
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1477398Z Region: eastus
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1478010Z Cloud: Azure
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1478965Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1481393Z ##[group]Operating System
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1482083Z Ubuntu
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1482715Z 24.04.5
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1483246Z LTS
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1483767Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1484452Z ##[group]Runner Image
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1485071Z Image: ubuntu-24.04
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1485687Z Version: 20261004.327.1
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1486995Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20261004.327/images/ubuntu/Ubuntu2404-Readme.md
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1488816Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20261004.327
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1490076Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1491410Z ##[group]GITHUB_TOKEN Permissions
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1493695Z Contents: read
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1494487Z Metadata: read
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1495075Z Packages: read
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1495613Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1497959Z Secret source: Actions
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1498947Z Cache mode: write
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1500537Z Prepare workflow directory
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1903269Z Prepare all required actions
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.1952808Z Getting action download info
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.4242921Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.5132862Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.6909775Z Complete job name: tests (ubuntu-latest, 3.11)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7685165Z ##[group]Run actions/checkout@v4
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7686064Z with:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7686561Z   repository: SalvatoreINAF/soxs-qc-monitor
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7690827Z   token: ***
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7691298Z   ssh-strict: true
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7691748Z   ssh-user: git
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7692210Z   persist-credentials: true
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7692705Z   clean: true
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7693166Z   sparse-checkout-cone-mode: true
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7693692Z   fetch-depth: 1
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7694130Z   fetch-tags: false
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7694584Z   show-progress: true
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7695050Z   lfs: false
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7695471Z   submodules: false
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7695930Z   set-safe-directory: true
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7696462Z   allow-unsafe-pr-checkout: false
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7697309Z env:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7697814Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7698293Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.7698807Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.8692523Z Syncing repository: SalvatoreINAF/soxs-qc-monitor
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.8694338Z ##[group]Getting Git version info
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.8695166Z Working directory is '/home/runner/work/soxs-qc-monitor/soxs-qc-monitor'
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.8696266Z [command]/usr/bin/git version
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.8768745Z git version 2.55.0
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.8790322Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.8804698Z Temporarily overriding HOME='/home/runner/work/_temp/074f8276-8474-482e-993a-d0ae8f41f9bb' before making global git config changes
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.8806129Z Adding repository directory to the temporary git global config as a safe directory
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.8810256Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/soxs-qc-monitor/soxs-qc-monitor
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.8860457Z Deleting the contents of '/home/runner/work/soxs-qc-monitor/soxs-qc-monitor'
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.8865191Z ##[group]Initializing the repository
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.8869272Z [command]/usr/bin/git init /home/runner/work/soxs-qc-monitor/soxs-qc-monitor
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9000484Z hint: Using 'master' as the name for the initial branch. This default branch name
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9001978Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9003825Z hint: to use in all of your new repositories, which will suppress this warning,
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9005378Z hint: call:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9006112Z hint:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9006747Z hint: 	git config --global init.defaultBranch <name>
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9007457Z hint:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9008123Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9009552Z hint: 'development'. The just-created branch can be renamed via this command:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9010887Z hint:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9011683Z hint: 	git branch -m <name>
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9012365Z hint:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9013086Z hint: Disable this message with "git config set advice.defaultBranchName false"
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9014240Z Initialized empty Git repository in /home/runner/work/soxs-qc-monitor/soxs-qc-monitor/.git/
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9016966Z [command]/usr/bin/git remote add origin https://github.com/SalvatoreINAF/soxs-qc-monitor
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9067709Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9068567Z ##[group]Disabling automatic garbage collection
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9071930Z [command]/usr/bin/git config --local gc.auto 0
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9101412Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9102164Z ##[group]Setting up auth
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9107791Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9137500Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9483708Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9515379Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9737150Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9767995Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:20.9987609Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.0024514Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.0025774Z ##[group]Fetching the repository
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.0033491Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +0df371c43dfc3436dbb880525517bb12a618cf55:refs/remotes/origin/dev
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.7272090Z From https://github.com/SalvatoreINAF/soxs-qc-monitor
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.7274014Z  * [new ref]         0df371c43dfc3436dbb880525517bb12a618cf55 -> origin/dev
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.7299495Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.7300785Z ##[group]Determining the checkout info
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.7302203Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.7303042Z [command]/usr/bin/git sparse-checkout disable
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.7345578Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.7379302Z ##[group]Checking out the ref
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.7385441Z [command]/usr/bin/git checkout --progress --force -B dev refs/remotes/origin/dev
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.7629774Z Switched to a new branch 'dev'
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.7634005Z branch 'dev' set up to track 'origin/dev'.
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.7642198Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.7685706Z [command]/usr/bin/git log -1 --format=%H
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.7709791Z 0df371c43dfc3436dbb880525517bb12a618cf55
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.8078281Z ##[group]Run actions/setup-python@v5
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.8079705Z with:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.8080530Z   python-version: 3.11
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.8081726Z   check-latest: false
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.8091593Z   token: ***
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.8092502Z   update-environment: true
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.8093560Z   allow-prereleases: false
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.8094626Z   freethreaded: false
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.8095541Z env:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.8096361Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.8097308Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.8098352Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.9430018Z ##[group]Installed versions
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.9525967Z (node:2275) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.9530975Z (Use `node --trace-deprecation ...` to show where the warning was created)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.9533676Z Successfully set up CPython (3.11.17)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.9536291Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.9780448Z ##[group]Run mkdir -p "$RUNNER_TEMP/qc-mpl" "$RUNNER_TEMP/qc-cache"
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.9782377Z ^[[36;1mmkdir -p "$RUNNER_TEMP/qc-mpl" "$RUNNER_TEMP/qc-cache"^[[0m
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.9783812Z ^[[36;1m{^[[0m
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.9784755Z ^[[36;1m  echo "MPLCONFIGDIR=$RUNNER_TEMP/qc-mpl"^[[0m
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.9786174Z ^[[36;1m  echo "XDG_CACHE_HOME=$RUNNER_TEMP/qc-cache"^[[0m
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:21.9787452Z ^[[36;1m} >> "$GITHUB_ENV"^[[0m
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0054432Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0055895Z env:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0056684Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0057618Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0058934Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.17/x64
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0061018Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib/pkgconfig
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0062905Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0064604Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0066272Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0067952Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0069489Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0304042Z ##[group]Run sudo apt-get update && sudo apt-get install -y tcsh
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0305838Z ^[[36;1msudo apt-get update && sudo apt-get install -y tcsh^[[0m
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0371108Z shell: /usr/bin/bash -e {0}
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0372084Z env:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0372827Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0373729Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0374994Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.17/x64
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0376761Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib/pkgconfig
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0378537Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0380440Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0382060Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0383683Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0385216Z   MPLCONFIGDIR: /home/runner/work/_temp/qc-mpl
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0386588Z   XDG_CACHE_HOME: /home/runner/work/_temp/qc-cache
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.0387787Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.1314698Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.1647528Z Hit:2 http://azure.archive.ubuntu.com/ubuntu noble InRelease
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.1665632Z Get:6 https://packages.microsoft.com/ubuntu/24.04/prod noble InRelease [3600 B]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.1675144Z Get:3 http://azure.archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.1733066Z Get:4 http://azure.archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.1756083Z Get:5 http://azure.archive.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.3035445Z Get:7 https://packages.microsoft.com/ubuntu/24.04/prod noble/main armhf Packages [12.3 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.3164894Z Get:8 https://packages.microsoft.com/ubuntu/24.04/prod noble/main all Packages [640 B]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.3181135Z Get:9 https://packages.microsoft.com/ubuntu/24.04/prod noble/main amd64 Packages [531 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.3380482Z Get:10 https://packages.microsoft.com/ubuntu/24.04/prod noble/main arm64 Packages [474 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.3555710Z Get:11 http://azure.archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1375 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.3650356Z Get:12 http://azure.archive.ubuntu.com/ubuntu noble-updates/main Translation-en [306 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.3682258Z Get:13 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [1702 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.3786013Z Get:14 http://azure.archive.ubuntu.com/ubuntu noble-updates/universe Translation-en [342 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.3815413Z Get:15 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1761 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.3905620Z Get:16 http://azure.archive.ubuntu.com/ubuntu noble-updates/restricted Translation-en [401 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.3943043Z Get:17 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.0 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.3954709Z Get:18 http://azure.archive.ubuntu.com/ubuntu noble-updates/multiverse Translation-en [14.3 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.4713733Z Get:19 http://azure.archive.ubuntu.com/ubuntu noble-security/main amd64 Packages [1115 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.4781902Z Get:20 http://azure.archive.ubuntu.com/ubuntu noble-security/main Translation-en [227 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.5228744Z Get:21 http://azure.archive.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1218 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.5299781Z Get:22 http://azure.archive.ubuntu.com/ubuntu noble-security/universe Translation-en [245 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.5323462Z Get:23 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1632 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.5415100Z Get:24 http://azure.archive.ubuntu.com/ubuntu noble-security/restricted Translation-en [376 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:22.5445114Z Get:25 http://azure.archive.ubuntu.com/ubuntu noble-security/multiverse Translation-en [11.6 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:25.4712961Z Fetched 12.2 MB in 1s (9579 kB/s)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:26.3675922Z Reading package lists...
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:26.3982588Z Reading package lists...
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:26.6026653Z Building dependency tree...
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:26.6033844Z Reading state information...
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:26.7710578Z The following NEW packages will be installed:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:26.7711239Z   tcsh
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:26.7885186Z 0 upgraded, 1 newly installed, 0 to remove and 21 not upgraded.
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:26.7885962Z Need to get 450 kB of archives.
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:26.7886667Z After this operation, 1418 kB of additional disk space will be used.
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:26.7887432Z Get:1 file:/etc/apt/apt-mirrors.txt Mirrorlist [144 B]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:26.8214811Z Get:2 http://azure.archive.ubuntu.com/ubuntu noble/universe amd64 tcsh amd64 6.24.10-4build1 [450 kB]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.1008223Z Fetched 450 kB in 0s (7201 kB/s)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.1250245Z Selecting previously unselected package tcsh.
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.1528586Z (Reading database ... 
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.1529955Z (Reading database ... 5%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.1530393Z (Reading database ... 10%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.1531027Z (Reading database ... 15%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.1531668Z (Reading database ... 20%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.1532161Z (Reading database ... 25%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.1532674Z (Reading database ... 30%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.1533159Z (Reading database ... 35%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.1533706Z (Reading database ... 40%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.1534129Z (Reading database ... 45%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.1534604Z (Reading database ... 50%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.1581450Z (Reading database ... 55%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.2881340Z (Reading database ... 60%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.4952977Z (Reading database ... 65%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.6988708Z (Reading database ... 70%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:27.8484296Z (Reading database ... 75%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:28.0463343Z (Reading database ... 80%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:28.2368344Z (Reading database ... 85%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:28.4446883Z (Reading database ... 90%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:28.6109294Z (Reading database ... 95%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:28.6109891Z (Reading database ... 100%
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:28.6110487Z (Reading database ... 203191 files and directories currently installed.)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:28.6152843Z Preparing to unpack .../tcsh_6.24.10-4build1_amd64.deb ...
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:28.6181817Z Unpacking tcsh (6.24.10-4build1) ...
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:28.7282355Z Setting up tcsh (6.24.10-4build1) ...
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:28.7397608Z update-alternatives: using /bin/tcsh to provide /bin/csh (csh) in auto mode
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:28.7438488Z Processing triggers for debianutils (5.17build1) ...
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:28.8245874Z Processing triggers for man-db (2.12.0-4build2) ...
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:28.8267872Z Not building database; man-db/auto-update is not 'true'.
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:29.4656824Z 
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:29.4657579Z Running kernel seems to be up-to-date.
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:29.4658011Z 
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:29.4658205Z No services need to be restarted.
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:29.4658550Z 
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:29.4658748Z No containers need to be restarted.
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:29.4659365Z 
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:29.4659608Z No user sessions are running outdated binaries.
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:29.4659989Z 
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:29.4660324Z No VM guests are running outdated hypervisor (qemu) binaries on this host.
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4292587Z ##[group]Run mkdir -p "$MPLCONFIGDIR"
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4292952Z ^[[36;1mmkdir -p "$MPLCONFIGDIR"^[[0m
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4293222Z ^[[36;1mif [ '3.11' = '3.12' ]; then^[[0m
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4293705Z ^[[36;1m  python -m pip install -c requirements/reference-py312.txt '.[test]' build setuptools wheel^[[0m
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4294180Z ^[[36;1melse^[[0m
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4294449Z ^[[36;1m  python -m pip install '.[test]' build setuptools wheel^[[0m
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4294769Z ^[[36;1mfi^[[0m
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4360092Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4360440Z env:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4360637Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4360880Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4361210Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.17/x64
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4361660Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib/pkgconfig
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4362120Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4362571Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4362980Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4363389Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4363770Z   MPLCONFIGDIR: /home/runner/work/_temp/qc-mpl
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4364107Z   XDG_CACHE_HOME: /home/runner/work/_temp/qc-cache
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:30.4364410Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:31.2530095Z Processing ./.
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:31.2547181Z   Installing build dependencies: started
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:31.9693053Z   Installing build dependencies: finished with status 'done'
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:31.9698890Z   Getting requirements to build wheel: started
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:32.4152766Z   Getting requirements to build wheel: finished with status 'done'
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:32.4179983Z   Preparing metadata (pyproject.toml): started
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:32.8421398Z   Preparing metadata (pyproject.toml): finished with status 'done'
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:32.9195224Z Collecting build
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:32.9677228Z   Downloading build-1.6.1-py3-none-any.whl.metadata (5.6 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:32.9720982Z Requirement already satisfied: setuptools in /opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages (79.0.1)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:32.9980421Z Collecting wheel
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.0024501Z   Downloading wheel-0.48.0-py3-none-any.whl.metadata (2.3 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.2223040Z Collecting numpy==2.1.0 (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.2313965Z   Downloading numpy-2.1.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (60 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.3784406Z Collecting pandas<3,>=2.2.2 (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.3834316Z   Downloading pandas-2.3.3-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (91 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.4512324Z Collecting pyyaml==6.0.2 (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.4555749Z   Downloading PyYAML-6.0.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (2.1 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.5695870Z Collecting astropy==6.1.2 (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.5778193Z   Downloading astropy-6.1.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (10 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.7370464Z Collecting matplotlib (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.7444260Z   Downloading matplotlib-3.11.2-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (80 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.8070365Z Collecting pytest<9,>=8 (from qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.8119485Z   Downloading pytest-8.4.2-py3-none-any.whl.metadata (7.7 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.8461778Z Collecting pyerfa>=2.0.1.1 (from astropy==6.1.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.8527843Z   Downloading pyerfa-2.0.1.5-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.7 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.8904016Z Collecting astropy-iers-data>=0.2024.7.1.0.34.3 (from astropy==6.1.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.8954157Z   Downloading astropy_iers_data-0.2026.10.5.1.0.7-py3-none-any.whl.metadata (3.4 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.9172328Z Collecting packaging>=19.0 (from astropy==6.1.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.9210688Z   Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.9412500Z Collecting python-dateutil>=2.8.2 (from pandas<3,>=2.2.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.9455299Z   Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.9826248Z Collecting pytz>=2020.1 (from pandas<3,>=2.2.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:33.9864403Z   Downloading pytz-2026.5-py2.py3-none-any.whl.metadata (22 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.0073844Z Collecting tzdata>=2022.7 (from pandas<3,>=2.2.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.0111007Z   Downloading tzdata-2026.5-py2.py3-none-any.whl.metadata (1.4 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.0278294Z Collecting iniconfig>=1 (from pytest<9,>=8->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.0319151Z   Downloading iniconfig-2.3.1-py3-none-any.whl.metadata (2.8 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.0501888Z Collecting pluggy<2,>=1.5 (from pytest<9,>=8->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.0536306Z   Downloading pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.0793621Z Collecting pygments>=2.7.2 (from pytest<9,>=8->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.0833929Z   Downloading pygments-2.21.0-py3-none-any.whl.metadata (2.5 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.1013108Z Collecting pyproject_hooks (from build)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.1049525Z   Downloading pyproject_hooks-1.3.3-py3-none-any.whl.metadata (1.3 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.1292655Z Collecting six>=1.5 (from python-dateutil>=2.8.2->pandas<3,>=2.2.2->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.1333936Z   Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.1998299Z Collecting contourpy>=1.0.1 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.2044202Z   Downloading contourpy-1.3.3-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (5.5 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.2218271Z Collecting cycler>=0.10 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.2289307Z   Downloading cycler-0.12.1-py3-none-any.whl.metadata (3.8 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.3967022Z Collecting fonttools>=4.28.2 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.4006891Z   Downloading fonttools-4.66.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (130 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.4799284Z Collecting kiwisolver>=1.3.1 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.4851392Z   Downloading kiwisolver-1.5.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (5.2 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.6483290Z Collecting pillow>=9 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.6522903Z   Downloading pillow-12.3.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.1 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.6812596Z Collecting pyparsing>=3 (from matplotlib->qc-monitor==1.4.0)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.6851892Z   Downloading pyparsing-3.3.3-py3-none-any.whl.metadata (5.9 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.6985918Z Downloading astropy-6.1.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (10.2 MB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.9284021Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.2/10.2 MB 44.4 MB/s  0:00:00
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:34.9352677Z Downloading numpy-2.1.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.3 MB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.0365201Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.3/16.3 MB 163.0 MB/s  0:00:00
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.0407099Z Downloading PyYAML-6.0.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (762 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.0459607Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 763.0/763.0 kB 167.0 MB/s  0:00:00
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.0498591Z Downloading pandas-2.3.3-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.8 MB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.0946885Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.8/12.8 MB 296.4 MB/s  0:00:00
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.0988482Z Downloading pytest-8.4.2-py3-none-any.whl (365 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.1055450Z Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.1112408Z Downloading build-1.6.1-py3-none-any.whl (31 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.1170677Z Downloading wheel-0.48.0-py3-none-any.whl (33 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.1233549Z Downloading astropy_iers_data-0.2026.10.5.1.0.7-py3-none-any.whl (2.0 MB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.1407940Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.0/2.0 MB 126.3 MB/s  0:00:00
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.1450371Z Downloading iniconfig-2.3.1-py3-none-any.whl (7.6 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.1507001Z Downloading packaging-26.3-py3-none-any.whl (129 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.1594717Z Downloading pyerfa-2.0.1.5-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (738 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.1648327Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 738.7/738.7 kB 156.8 MB/s  0:00:00
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.1690810Z Downloading pygments-2.21.0-py3-none-any.whl (1.3 MB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.1778874Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 MB 146.4 MB/s  0:00:00
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.1819060Z Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.1881312Z Downloading pytz-2026.5-py2.py3-none-any.whl (506 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.1947073Z Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.2007201Z Downloading tzdata-2026.5-py2.py3-none-any.whl (347 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.2077974Z Downloading matplotlib-3.11.2-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (9.9 MB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.2461979Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.9/9.9 MB 267.8 MB/s  0:00:00
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.2503862Z Downloading contourpy-1.3.3-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (355 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.2569463Z Downloading cycler-0.12.1-py3-none-any.whl (8.3 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.2624962Z Downloading fonttools-4.66.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (5.4 MB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.2825233Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.4/5.4 MB 298.9 MB/s  0:00:00
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.2879413Z Downloading kiwisolver-1.5.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (1.4 MB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.2974684Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.4/1.4 MB 159.5 MB/s  0:00:00
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.3016625Z Downloading pillow-12.3.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.9 MB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.3240121Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.9/6.9 MB 330.8 MB/s  0:00:00
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.3277065Z Downloading pyparsing-3.3.3-py3-none-any.whl (126 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.3339382Z Downloading pyproject_hooks-1.3.3-py3-none-any.whl (10 kB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.5101694Z Building wheels for collected packages: qc-monitor
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.5110589Z   Building wheel for qc-monitor (pyproject.toml): started
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.9710414Z   Building wheel for qc-monitor (pyproject.toml): finished with status 'done'
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.9718003Z   Created wheel for qc-monitor: filename=qc_monitor-1.4.0-py3-none-any.whl size=71892 sha256=ffd32cc3aeffc3d94d804bdf8f4c16e0181c10602ea3122167c1f18d61c2e17d
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.9720296Z   Stored in directory: /tmp/pip-ephem-wheel-cache-htj9mwfx/wheels/e0/c8/0e/63fb1140b207e178f117a3526eb6957aefc01c34b3776e3baa
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:35.9743527Z Successfully built qc-monitor
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:36.0744914Z Installing collected packages: pytz, tzdata, six, pyyaml, pyproject_hooks, pyparsing, pygments, pluggy, pillow, packaging, numpy, kiwisolver, iniconfig, fonttools, cycler, astropy-iers-data, wheel, python-dateutil, pytest, pyerfa, contourpy, build, pandas, matplotlib, astropy, qc-monitor
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.2062485Z 
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.2083484Z Successfully installed astropy-6.1.2 astropy-iers-data-0.2026.10.5.1.0.7 build-1.6.1 contourpy-1.3.3 cycler-0.12.1 fonttools-4.66.1 iniconfig-2.3.1 kiwisolver-1.5.1 matplotlib-3.11.2 numpy-2.1.0 packaging-26.3 pandas-2.3.3 pillow-12.3.0 pluggy-1.6.0 pyerfa-2.0.1.5 pygments-2.21.0 pyparsing-3.3.3 pyproject_hooks-1.3.3 pytest-8.4.2 python-dateutil-2.9.0.post0 pytz-2026.5 pyyaml-6.0.2 qc-monitor-1.4.0 six-1.17.0 tzdata-2026.5 wheel-0.48.0
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.3538059Z ##[group]Run python -m pytest -ra --tb=short -W error
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.3538488Z ^[[36;1mpython -m pytest -ra --tb=short -W error^[[0m
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.3602354Z shell: /usr/bin/bash -e {0}
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.3602605Z env:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.3602797Z   MPLBACKEND: Agg
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.3603026Z   PYTHONDONTWRITEBYTECODE: 1
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.3603343Z   pythonLocation: /opt/hostedtoolcache/Python/3.11.17/x64
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.3603787Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib/pkgconfig
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.3604228Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.3604621Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.3604997Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.11.17/x64
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.3605387Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.11.17/x64/lib
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.3605749Z   MPLCONFIGDIR: /home/runner/work/_temp/qc-mpl
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.3606117Z   XDG_CACHE_HOME: /home/runner/work/_temp/qc-cache
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:48.3606404Z ##[endgroup]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:50.4253271Z ============================= test session starts ==============================
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:50.4254108Z platform linux -- Python 3.11.17, pytest-8.4.2, pluggy-1.6.0
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:50.4254849Z rootdir: /home/runner/work/soxs-qc-monitor/soxs-qc-monitor
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:50.4255443Z configfile: pyproject.toml
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:50.4255878Z testpaths: tests
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:50.4256238Z collected 400 items
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:50.4256473Z 
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:50.9817386Z tests/test_batch_wrappers.py ..............                              [  3%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:43:57.7907986Z tests/test_completeness.py .................                             [  7%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:44:48.9583922Z tests/test_d2_config.py ................................................ [ 19%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:44:52.5125852Z .........                                                                [ 22%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:44:58.6571576Z tests/test_d2_detlin.py .................                                [ 26%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:45:24.2154957Z tests/test_d2_storage.py .........................                       [ 32%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:45:50.0746227Z tests/test_d3a_resilience.py ........................................... [ 43%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:45:50.5955559Z .....                                                                    [ 44%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:46:28.0227866Z tests/test_d3b_coordination.py .............................F.......     [ 53%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:46:28.0569340Z tests/test_detlin_classification.py .................................... [ 62%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:46:32.8260886Z ............................                                             [ 69%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:46:46.3458517Z tests/test_dry_run.py ...............                                    [ 73%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:47:04.5134323Z tests/test_read_only.py ...............................                  [ 81%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:47:46.7868305Z tests/test_run_result.py .................                               [ 85%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:47:52.9322064Z tests/test_scientific_rendering.py ........                              [ 87%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.1477449Z tests/test_unit_recovery.py ............................................ [ 98%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.8991540Z ......                                                                   [100%]
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.8991999Z 
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.8992219Z =================================== FAILURES ===================================
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.8992948Z _______________ test_timeout_kills_descendant_after_leader_exits _______________
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.8993582Z qc_monitor/coordination.py:108: in _lease
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.8994338Z     fcntl.flock(fd, (fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH) | fcntl.LOCK_NB)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.8995219Z E   BlockingIOError: [Errno 11] Resource temporarily unavailable
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.8995723Z 
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.8996072Z The above exception was the direct cause of the following exception:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.8997517Z tests/test_d3b_coordination.py:310: in test_timeout_kills_descendant_after_leader_exits
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.8998374Z     with leases([('resource', resource, True)]):
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.8998912Z /opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/contextlib.py:137: in __enter__
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.8999798Z     return next(self.gen)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.9000072Z            ^^^^^^^^^^^^^^
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.9000361Z qc_monitor/coordination.py:141: in leases
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.9000796Z     fds.append(stack.enter_context(_lease(kind, path, exclusive)))
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.9001244Z                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.9001802Z /opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/contextlib.py:517: in enter_context
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.9002289Z     result = _enter(cm)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.9002501Z              ^^^^^^^^^^
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.9002851Z /opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/contextlib.py:137: in __enter__
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.9003270Z     return next(self.gen)
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.9003487Z            ^^^^^^^^^^^^^^
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.9003723Z qc_monitor/coordination.py:111: in _lease
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.9004053Z     raise CoordinationBusyError(f'{kind}:{path}') from exc
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.9004867Z E   qc_monitor.coordination.CoordinationBusyError: Operational resource already in use: resource:/tmp/pytest-of-runner/pytest-0/test_timeout_kills_descendant_0/timeout-resource
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.9005670Z =========================== short test summary info ============================
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.9006911Z FAILED tests/test_d3b_coordination.py::test_timeout_kills_descendant_after_leader_exits - qc_monitor.coordination.CoordinationBusyError: Operational resource already in use: resource:/tmp/pytest-of-runner/pytest-0/test_timeout_kills_descendant_0/timeout-resource
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:02.9008052Z ================== 1 failed, 399 passed in 253.35s (0:04:13) ===================
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.0868453Z ##[error]Process completed with exit code 1.
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.1023260Z Post job cleanup.
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.1929118Z [command]/usr/bin/git version
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.1972534Z git version 2.55.0
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.2011849Z Temporarily overriding HOME='/home/runner/work/_temp/6cf0ab29-15aa-423e-941c-8ad20c070321' before making global git config changes
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.2013617Z Adding repository directory to the temporary git global config as a safe directory
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.2018411Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/soxs-qc-monitor/soxs-qc-monitor
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.2059586Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.2098171Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.2350153Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.2377455Z http.https://github.com/.extraheader
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.2389457Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.2425223Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.2674514Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.2708263Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.3099622Z Cleaning up orphan processes
+tests (ubuntu-latest, 3.11)	UNKNOWN STEP	2026-10-08T17:48:03.3498342Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

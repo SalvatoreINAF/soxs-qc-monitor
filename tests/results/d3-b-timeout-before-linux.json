@@ -1,0 +1,89 @@
+{
+  "host": "linux",
+  "real_process_trials": [
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.0016090000000303917
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.0014666249999777392
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.0014607499999783613
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.0015218330000266178
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.0015072080000209098
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.0014023329999872658
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.00136741700003995
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.0013951250000445725
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.0015613329999837333
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.0013119590000201242
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.001566457999956583
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.001448584000002029
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.0014663329999962116
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.0015673749999791653
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.008677250000005188
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.001422083000022667
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.001461375000019416
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.001551291999987825
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.001356874999999036
+    },
+    {
+      "immediately_busy": true,
+      "release_after_seconds": 0.001787750000005417
+    }
+  ],
+  "immediate_contentions": 20,
+  "controlled_deferred_kill_retains_lease_after_execute": true,
+  "lease_released_after_actual_kill": true,
+  "linux_runtime": "Docker python:3.12-slim; original batch from 0df371c"
+}

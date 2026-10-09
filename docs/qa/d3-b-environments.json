@@ -4,7 +4,7 @@
   "application_commit": "98d51d341e4d85bc7e14e6f4abf6273e8e42bc32",
   "package_version": "1.4.0",
   "schema_version": 1,
-  "hosted_status": "PENDING; not formally closed",
+  "hosted_status": "Original candidate 0df371c FAILED on Linux; corrected candidate hosted validation PENDING",
   "environments": [
     {
       "python": "3.12.15",
@@ -128,5 +128,47 @@
     "path": "/private/tmp/qc-d3b-wheel/qc_monitor-1.4.0-py3-none-any.whl",
     "sha256": "c2700d2c140ea40ccd4a33214892127d814a59e308b3d24c5f73ac74d137ccc3",
     "source_template_entries_matching": 18
+  },
+  "timeout_correction": {
+    "date": "2026-10-09",
+    "application_commit": "179f3ecaa7cb1fce0faa2ffe79931650bf359cb4",
+    "package_modules_unchanged": true,
+    "ps_required": true,
+    "group_wait_limit_seconds": 5,
+    "original_linux_reproduction": {
+      "trials": 20,
+      "immediate_contentions": 20
+    },
+    "full_suite_macos312": {
+      "passed": 405,
+      "duration_seconds": 207.52,
+      "warnings_as_errors": true
+    },
+    "full_suite_linux_arm64_root312": {
+      "passed": 404,
+      "skipped": 1,
+      "duration_seconds": 174.76,
+      "warnings_as_errors": true,
+      "skip": "filesystem permission restrictions bypassed by root"
+    },
+    "linux_unprivileged_permission_case": {
+      "passed": 1,
+      "duration_seconds": 1.04
+    },
+    "targeted_timeout": {
+      "linux312_unprivileged": {
+        "passed": 6,
+        "duration_seconds": 2.57
+      },
+      "macos311": {
+        "passed": 6,
+        "duration_seconds": 2.33
+      },
+      "macos313": {
+        "passed": 6,
+        "duration_seconds": 2.31
+      }
+    },
+    "hosted_status": "PENDING on exact corrected candidate"
   }
 }

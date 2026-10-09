@@ -1,0 +1,89 @@
+{
+  "host": "darwin",
+  "real_process_trials": [
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0010025829542428255
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0009395829401910305
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0004645420704036951
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0010609999299049377
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0006109579699113965
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0007878749165683985
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0006567500531673431
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0009294579504057765
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0008642500033602118
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0008875000057742
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.000877415994182229
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0009965830249711871
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0009340409887954593
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0005216669524088502
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0007006250089034438
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0011996249668300152
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0013284580782055855
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0010958329075947404
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0010067500406876206
+    },
+    {
+      "immediately_busy": false,
+      "release_after_seconds": 0.0011536669917404652
+    }
+  ],
+  "immediate_contentions": 0,
+  "controlled_deferred_kill_retains_lease_after_execute": true,
+  "lease_released_after_actual_kill": true,
+  "linux_runtime": "Docker daemon unavailable"
+}
