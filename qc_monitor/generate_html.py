@@ -4,6 +4,8 @@ from importlib import resources
 from collections import defaultdict
 from pathlib import Path
 
+from .figure_result import validate_figure_results
+
 log = logging.getLogger(__name__)
 
 
@@ -96,7 +98,7 @@ def _infer_arm(figure: dict) -> str:
     return "OTHER"
 
 
-def _render_sections(figures: list[dict], plots_relative_dir: str) -> str:
+def _render_sections(figures: list[dict], plots_relative_dir: str, figure_results=None) -> str:
     grouped_by_arm: dict[str, dict[str, list[dict]]] = {
         "VIS": defaultdict(list),
         "NIR": defaultdict(list),
@@ -117,7 +119,7 @@ def _render_sections(figures: list[dict], plots_relative_dir: str) -> str:
         ]
 
         for section_name, section_figures in grouped_by_arm[arm].items():
-            section_id = _slugify(f"{arm}-{section_name}")
+            section_id = html.escape(_slugify(f"{arm}-{section_name}"), quote=True)
 
             chunks.extend([
                 f'  <section id="{section_id}">',
@@ -137,15 +139,21 @@ def _render_sections(figures: list[dict], plots_relative_dir: str) -> str:
                 safe_title = html.escape(title)
                 safe_img_path = html.escape(img_path, quote=True)
 
-                chunks.extend([
-                    f'    <div class="{card_class}">',
-                    f"      <h3>{safe_title}</h3>",
-                    f'      <a href="{safe_img_path}">',
-                    f'        <img src="{safe_img_path}" alt="{safe_title}">',
-                    "      </a>",
-                    "    </div>",
-                    "",
-                ])
+                result = figure_results.get(fig['name']) if figure_results is not None else None
+                chunks.extend([f'    <div class="{card_class}">', f'      <h3>{safe_title}</h3>'])
+                if result is not None:
+                    labels = {'produced': 'Produced', 'no_data': 'No data', 'failed': 'Failed'}
+                    chunks.append(f'      <p class="figure-state {result.state}">{labels[result.state]}: '
+                                  f'{html.escape(result.reason)}</p>')
+                    for discarded in result.discarded:
+                        message = (f"Discarded {discarded['count']} sample(s) — "
+                                   f"{discarded['context']}: {discarded['reason']}")
+                        chunks.append(f'      <p class="figure-warning">{html.escape(message)}</p>')
+                if result is None or result.state == 'produced':
+                    chunks.extend([f'      <a href="{safe_img_path}">',
+                                   f'        <img src="{safe_img_path}" alt="{safe_title}">',
+                                   '      </a>'])
+                chunks.extend(['    </div>', ''])
 
             chunks.append("    </div>")
             chunks.append("  </section>")
@@ -163,8 +171,11 @@ def generate_html_report(
     plots_cfg: dict,
     output_html: Path,
     template_path: Path | None = None,
+    figure_results=None,
 ):
     figures = plots_cfg.get("figures", [])
+    outcomes = (validate_figure_results(figures, figure_results)
+                if figure_results is not None else None)
 
     if not figures:
         log.info("No figures configured, skipping HTML report generation")
@@ -184,6 +195,7 @@ def generate_html_report(
     sections = _render_sections(
         figures=figures,
         plots_relative_dir=plots_relative_dir,
+        figure_results=outcomes,
     )
 
     template = _load_template(template_path)

@@ -85,7 +85,41 @@ with closing(sqlite3.connect(str(next(Path('.').glob('qc.sqlite.backup-*.sqlite'
     assert backup.execute('SELECT count(*) FROM qc_metrics').fetchone() == (1,)
 '''], cwd=root, env=env, capture_output=True, text=True, timeout=60)
         assert checked.returncode == 0, checked.stderr
-    print("Installed wheel: isolated imports, entry point, template, validated config, idempotence, immutable dry-run and protected rebuild verified")
+        # D3-C: exercise the installed renderer/result module and the CLI backend
+        # without inheriting the workflow's Agg setting.
+        rendering = json.loads((root / 'configs/qc_monitor.yaml').read_text())
+        rendering['plots']['datapoint_queries'] = {'sample': {'filters': {}}}
+        rendering['plots']['figures'] = [
+            {'name': 'vis_good', 'type': 'histogram', 'filename': 'good.png',
+             'arm': 'VIS', 'datapoint_query': 'sample'},
+            {'name': 'vis_bad', 'type': 'histogram', 'filename': 'bad.png',
+             'arm': 'VIS', 'datapoint_query': 'sample'},
+        ]
+        (root / 'plots/bad.png').mkdir(parents=True)
+        (root / 'configs/qc_monitor.yaml').write_text(json.dumps(rendering))
+        env.pop('MPLBACKEND', None)
+        partial = subprocess.run([str(entry)], cwd=root, env=env,
+                                 capture_output=True, text=True, timeout=60)
+        assert partial.returncode == 2, partial.stderr
+        diagnostic = json.loads(partial.stderr.split('RUN_SUMMARY ')[-1])
+        assert diagnostic['versions']['qc-monitor'] == '1.5.0'
+        assert diagnostic['plots']['counts'] == {'produced': 1, 'failed': 1, 'no_data': 0}
+        assert diagnostic['report']['state'] == 'published'
+        assert (root / 'plots/good.png').is_file()
+        report = (root / 'index.html').read_text()
+        assert 'src="plots/good.png"' in report and 'src="plots/bad.png"' not in report
+        backend = subprocess.run([sys.executable, '-I', '-c', '''
+import sys
+from qc_monitor import main as app
+from qc_monitor.figure_result import FigureResult
+assert 'matplotlib.pyplot' not in sys.modules
+assert app.main() == 2
+import matplotlib
+assert matplotlib.get_backend().lower() == 'agg'
+'''], cwd=root, env=dict(env, MPLBACKEND='TkAgg'),
+            capture_output=True, text=True, timeout=60)
+        assert backend.returncode == 0, backend.stderr
+    print("Installed wheel: isolated imports, entry point, template, validated config, idempotence, immutable dry-run, protected rebuild, partial rendering and autonomous Agg verified")
 
 
 if __name__ == "__main__":

@@ -133,6 +133,12 @@ def test_reentrancy_and_forbidden_promotion(tmp_path):
 
 @pytest.mark.parametrize('phase', ['plots', 'html', 'summary'])
 def test_run_keeps_protection_through_publication(lab, phase):
+    # D3-C skips rendering/publication when there are no figures. Exercise real
+    # configured work instead of relying on an empty generator call.
+    lab.cfg['plots'].update(datapoint_queries={'sample': {'filters': {}}}, figures=[{
+        'name': 'vis_protection', 'type': 'histogram', 'filename': 'sample.png',
+        'arm': 'VIS', 'datapoint_query': 'sample'}])
+    lab.save_config()
     # Run the real application, pausing only the selected boundary via stdin.
     program = '''
 import sys

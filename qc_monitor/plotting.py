@@ -6,6 +6,99 @@ import matplotlib.pyplot as plt
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
+from contextvars import ContextVar
+from functools import wraps
+from inspect import signature
+
+from .figure_result import FigureResult
+
+
+class InvalidPlotData(ValueError):
+    """Selected data cannot represent the configured figure."""
+
+
+_attempt = ContextVar('figure_attempt', default=None)
+
+
+def _renderer(function):
+    """Collect explicit save outcomes and close only this call's figures."""
+    parameters = signature(function)
+
+    @wraps(function)
+    def render(*args, **kwargs):
+        bound = parameters.bind(*args, **kwargs)
+        bound.apply_defaults()
+        values = bound.arguments
+        cfg = values.get('plot_cfg', {})
+        filename = cfg.get('filename', Path(values.get('output_file', 'plot.png')).name)
+        name = cfg.get('name', values.get('title', filename))
+        kind = cfg.get('type', 'time_series')
+        attempt = {'path': None, 'discarded': []}
+        token = _attempt.set(attempt)
+        previous = set(plt.get_fignums())
+        try:
+            data = values.get('df', values.get('df_models'))
+            if data is not None and data.empty:
+                return FigureResult(name, kind, filename, 'no_data', 'empty_history',
+                                    'No historical data available')
+            result = function(*args, **kwargs)
+            if isinstance(result, FigureResult):
+                result.name, result.type, result.filename = name, kind, filename
+                return result
+            if attempt['path'] is not None:
+                return FigureResult(name, kind, filename, 'produced', 'saved',
+                                    'Figure saved successfully', attempt['path'],
+                                    discarded=attempt['discarded'])
+            return FigureResult(name, kind, filename, 'no_data', 'empty_selection',
+                                'No matching data or insufficient samples',
+                                discarded=attempt['discarded'])
+        finally:
+            for number in set(plt.get_fignums()) - previous:
+                plt.close(number)
+            _attempt.reset(token)
+    return render
+
+
+def _require_columns(df, columns):
+    missing = set(columns) - set(df.columns)
+    if missing and not df.empty:
+        raise InvalidPlotData('Required columns missing: ' + ', '.join(sorted(missing)))
+
+
+def _valid_rows(df, columns, *, numeric=(), dates=(), series=(), context='samples'):
+    """Retain the old usable-sample selection, rejecting infinities too."""
+    if df.empty:
+        return df.copy()
+    _require_columns(df, columns)
+    out = df.copy()
+    for column in numeric:
+        out[column] = pd.to_numeric(out[column], errors='coerce')
+        out[column] = out[column].where(np.isfinite(out[column]))
+    for column in dates:
+        out[column] = pd.to_datetime(out[column], errors='coerce')
+    valid = out.dropna(subset=list(columns)).copy()
+    discarded = len(out) - len(valid)
+    if discarded:
+        attempt = _attempt.get()
+        if attempt is not None:
+            attempt['discarded'].append({'context': context, 'count': discarded,
+                                         'reason': 'Invalid required values'})
+    if valid.empty:
+        raise InvalidPlotData(f'No usable {context}: all selected values are invalid')
+    if series:
+        # A known series that loses every required sample is a failed series,
+        # rather than an apparently legitimate empty panel/order.
+        selected_keys = set(out.dropna(subset=list(series))[list(series)].itertuples(index=False, name=None))
+        valid_keys = set(valid[list(series)].itertuples(index=False, name=None))
+        if selected_keys - valid_keys:
+            raise InvalidPlotData(f'An entire series has invalid required values: {context}')
+    return valid
+
+
+def _latest_time_rows(df, column='obs_date_utc'):
+    out = _valid_rows(df, [column], dates=[column], context=column)
+    times = pd.to_datetime(df[column], errors='coerce')
+    return df[times == out[column].max()].copy()
 
 log = logging.getLogger(__name__)
 
@@ -39,6 +132,9 @@ def _save_figure(output_path, fig=None):
         bbox_inches="tight",
         pad_inches=0.05,
     )
+    attempt = _attempt.get()
+    if attempt is not None:
+        attempt['path'] = str(Path(output_path).resolve())
 
 
 def _evaluate_order_xy_polynomial(
@@ -71,7 +167,10 @@ def _extract_poly_coefficients(
     for i in range(order_deg + 1):
         for j in range(axis_b_deg + 1):
             key = f"{prefix}{separator}{i}{j}"
-            coeff.append(float(row[key]))
+            value = float(row[key])
+            if not np.isfinite(value):
+                raise InvalidPlotData(f'Invalid polynomial coefficient: {key}')
+            coeff.append(value)
 
     return coeff
 
@@ -93,22 +192,16 @@ def _select_latest_oloc(
     if df_s.empty:
         return df_s
 
-    times = pd.to_datetime(df_s["obs_date_utc"], errors="coerce")
-    latest_time = times.max()
-
-    if pd.isna(latest_time):
-        return df_s.iloc[0:0]
-
-    return df_s[times == latest_time].copy()
+    return _latest_time_rows(df_s)
 
 
 def _apply_filters(df: pd.DataFrame, filters: dict[str, object]) -> pd.DataFrame:
     out = df
+    _require_columns(df, filters)
+    if df.empty:
+        return df.copy()
 
     for column, value in filters.items():
-        if column not in out.columns:
-            log.warning("Filter column %s not found in dataframe", column)
-            return out.iloc[0:0]
 
         out = out[out[column].isna() if value is None else out[column] == value]
 
@@ -167,16 +260,9 @@ def _apply_time_range(
     if time_range != "last_3_months":
         raise ValueError(f"Unsupported time_range: {time_range}")
 
-    if time_column not in df.columns:
-        log.warning("Time column %s not found", time_column)
-        return df.iloc[0:0]
-
-    times = pd.to_datetime(df[time_column], errors="coerce")
-    max_time = times.max()
-
-    if pd.isna(max_time):
-        log.warning("Cannot apply time range: no valid timestamps found")
-        return df.iloc[0:0]
+    valid = _valid_rows(df, [time_column], dates=[time_column], context=time_column)
+    times = pd.to_datetime(df[time_column], errors='coerce')
+    max_time = valid[time_column].max()
 
     cutoff = max_time - pd.DateOffset(months=3)
 
@@ -209,10 +295,10 @@ def _prepare_xy(
     x_column: str,
     y_column: str,
 ) -> pd.DataFrame:
-    out = df.copy()
-    out["_x"] = pd.to_datetime(out[x_column], errors="coerce")
-    out["_y"] = pd.to_numeric(out[y_column], errors="coerce")
-    return out.dropna(subset=["_x", "_y"]).sort_values("_x")
+    out = _valid_rows(df, [x_column, y_column], numeric=[y_column],
+                      dates=[x_column], context=f'{x_column}/{y_column}')
+    out['_x'], out['_y'] = out[x_column], out[y_column]
+    return out.sort_values('_x')
 
 
 def _normalize_order_label(value: object) -> str:
@@ -230,6 +316,7 @@ def _normalize_order_label(value: object) -> str:
     return text
 
 
+@_renderer
 def plot_time_series(
     df: pd.DataFrame,
     series: list[PlotSeries],
@@ -246,7 +333,7 @@ def plot_time_series(
         log.warning("Cannot create plot %s: empty dataframe", title)
         return
 
-    plt.figure(figsize=(9, 4.8))
+    fig = plt.figure(figsize=(9, 4.8))
 
     plotted_anything = False
 
@@ -261,13 +348,7 @@ def plot_time_series(
             log.warning("No data found for series %s", s.label)
             continue
 
-        if x_column not in df_s.columns:
-            log.warning("X column %s not found for series %s", x_column, s.label)
-            continue
-
-        if y_column not in df_s.columns:
-            log.warning("Y column %s not found for series %s", y_column, s.label)
-            continue
+        _require_columns(df_s, [x_column, y_column])
 
         df_s = _apply_time_range(
             df_s,
@@ -301,7 +382,7 @@ def plot_time_series(
         plotted_anything = True
 
     if not plotted_anything:
-        plt.close()
+        plt.close(fig)
         log.warning("Skipping plot %s: no valid series", title)
         return
 
@@ -314,14 +395,14 @@ def plot_time_series(
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     plt.tight_layout()
-    _save_figure(output_file)
+    _save_figure(output_file, fig)
 
     log.info("Saved plot %s", output_file)
 
     if show:
         plt.show()
     else:
-        plt.close()
+        plt.close(fig)
 
 
 def _prepare_scalar_series(
@@ -329,18 +410,11 @@ def _prepare_scalar_series(
     value_column: str,
     join_column: str,
 ) -> pd.DataFrame:
-    out = df.copy()
-
-    if join_column not in out.columns:
-        log.warning("Join column %s not found", join_column)
-        return out.iloc[0:0]
-
-    if value_column not in out.columns:
-        log.warning("Value column %s not found", value_column)
-        return out.iloc[0:0]
-
-    out["_value"] = pd.to_numeric(out[value_column], errors="coerce")
-    out = out.dropna(subset=[join_column, "_value"])
+    out = _valid_rows(df, [join_column, value_column], numeric=[value_column],
+                      context=f'{join_column}/{value_column}')
+    if out.empty:
+        return pd.DataFrame(columns=[join_column, '_value'])
+    out['_value'] = out[value_column]
 
     # If multiple rows exist for the same observing day, average them.
     # This keeps xy plots well-defined without requiring identical sampling.
@@ -352,6 +426,7 @@ def _prepare_scalar_series(
     return out
 
 
+@_renderer
 def plot_xy_scatter_from_config(
     df: pd.DataFrame,
     plot_cfg: dict,
@@ -409,7 +484,7 @@ def plot_xy_scatter_from_config(
         log.warning("Skipping XY plot %s: fewer than 2 common points", title)
         return
 
-    plt.figure(figsize=(6.5, 5.5))
+    fig = plt.figure(figsize=(6.5, 5.5))
     plt.scatter(merged["_x"], merged["_y"])
 
     plt.title(title)
@@ -421,16 +496,17 @@ def plot_xy_scatter_from_config(
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     plt.tight_layout()
-    _save_figure(output_file)
+    _save_figure(output_file, fig)
 
     log.info("Saved plot %s", output_file)
 
     if show:
         plt.show()
     else:
-        plt.close()
+        plt.close(fig)
 
 
+@_renderer
 def plot_histogram_from_config(
     df: pd.DataFrame,
     plot_cfg: dict,
@@ -463,15 +539,12 @@ def plot_histogram_from_config(
         log.warning("No data found for histogram %s", title)
         return
 
-    values = pd.to_numeric(df_s[value_column], errors="coerce").dropna()
-
-    if values.empty:
-        log.warning("No valid numeric values for histogram %s", title)
-        return
+    values = _valid_rows(df_s, [value_column], numeric=[value_column],
+                         context=value_column)[value_column]
 
     bins = int(plot_cfg.get("bins", 30))
 
-    plt.figure(figsize=(7, 5))
+    fig = plt.figure(figsize=(7, 5))
     plt.hist(values, bins=bins)
 
     plt.title(title)
@@ -482,16 +555,17 @@ def plot_histogram_from_config(
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     plt.tight_layout()
-    _save_figure(output_file)
+    _save_figure(output_file, fig)
 
     log.info("Saved plot %s", output_file)
 
     if show:
         plt.show()
     else:
-        plt.close()
+        plt.close(fig)
 
 
+@_renderer
 def plot_time_series_from_config(
     df: pd.DataFrame,
     plot_cfg: dict,
@@ -505,13 +579,12 @@ def plot_time_series_from_config(
     ]
 
     if not series:
-        log.warning("Plot %s has no series configured", plot_cfg.get("name", "<unnamed>"))
-        return
+        raise InvalidPlotData('No series configured')
 
     filename = plot_cfg["filename"]
     output_file = output_dir / filename
 
-    plot_time_series(
+    return plot_time_series(
         df=df,
         series=series,
         datapoint_queries=datapoint_queries,
@@ -525,6 +598,7 @@ def plot_time_series_from_config(
     )
 
 
+@_renderer
 def plot_dispersion_resolution_from_config(
     df: pd.DataFrame,
     plot_cfg: dict,
@@ -546,14 +620,7 @@ def plot_dispersion_resolution_from_config(
         return
 
     if selection == "latest":
-        times = pd.to_datetime(df_s["obs_date_utc"], errors="coerce")
-        latest_time = times.max()
-
-        if pd.isna(latest_time):
-            log.warning("Cannot select latest dispersion solution: no valid obs_date_utc")
-            return
-
-        df_s = df_s[times == latest_time].copy()
+        df_s = _latest_time_rows(df_s)
 
     elif selection == "all":
         pass
@@ -565,9 +632,8 @@ def plot_dispersion_resolution_from_config(
         log.warning("No dispersion-solution data left after time filtering for %s", title)
         return
 
-    df_s["wavelength"] = pd.to_numeric(df_s["wavelength"], errors="coerce")
-    df_s["R_pin"] = pd.to_numeric(df_s["R_pin"], errors="coerce")
-    df_s = df_s.dropna(subset=["wavelength", "R_pin", "order"])
+    df_s = _valid_rows(df_s, ['wavelength', 'R_pin', 'order'],
+                       numeric=['wavelength', 'R_pin'], series=['order'], context='wavelength/resolution')
 
     if df_s.empty:
         log.warning("No valid wavelength/R_pin data for %s", title)
@@ -620,6 +686,7 @@ def plot_dispersion_resolution_from_config(
         plt.close(fig)
 
 
+@_renderer
 def plot_dispersion_resolution_timeseries_from_config(
     df: pd.DataFrame,
     plot_cfg: dict,
@@ -639,12 +706,10 @@ def plot_dispersion_resolution_timeseries_from_config(
         log.warning("No dispersion resolution stats found for arm %s", arm)
         return
 
-    df_s["obs_date_utc"] = pd.to_datetime(df_s["obs_date_utc"], errors="coerce")
-    df_s["mean_R_pin"] = pd.to_numeric(df_s["mean_R_pin"], errors="coerce")
-    df_s["std_R_pin"] = pd.to_numeric(df_s["std_R_pin"], errors="coerce")
-    df_s["n_points"] = pd.to_numeric(df_s["n_points"], errors="coerce")
-
-    df_s = df_s.dropna(subset=["obs_date_utc", "order", "mean_R_pin"])
+    df_s = _valid_rows(df_s, ['obs_date_utc', 'order', 'mean_R_pin', 'n_points'],
+                       numeric=['mean_R_pin', 'n_points'], dates=['obs_date_utc'],
+                       series=['order'], context='resolution statistics')
+    df_s['std_R_pin'] = pd.to_numeric(df_s['std_R_pin'], errors='coerce')
     df_s = df_s[df_s["n_points"] >= min_n_points]
 
     if df_s.empty:
@@ -691,6 +756,7 @@ def plot_dispersion_resolution_timeseries_from_config(
         plt.close(fig)
 
 
+@_renderer
 def plot_dispersion_residual_xy_from_config(
     df: pd.DataFrame,
     plot_cfg: dict,
@@ -711,23 +777,15 @@ def plot_dispersion_residual_xy_from_config(
         return
 
     if selection == "latest":
-        times = pd.to_datetime(df_s["obs_date_utc"], errors="coerce")
-        latest_time = times.max()
-
-        if pd.isna(latest_time):
-            log.warning("Cannot select latest dispersion residuals: no valid obs_date_utc")
-            return
-
-        df_s = df_s[times == latest_time].copy()
+        df_s = _latest_time_rows(df_s)
 
     elif selection == "all":
         pass
     else:
         raise ValueError(f"Unsupported dispersion selection: {selection}")
 
-    df_s["residuals_x"] = pd.to_numeric(df_s["residuals_x"], errors="coerce")
-    df_s["residuals_y"] = pd.to_numeric(df_s["residuals_y"], errors="coerce")
-    df_s = df_s.dropna(subset=["residuals_x", "residuals_y"])
+    df_s = _valid_rows(df_s, ['residuals_x', 'residuals_y'],
+                       numeric=['residuals_x', 'residuals_y'], context='residuals')
 
     if df_s.empty:
         log.warning("No valid residual_x/residual_y data for %s", title)
@@ -768,6 +826,7 @@ def plot_dispersion_residual_xy_from_config(
         plt.close(fig)
 
     
+@_renderer
 def plot_dispersion_residual_histogram_from_config(
     df: pd.DataFrame,
     plot_cfg: dict,
@@ -789,25 +848,15 @@ def plot_dispersion_residual_histogram_from_config(
         return
 
     if selection == "latest":
-        times = pd.to_datetime(df_s["obs_date_utc"], errors="coerce")
-        latest_time = times.max()
-
-        if pd.isna(latest_time):
-            log.warning("Cannot select latest dispersion residuals histogram: no valid obs_date_utc")
-            return
-
-        df_s = df_s[times == latest_time].copy()
+        df_s = _latest_time_rows(df_s)
 
     elif selection == "all":
         pass
     else:
         raise ValueError(f"Unsupported dispersion selection: {selection}")
 
-    values = pd.to_numeric(df_s["residuals_xy"], errors="coerce").dropna()
-
-    if values.empty:
-        log.warning("No valid residuals_xy data for %s", title)
-        return
+    values = _valid_rows(df_s, ['residuals_xy'], numeric=['residuals_xy'],
+                         context='residuals_xy')['residuals_xy']
 
     figsize = tuple(plot_cfg.get("figsize", [7, 5]))
     fig, ax = plt.subplots(figsize=figsize)
@@ -831,6 +880,7 @@ def plot_dispersion_residual_histogram_from_config(
         plt.close(fig)
 
 
+@_renderer
 def plot_latest_by_order_from_config(
     df: pd.DataFrame,
     plot_cfg: dict,
@@ -854,17 +904,9 @@ def plot_latest_by_order_from_config(
         log.warning("No data found for plot %s", title)
         return
 
-    times = pd.to_datetime(df_s["obs_date_utc"], errors="coerce")
-    latest_time = times.max()
-
-    if pd.isna(latest_time):
-        log.warning("Cannot select latest data for %s: no valid obs_date_utc", title)
-        return
-
-    df_s = df_s[times == latest_time].copy()
-
-    df_s["qc_value"] = pd.to_numeric(df_s["qc_value"], errors="coerce")
-    df_s = df_s.dropna(subset=["qc_order", "qc_value"]).copy()
+    df_s = _latest_time_rows(df_s)
+    df_s = _valid_rows(df_s, ['qc_order', 'qc_value'], numeric=['qc_value'],
+                       context='order values')
 
     df_s["qc_order"] = df_s["qc_order"].apply(_normalize_order_label)
 
@@ -885,6 +927,8 @@ def plot_latest_by_order_from_config(
         df_s = df_s.dropna(subset=["qc_order"]).sort_values("qc_order")
     else:
         df_s = df_s.sort_values("qc_order")
+    if df_s.empty:
+        return
 
     fig, ax = plt.subplots(figsize=(8, 5))
 
@@ -923,12 +967,12 @@ def select_detector_linearity_sequences(df, selection):
         raise ValueError(f'Unsupported detector-linearity selection: {selection}')
     sequences = df[['sequence_id', 'tpl_start']].drop_duplicates().copy()
     sequences['_time'] = pd.to_datetime(sequences['tpl_start'], utc=True, errors='coerce')
-    sequences = sequences.dropna(subset=['_time']).sort_values(['_time', 'sequence_id'])
-    if sequences.empty:
-        return df.iloc[0:0]
+    sequences = _valid_rows(sequences, ['_time'], context='sequence timestamps')
+    sequences = sequences.sort_values(['_time', 'sequence_id'])
     return df[df['sequence_id'] == sequences['sequence_id'].iloc[-1]].copy()
 
 
+@_renderer
 def plot_detector_linearity_from_config(
     df: pd.DataFrame,
     plot_cfg: dict,
@@ -967,7 +1011,9 @@ def plot_detector_linearity_from_config(
     for column in numeric_columns:
         df_s[column] = pd.to_numeric(df_s[column], errors="coerce")
 
-    df_s = df_s.dropna(subset=["exptime", "signal", "detector_mode"])
+    df_s = _valid_rows(df_s, ['exptime', 'signal', 'detector_mode', 'sequence_id'],
+                       numeric=['exptime', 'signal'], series=['detector_mode', 'sequence_id'],
+                       context='detector measurements')
 
     if df_s.empty:
         log.warning("No valid detector-linearity data left for plot %s", title)
@@ -1169,36 +1215,35 @@ def plot_from_config(
     raise ValueError(f"Unsupported plot type: {plot_type}")
 
 
+def _render_configured(figures, render, continue_on_error):
+    results = []
+    for config in figures:
+        try:
+            results.append(render(config))
+        except Exception as exc:
+            if not continue_on_error:
+                raise
+            log.exception('Figure %s failed', config.get('name'))
+            code = 'invalid_data' if isinstance(exc, (InvalidPlotData, KeyError)) else 'render_error'
+            results.append(FigureResult.failed(config, exc, code))
+    return results
+
+
 def generate_plots_from_config(
     df: pd.DataFrame,
     plots_cfg: dict,
     plot_types: set[str] | None = None,
+    *, continue_on_error: bool = False,
 ):
-    output_dir = Path(plots_cfg.get("output_dir", "plots"))
-    show = bool(plots_cfg.get("show", False))
+    figures = [config for config in plots_cfg.get('figures', [])
+               if plot_types is None or config.get('type') in plot_types]
+    return _render_configured(figures, lambda config: plot_from_config(
+        df, config, plots_cfg.get('datapoint_queries', {}),
+        Path(plots_cfg.get('output_dir', 'plots')), bool(plots_cfg.get('show', False))),
+        continue_on_error)
 
-    datapoint_queries = plots_cfg.get("datapoint_queries", {})
-    figures = plots_cfg.get("figures", [])
 
-    if not datapoint_queries:
-        log.warning("No datapoint queries configured")
-
-    if not figures:
-        log.info("No plot figures configured")
-        return
-
-    for fig_cfg in figures:
-        if plot_types is not None and fig_cfg.get("type") not in plot_types:
-            continue
-
-        plot_from_config(
-            df=df,
-            plot_cfg=fig_cfg,
-            datapoint_queries=datapoint_queries,
-            output_dir=output_dir,
-            show=show,
-        )
-
+@_renderer
 def plot_order_location_fit_from_config(
     df_models: pd.DataFrame,
     df_meta: pd.DataFrame,
@@ -1239,7 +1284,7 @@ def plot_order_location_fit_from_config(
             "No order-location meta rows found for %s",
             source_file,
         )
-        return
+        raise InvalidPlotData(f'No order-location metadata for {source_file}')
 
     def _get_first_valid(row: pd.Series, names: list[str]) -> float:
         for name in names:
@@ -1251,7 +1296,10 @@ def plot_order_location_fit_from_config(
             if pd.isna(value):
                 continue
 
-            return float(value)
+            number = float(value)
+            if not np.isfinite(number) or number < 0 or not number.is_integer():
+                raise InvalidPlotData(f'Invalid polynomial degree: {name}')
+            return number
 
         raise ValueError(f"None of these columns has a valid value: {names}")
 
@@ -1271,7 +1319,7 @@ def plot_order_location_fit_from_config(
             row.get("source_file", "<unknown>"),
             exc,
         )
-        return
+        raise InvalidPlotData(f'Invalid polynomial degree: {exc}') from exc
 
     cent_coeff = _extract_poly_coefficients(
         row=row,
@@ -1297,6 +1345,11 @@ def plot_order_location_fit_from_config(
         separator="",
     )
 
+    degrees = [order_deg, axis_b_deg, edgelow_order_deg, edgelow_axis_b_deg,
+               edgeup_order_deg, edgeup_axis_b_deg]
+    if any(degree < 0 for degree in degrees):
+        raise InvalidPlotData('Polynomial degrees must be nonnegative')
+
     if pd.notna(row.get("degy_cent")):
         axis_a = "x"
         axis_b_name = "y"
@@ -1304,6 +1357,13 @@ def plot_order_location_fit_from_config(
         axis_a = "y"
         axis_b_name = "x"
 
+    df_meta_s = _valid_rows(df_meta_s, ['order', f'{axis_b_name}min', f'{axis_b_name}max'],
+                            numeric=['order', f'{axis_b_name}min', f'{axis_b_name}max'],
+                            series=['order'], context='order-location geometry')
+    if (df_meta_s[f'{axis_b_name}max'] <= df_meta_s[f'{axis_b_name}min']).any():
+        raise InvalidPlotData('Invalid order-location geometry bounds')
+    if axis_b_step <= 0:
+        raise InvalidPlotData('axis_b_step must be positive')
     figsize = tuple(plot_cfg.get("figsize", [8, 8]))
     fig, ax = plt.subplots(figsize=figsize)
 
@@ -1390,20 +1450,10 @@ def generate_order_location_plots_from_config(
     df_models: pd.DataFrame,
     df_meta: pd.DataFrame,
     plots_cfg: dict,
+    *, continue_on_error: bool = False,
 ):
-    output_dir = Path(plots_cfg.get("output_dir", "plots"))
-    show = bool(plots_cfg.get("show", False))
-
-    figures = plots_cfg.get("figures", [])
-
-    for fig_cfg in figures:
-        if fig_cfg.get("type") != "order_location_fit":
-            continue
-
-        plot_order_location_fit_from_config(
-            df_models=df_models,
-            df_meta=df_meta,
-            plot_cfg=fig_cfg,
-            output_dir=output_dir,
-            show=show,
-        )
+    figures = [config for config in plots_cfg.get('figures', [])
+               if config.get('type') == 'order_location_fit']
+    return _render_configured(figures, lambda config: plot_order_location_fit_from_config(
+        df_models, df_meta, config, Path(plots_cfg.get('output_dir', 'plots')),
+        bool(plots_cfg.get('show', False))), continue_on_error)

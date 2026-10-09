@@ -32,7 +32,8 @@ from qc_monitor.storage import SQLiteStore, ReadOnlyStorageError, validate_reado
 from qc_monitor.schema import TABLE_SCHEMA, SCHEMA_VERSION
 from qc_monitor._outcomes import AcquisitionBatch, InputOutcome
 from qc_monitor.run_result import RunResult, write_summary
-from qc_monitor.plotting import generate_order_location_plots_from_config, generate_plots_from_config
+from qc_monitor.figure_result import FigureResult, summarize_figures, validate_figure_results
+
 from qc_monitor.generate_html import generate_html_report, _load_template
 from qc_monitor.detector_linearity import (
     VIS_MODE_ORDER,
@@ -51,6 +52,18 @@ from qc_monitor.rebuild import acquisition_store
 from qc_monitor.storage import qc_identity
 from qc_monitor.storage import validate_schema, SchemaError
 from qc_monitor._sqlite_retry import SQLITE_TIMEOUT_SECONDS, retry_sqlite, collect_sqlite_events
+
+
+def generate_plots_from_config(*args, **kwargs):
+    # Lazy import preserves both interactive APIs and the CLI startup guards.
+    from qc_monitor.plotting import generate_plots_from_config as generate
+    return generate(*args, **kwargs)
+
+
+def generate_order_location_plots_from_config(*args, **kwargs):
+    from qc_monitor.plotting import generate_order_location_plots_from_config as generate
+    return generate(*args, **kwargs)
+
 
 
 def _inspect_upstream_schema(database, table):
@@ -809,81 +822,65 @@ def _run_main(args, run):
         log.info("Skipping plot generation (--no-plots)")
         return
 
-    with run.phase("plots"):
-        # Plots are defined in configuration
-        plots_cfg = cfg.get("plots", {})
+    plots_cfg = cfg.get('plots', {})
+    if not plots_cfg.get('figures'):
+        return
+    # Batch selection must happen before pyplot is imported. Direct APIs retain
+    # the caller's backend, and explicit interactive requests are respected.
+    if not plots_cfg.get('show', False):
+        import matplotlib
+        matplotlib.use('Agg')
 
-        # Load the newly consolidated QC metrics for plotting
-        df_plot = qc_database.load_all_metrics()
+    figure_results = []
+    groups = [
+        ('qc', {'time_series', 'xy_scatter', 'histogram', 'latest_by_order_bar'},
+         lambda: (qc_database.load_all_metrics(),)),
+        ('dsol_lines', {'dispersion_resolution', 'dispersion_residual_xy', 'dispersion_residual_histogram'},
+         lambda: (qc_database.load_dispersion_solution_lines(),)),
+        ('dsol_stats', {'dispersion_resolution_timeseries'},
+         lambda: (qc_database.load_dispersion_resolution_stats(),)),
+        ('oloc', {'order_location_fit'},
+         lambda: (qc_database.load_order_location_models(), qc_database.load_order_location_meta())),
+        ('detlin', {'detector_linearity'},
+         lambda: (qc_database.load_detector_linearity_results(),)),
+    ]
+    with run.phase('plots'):
+        for dataset, types, load in groups:
+            figures = [fig for fig in plots_cfg['figures'] if fig['type'] in types]
+            if not figures:
+                continue
+            try:
+                frames = load()
+            except Exception as exc:
+                log.exception('Plot dataset %s could not be loaded', dataset)
+                results = [FigureResult.failed(fig, exc, 'history_read_error') for fig in figures]
+            else:
+                if dataset == 'oloc':
+                    results = generate_order_location_plots_from_config(
+                        *frames, plots_cfg, continue_on_error=True)
+                else:
+                    results = generate_plots_from_config(
+                        frames[0], plots_cfg, types, continue_on_error=True)
+            figure_results.extend(results)
+            for item in results:
+                if item.state == 'failed':
+                    run.errors.append({'phase': 'plots', 'dataset': dataset, 'figure': item.name,
+                                       'type': item.error_type, 'reason': item.reason,
+                                       'reason_code': item.reason_code})
+            # Retain already completed work if a later global failure occurs.
+            run.plots = summarize_figures(figure_results)
+        by_name = validate_figure_results(plots_cfg['figures'], figure_results)
+        figure_results = [by_name[fig['name']] for fig in plots_cfg['figures']]
+        run.plots = summarize_figures(figure_results)
 
-        if df_plot.empty:
-            log.info("No historical QC metrics available for plotting")
-        else:
-            generate_plots_from_config(
-                df=df_plot,
-                plots_cfg=plots_cfg,
-                plot_types={"time_series", "xy_scatter", "histogram", "latest_by_order_bar"}
-            )
-
-        # Load dispersion solution lines for plotting
-        df_dsol = qc_database.load_dispersion_solution_lines()
-
-        if df_dsol.empty:
-            log.info("No historical dispersion-solution data available for plotting")
-        else:
-            generate_plots_from_config(
-                df=df_dsol,
-                plots_cfg=plots_cfg,
-                plot_types={"dispersion_resolution", "dispersion_residual_xy", "dispersion_residual_histogram"},
-            )
-
-        # Load dispersion resolution stats for plotting
-        df_resolution_stats = qc_database.load_dispersion_resolution_stats()
-
-        generate_plots_from_config(
-            df=df_resolution_stats,
-            plots_cfg=plots_cfg,
-            plot_types={"dispersion_resolution_timeseries"},
-        )
-
-        # Load order location models for plotting
-        df_oloc_models = qc_database.load_order_location_models()
-        df_oloc_meta = qc_database.load_order_location_meta()
-
-        generate_order_location_plots_from_config(
-            df_models=df_oloc_models,
-            df_meta=df_oloc_meta,
-            plots_cfg=plots_cfg,
-        )
-
-        # Load detector linearity results for plotting
-        df_detlin = qc_database.load_detector_linearity_results()
-
-        generate_plots_from_config(
-            df=df_detlin,
-            plots_cfg=plots_cfg,
-            plot_types={"detector_linearity"},
-        )
-
-        ####################################################
-        ############### HTML Report Generation #############
-        ####################################################
-
-        html_output = resolve_project_path(
-            plots_cfg.get("html_output", "index.html"),
-            project_root,
-        )
-
-    with run.phase("html"):
+    html_output = resolve_project_path(plots_cfg.get('html_output', 'index.html'), project_root)
+    run.report = {'state': 'failed', 'path': None}
+    with run.phase('html'):
         generate_html_report(
-            plots_cfg=plots_cfg,
-            output_html=html_output,
-            template_path=(
-                Path(plots_cfg["template"])
-                if plots_cfg.get("template")
-                else None
-            ),
-        )
+            plots_cfg, html_output,
+            template_path=Path(plots_cfg['template']) if plots_cfg.get('template') else None,
+            figure_results=figure_results)
+        run.report = {'state': 'published', 'path': str(html_output.resolve())}
 
 
 

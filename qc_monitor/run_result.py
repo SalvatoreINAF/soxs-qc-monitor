@@ -26,6 +26,9 @@ class RunResult:
     errors: list = field(default_factory=list)
     storage: dict = field(default_factory=dict)
     coordination: dict = field(default_factory=dict)
+    plots: dict = field(default_factory=lambda: {'state': 'skipped',
+        'counts': {'produced': 0, 'no_data': 0, 'failed': 0}, 'figures': []})
+    report: dict = field(default_factory=lambda: {'state': 'skipped', 'path': None})
     sqlite_operations: list = field(default_factory=list)
     exit_code: int = 0
     ended_utc: str | None = None
@@ -67,6 +70,7 @@ class RunResult:
                 "duration_seconds": self.duration_seconds, "versions": versions,
                 "families": self.families, "phases": self.phases,
                 "storage": self.storage, "coordination": self.coordination,
+                "plots": self.plots, "report": self.report,
                 "sqlite_operations": self.sqlite_operations,
                 "errors": self.errors, "exit_code": self.exit_code}
 
