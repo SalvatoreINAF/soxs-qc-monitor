@@ -1,4 +1,4 @@
-# Batch operation and recovery — D3-C
+# Batch operation and recovery — D3-D
 
 Run only after the pipeline has finished reduction. An inventory of present FITS
 files does not certify producer completion. Closed observing days are normally
@@ -361,3 +361,28 @@ L'utente ha pubblicato il candidato; questa registrazione modifica soltanto
 documenti, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
 Ripresa: pianificazione D3-D soltanto su nuova richiesta, dopo controllo del
 checkout e lettura di scheda/indice/handover. **D3-D…F non avviate.**
+
+
+## D3-D internal engine: current operational boundary
+
+Version 1.6.0 ships the internal atomic publisher without enabling it in the
+CLI. Continue existing run/update/preflight procedures: no publication YAML
+options, retention jobs, migration, rebuild or scheduler change is required.
+The ordinary summary adds `publication.state=skipped`.
+
+The [engine contract](d3/d3-d.md) describes managed generations, ownership
+markers and the live HTML as sole commit point. Explicit users of the internal
+engine must supply normalised configuration and a confined renderer callback.
+HTML/image destinations can live on different filesystems, but an HTTP server
+must expose both paths with the same relative URL mapping. Copies archived
+inside each generation resolve their own images. Symlinks, shared files and
+unmarked reserved directories are refused.
+
+Before final HTML replacement, failure preserves the previous report. A sync
+failure after replacement means the new report is visible with durability
+unconfirmed; do not interpret this as rollback. PublicationError exposes the
+state reached; `result.apply_to(run)` records it and finish() yields 2.
+No automatic rollback, retention, orphan deletion or reuse is performed in D.
+Interrupted runs may leave owned staging/finalised orphans. Do not delete lock
+files or adopt markerless reserved directories to force a run through.
+D3-D is delivered locally; hosted CI is pending. Stop before D3-E.

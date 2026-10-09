@@ -1,0 +1,212 @@
+{
+  "milestone": "D3-D",
+  "date": "2026-10-09",
+  "baseline": "3a9b705f686a5967d91caffd2fb1da3ca6b431c7",
+  "application_commit": "a7a2ebb081f21a6b5e4330f2f200054fc480630d",
+  "package": "1.6.0",
+  "schema": 1,
+  "hosted": {
+    "state": "pending",
+    "candidate": null
+  },
+  "wheel": {
+    "filename": "qc_monitor-1.6.0-py3-none-any.whl",
+    "sha256": "02d19680a0f16658a9ee7d970650178818c94e1d605ac28c6e73f1f8d1f1e5df"
+  },
+  "environments": [
+    {
+      "python": "3.12.15",
+      "platform": "macOS-15.8-arm64-arm-64bit",
+      "executable": "/private/tmp/qc-d1-reference/bin/python",
+      "package_path": "/Users/savarese/Documents/GitHub/SOXS/qc_monitor/qc_monitor/__init__.py",
+      "versions": {
+        "qc-monitor": "1.6.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "astropy": "6.1.2",
+        "PyYAML": "6.0.2",
+        "matplotlib": "3.10.8",
+        "pillow": "12.1.0"
+      },
+      "installed": {
+        "python": "3.12.15",
+        "platform": "macOS-15.8-arm64-arm-64bit",
+        "executable": "/private/tmp/qc-d3d-installed312/bin/python",
+        "package_path": "/private/tmp/qc-d3d-installed312/lib/python3.12/site-packages/qc_monitor/__init__.py",
+        "versions": {
+          "qc-monitor": "1.6.0",
+          "numpy": "2.1.0",
+          "pandas": "2.3.3",
+          "astropy": "6.1.2",
+          "PyYAML": "6.0.2",
+          "matplotlib": "3.10.8",
+          "pillow": "12.1.0"
+        },
+        "wheel_sources_match": true,
+        "checker": "PASS",
+        "pip_check": "PASS"
+      },
+      "suite_log": "/private/tmp/qc-d3d-final312.log",
+      "suite": {
+        "passed": 548,
+        "skipped": 1,
+        "seconds": 167.32,
+        "state": "PASS",
+        "warnings_as_errors": true
+      }
+    },
+    {
+      "python": "3.11.17",
+      "platform": "macOS-15.8-arm64-arm-64bit",
+      "executable": "/private/tmp/qc-d1-py311/bin/python",
+      "package_path": "/Users/savarese/Documents/GitHub/SOXS/qc_monitor/qc_monitor/__init__.py",
+      "versions": {
+        "qc-monitor": "1.6.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "astropy": "6.1.2",
+        "PyYAML": "6.0.2",
+        "matplotlib": "3.11.2",
+        "pillow": "12.3.0"
+      },
+      "installed": {
+        "python": "3.11.17",
+        "platform": "macOS-15.8-arm64-arm-64bit",
+        "executable": "/private/tmp/qc-d3d-installed311/bin/python",
+        "package_path": "/private/tmp/qc-d3d-installed311/lib/python3.11/site-packages/qc_monitor/__init__.py",
+        "versions": {
+          "qc-monitor": "1.6.0",
+          "numpy": "2.1.0",
+          "pandas": "2.3.3",
+          "astropy": "6.1.2",
+          "PyYAML": "6.0.2",
+          "matplotlib": "3.11.2",
+          "pillow": "12.3.0"
+        },
+        "wheel_sources_match": true,
+        "checker": "PASS",
+        "pip_check": "PASS"
+      },
+      "suite_log": "/private/tmp/qc-d3d-final311.log",
+      "suite": {
+        "passed": 548,
+        "skipped": 1,
+        "seconds": 148.41,
+        "state": "PASS",
+        "warnings_as_errors": true
+      }
+    },
+    {
+      "python": "3.13.16",
+      "platform": "macOS-15.8-arm64-arm-64bit-Mach-O",
+      "executable": "/private/tmp/qc-d1-py313/bin/python",
+      "package_path": "/Users/savarese/Documents/GitHub/SOXS/qc_monitor/qc_monitor/__init__.py",
+      "versions": {
+        "qc-monitor": "1.6.0",
+        "numpy": "2.1.0",
+        "pandas": "2.3.3",
+        "astropy": "6.1.2",
+        "PyYAML": "6.0.2",
+        "matplotlib": "3.11.2",
+        "pillow": "12.3.0"
+      },
+      "installed": {
+        "python": "3.13.16",
+        "platform": "macOS-15.8-arm64-arm-64bit-Mach-O",
+        "executable": "/private/tmp/qc-d3d-installed313/bin/python",
+        "package_path": "/private/tmp/qc-d3d-installed313/lib/python3.13/site-packages/qc_monitor/__init__.py",
+        "versions": {
+          "qc-monitor": "1.6.0",
+          "numpy": "2.1.0",
+          "pandas": "2.3.3",
+          "astropy": "6.1.2",
+          "PyYAML": "6.0.2",
+          "matplotlib": "3.11.2",
+          "pillow": "12.3.0"
+        },
+        "wheel_sources_match": true,
+        "checker": "PASS",
+        "pip_check": "PASS"
+      },
+      "suite_log": "/private/tmp/qc-d3d-final313.log",
+      "suite": {
+        "passed": 548,
+        "skipped": 1,
+        "seconds": 150.31,
+        "state": "PASS",
+        "warnings_as_errors": true
+      }
+    }
+  ],
+  "linux": {
+    "platform": "Docker Linux ARM64",
+    "python": "3.12.15",
+    "image": "python:3.12-slim",
+    "user": "qcvalidation",
+    "passed": 59,
+    "skipped": 0,
+    "seconds": 3.33,
+    "scope": "D3-D targeted suite, including real /tmp vs /dev/shm",
+    "log": "/private/tmp/qc-d3d-linux312-tests.log",
+    "freeze": [
+      "astropy==6.1.2",
+      "astropy-iers-data==0.2026.1.26.0.43.56",
+      "build==1.3.0",
+      "contourpy==1.3.3",
+      "cycler==0.12.1",
+      "fonttools==4.61.1",
+      "iniconfig==2.3.0",
+      "kiwisolver==1.4.9",
+      "matplotlib==3.10.8",
+      "numpy==2.1.0",
+      "packaging==26.0",
+      "pandas==2.3.3",
+      "pillow==12.1.0",
+      "pluggy==1.6.0",
+      "pyerfa==2.0.1.5",
+      "Pygments==2.21.0",
+      "pyparsing==3.3.2",
+      "pyproject_hooks==1.2.0",
+      "pytest==8.4.2",
+      "python-dateutil==2.9.0.post0",
+      "pytz==2026.2",
+      "PyYAML==6.0.2",
+      "qc-monitor @ file:///tmp/project",
+      "setuptools==80.10.1",
+      "six==1.17.0",
+      "tzdata==2026.2",
+      "wheel==0.46.3"
+    ]
+  },
+  "source_hashes": {
+    "qc_monitor/__init__.py": "7043c977f4b97a366af3c50f89afc84f46be47c7a410f68feb712f9b2b7d7e35",
+    "qc_monitor/_outcomes.py": "bd563b0f98783baa8d8702dbb12fab169381f83210dadfce12bc354f1473bf26",
+    "qc_monitor/_sqlite_retry.py": "3779f99b92f963eca86b81f8850693b2d17319939140f221cd7a15f796762897",
+    "qc_monitor/acquisition.py": "025133d43f490cf054b224b11dd5934ae632edf8632ebe2e3e801bb3ddab6e66",
+    "qc_monitor/bootstrap.py": "111792e3171b0f11da5c6291866235528251e2a0852a1da03052176658cee925",
+    "qc_monitor/config.py": "a506e99796f256dcb0c05aed32f08283b6b93bffee8bf4eeec57f0ee4d4bdcf3",
+    "qc_monitor/coordination.py": "72e46286d5701459930d845928a96d80a8ca1c23b27406fc8dce3b1f45807d9b",
+    "qc_monitor/detector_linearity.py": "7c9bf07bea2c4eff60b2d742fde5ed05499cf475deac0cb283d2d5ebd37dcbce",
+    "qc_monitor/figure_result.py": "cb19c1a3edfdc2c625a1055db97d50935ddbe4c1a9786c0276601f97209d3f18",
+    "qc_monitor/generate_html.py": "a506bd76b1921922b90133e356ed1ec37398a7cf03d3ad1ee287bc702585fd42",
+    "qc_monitor/locking.py": "77283c7c767ba1b9ffe232cd1ac74e1d08a3548530cb8a0aa15f3eada70ae13b",
+    "qc_monitor/main.py": "4d00384ea6fceb5a2b6c45231e41026e6db254e87a13299abf5789d17118209f",
+    "qc_monitor/plotting.py": "816f952564e8d8a405dcfcc5a29ee8395278c7fa71ed7345fa506c0d530495c1",
+    "qc_monitor/processing.py": "b785b88dedff87622332be1ad4a07962640b39f11111fb7d80979dd7152ad61f",
+    "qc_monitor/publication.py": "9f764df88436ca802d2bde7def524597ee8b395dbf0287298bb7d016d03ad268",
+    "qc_monitor/rebuild.py": "2ad005c5261cf9e6d175e4050737dabce28e4a9d04f29645499e3a9e24b86346",
+    "qc_monitor/run_result.py": "63a8093a30985c8f1ae50ab654a80bfafab09818d8d4f974b61215ed5b369736",
+    "qc_monitor/schema.py": "e7b3d5b144b4cf1509d91f9464c10cac95a4bd868034e4c60b085c5280313d4c",
+    "qc_monitor/storage.py": "617d9a15471d801892f1b1a0b6014f66072da55b66bf5016579ecc4e9788a32a",
+    "qc_monitor/resources/template.html": "42ef110b88397714d083a074d2cf779cf076c12961ed71b83b591a1e824ca32a",
+    "scripts/check_installation.py": "ed847d9f5eb540663a74c9e181a246fb74b9ec8725699fd8fed6b7f9ccf64e07",
+    "scripts/render_d3d_qa.py": "6ecdfd4fc301a3934e9e623db95117ab436e19416e8be53eba8d52c06e2da41f",
+    "tests/test_d3d_publication.py": "7068ba1c076a694fbc5007d24234b06b56214b086a1731706dca8f5bb1324dd4"
+  },
+  "qa": {
+    "docs/qa/d3-d-report-archive.png": "5f19ac6e7439da1c49de99b9df02f177a1d847abf38675696dc10825cfe43706",
+    "docs/qa/d3-d-report-nir.png": "dd1318fd823873d79a441b985f55bf1c20e8035a4f48c4c7787e917c7bb6c545",
+    "docs/qa/d3-d-report-nominal.png": "c85608ba45f6d2c95806ea4c768394158c34a32ce1bc78c47c08aacf6bbce6d5",
+    "docs/qa/d3-d-report-partial.png": "5f19ac6e7439da1c49de99b9df02f177a1d847abf38675696dc10825cfe43706"
+  }
+}

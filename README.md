@@ -1,6 +1,6 @@
 # SOXS QC Monitor
 
-**Current: 1.5.0/schema 1; D3-C formally closed after hosted verification.**
+**Current: 1.6.0/schema 1; D3-D delivered locally, hosted verification pending.**
 See [handover](docs/handover.md) for the current resume point.
 
 The SOXS QC Monitor is a lightweight monitoring tool that extracts Quality Control (QC) information from SOXS Pipeline products and generates a static HTML report with trend plots and diagnostic visualizations.
@@ -714,3 +714,14 @@ L'utente ha pubblicato il candidato; questa registrazione modifica soltanto
 documenti, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
 Ripresa: pianificazione D3-D soltanto su nuova richiesta, dopo controllo del
 checkout e lettura di scheda/indice/handover. **D3-D…F non avviate.**
+
+
+## D3-D internal publication engine (1.6.0)
+
+The internal engine prepares self-contained generations and publishes the
+configured HTML atomically, with explicit filesystem sync and operation leases.
+It is **not enabled in the ordinary CLI**: reports still use the direct D3-C
+layout and the additive summary `publication.state` remains `skipped`.
+Retention and CLI activation belong to D3-E; fallback belongs to D3-F.
+See the [D3-D contract](docs/d3/d3-d.md), [validation](tests/results/d3-d-validation.md)
+and [handover](docs/handover.md). Hosted verification is pending.

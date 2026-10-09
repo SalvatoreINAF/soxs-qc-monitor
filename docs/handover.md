@@ -1,3 +1,46 @@
+# Handover — D3-D consegnata localmente, 9 ottobre 2026
+
+**D3-D consegnata e verificata localmente su dev, 1.6.0/schema 1.**
+D3-A/B/C restano formalmente chiuse; **CI hosted D pendente, D3-E/F non avviate**.
+
+## Scheda sintetica di consegna
+
+- Baseline `3a9b705f686a5967d91caffd2fb1da3ca6b431c7`, checkout inizialmente pulito.
+  Commit applicativo **`a7a2ebb081f21a6b5e4330f2f200054fc480630d`**. Il successivo commit registra soltanto
+  documentazione/evidenze; nessun candidato D verificato dalla CI hosted.
+- Consegnati motore interno, generazioni autosufficienti, manifesto/proprietà v1,
+  URL relativi codificati, PNG/HTML validati, fsync e HTML unico punto di commit,
+  lease B fino al cleanup, PublicationResult/Error e campo JSON v1 publication.
+- Decisioni concordate: HTML atomico e fsync esplicito. Cleanup conserva il marker
+  fino alla rimozione effettiva. Errore dopo replace: published/unconfirmed,
+  diagnosi e uscita 2 tramite adattatore, senza rollback.
+- **548 PASS/1 SKIP per Python 3.11/3.12/3.13 macOS**, warning come errori.
+  Skip esclusivamente per secondo filesystem assente. **Linux ARM64: 59 PASS,
+  nessuno skip**, utente normale, inclusa prova /tmp → /dev/shm. Wheel/checker
+  isolato/pip check verdi nei tre interpreti, file identici a checkout/wheel.
+- QA nominale/parziale/archiviata/NIR ispezionata; test solo sintetici/temp.
+  [Evidenze](../tests/results/d3-d-validation.md), [ambiente](qa/d3-d-environments.json),
+  [contratto](d3/d3-d.md), [audit](../tests/results/d3-d-planning.md).
+- Documentazione e reference_docs locale aggiornate; stima approvata 10–14 ore,
+  non consuntivo. Nessun push/merge/deploy/scheduler/rebuild operativo.
+
+## Limiti e punto di ripresa vincolante
+
+La CLI ordinaria resta diretta e publication.state=skipped. Nessuna retention,
+riuso o migrazione. Generazioni/staging non correnti possono restare su crash;
+D non esegue cleanup generale. Il server web deve esporre entrambi i percorsi.
+Nessuna garanzia assoluta di persistenza dopo power loss. Non cancellare lock
+persistenti o adottare directory senza marker valido per aggirare un errore.
+
+Controllare dev/HEAD/working tree, leggere questa apertura, indice/scheda D ed
+evidenze. Pubblicare il candidato soltanto su richiesta; verificare la nuova
+CI sul suo SHA esatto: Linux 3.11/3.12/3.13 e macOS 3.12, suite/wheel/checker.
+Registrare quindi la chiusura formale D. Le prove Linux locali non sono hosted.
+**Pianificare D3-E soltanto su nuova richiesta e dopo chiusura D. Fermarsi a D.**
+Le sezioni seguenti sono storiche e questa apertura prevale sul loro stato.
+
+---
+
 # Handover — D3-C formalmente chiusa, 9 ottobre 2026
 
 **D3-C completata e formalmente chiusa su `dev`.** Pacchetto **1.5.0**,

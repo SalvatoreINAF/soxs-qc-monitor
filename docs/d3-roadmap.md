@@ -1,8 +1,8 @@
 # D3 — Roadmap delle milestone
 
 **Aggiornamento: 9 ottobre 2026.** D3-0 documentale consegnato; D3-A
-completata e formalmente chiusa; D3-B formalmente chiusa il 9 ottobre 2026; D3-C formalmente chiusa (1.5.0/schema 1); D3-D…F
-pianificate e non implementate.
+completata e formalmente chiusa; D3-B formalmente chiusa il 9 ottobre 2026; D3-C formalmente chiusa; D3-D consegnata localmente (1.6.0/schema 1), CI hosted
+pendente; D3-E/F pianificate e non implementate.
 Questo indice è il riferimento versionato per le nuove sessioni. La roadmap e
 la valutazione in `reference_docs/` restano locali e intenzionalmente escluse da Git.
 
@@ -31,7 +31,7 @@ pacchetto **1.4.0**, schema **1**. [Evidenze locali](../tests/results/d3-b-valid
 e [ambienti](qa/d3-b-environments.json). Chiusura hosted sul candidato `7a952c5`
 registrata in fondo; nessuna verifica D3-B pendente. D3-C consegnata localmente
 il 9 ottobre: [scheda dettagliata](d3/d3-c.md), [evidenze](../tests/results/d3-c-validation.md).
-Ripresa: pianificazione D3-D soltanto su nuova richiesta; D3-D non avviata.
+D3-D ora consegnata localmente; stato corrente e ripresa nella sezione finale D3-D.
 
 ## Milestone, dipendenze e stime
 
@@ -41,7 +41,7 @@ Ripresa: pianificazione D3-D soltanto su nuova richiesta; D3-D non avviata.
 | [D3-A](d3/d3-a.md) | Isolamento acquisizione e retry limitati | D3-0 | Formalmente chiusa | 6–8 ore |
 | [D3-B](d3/d3-b.md) | Coordinamento run, rebuild e update | D3-0 | Formalmente chiusa | 8–12 ore |
 | [D3-C](d3/d3-c.md) | Esiti delle figure e gestione dei renderer | D3-0 | Formalmente chiusa | 10–14 ore |
-| [D3-D](d3/d3-d.md) | Motore di pubblicazione atomica, non attivo nella CLI | D3-B, D3-C | Pianificata | 6–10 ore |
+| [D3-D](d3/d3-d.md) | Motore di pubblicazione atomica, non attivo nella CLI | D3-B, D3-C | Consegnata localmente, CI pendente | 10–14 ore |
 | [D3-E](d3/d3-e.md) | Retention sicura e attivazione nella CLI | D3-D | Pianificata | 6–10 ore |
 | [D3-F](d3/d3-f.md) | Riuso su errore e chiusura integrata | D3-A, D3-E | Pianificata | 6–10 ore |
 
@@ -50,7 +50,7 @@ consegnate separatamente a partire da D3-0; non è richiesto lavoro parallelo.
 D verifica il motore senza attivarlo nel batch; E lo attiva quando il controllo
 dello spazio è disponibile; F aggiunge il riuso su errore.
 
-Stima complessiva: **42–64 ore, circa 6–8 giornate**, incluse verifiche e
+Stima complessiva ricalcolata sulle righe della tabella: **48–72 ore, circa 6–9 giornate**, incluse verifiche e
 documentazione, escluse attese CI. Sono stime di lavoro, non durate dei test.
 La stima D3-A iniziale di 4–6 ore è aggiornata a 6–8 dopo la pianificazione
 dettagliata: include preflight, cause SQLite avvolte e contese reali.
@@ -214,3 +214,22 @@ L'utente ha pubblicato il candidato; questa registrazione modifica soltanto
 documenti, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
 Ripresa: pianificazione D3-D soltanto su nuova richiesta, dopo controllo del
 checkout e lettura di scheda/indice/handover. **D3-D…F non avviate.**
+
+
+## D3-D — Consegna locale, 9 ottobre 2026
+
+Motore interno di pubblicazione atomica **1.6.0/schema 1**, baseline `3a9b705`.
+Generazioni autosufficienti, manifesto v1, HTML unico punto di commit, fsync
+esplicito e lease B fino al cleanup. CLI ordinaria ancora diretta; campo
+JSON v1 `publication=skipped`. Nessuna retention, attivazione CLI o riuso.
+[Piano/contratto](d3/d3-d.md), [audit](../tests/results/d3-d-planning.md),
+[evidenze](../tests/results/d3-d-validation.md), [handover](handover.md).
+Stima D aggiornata da 6–10 a **10–14 ore** per sincronizzazione, crash e
+protezioni dei percorsi; include test/documentazione, esclude attese CI.
+Consegna locale e chiusura formale sono distinte: CI hosted D pendente sul
+candidato esatto, nessun push implicito. D3-A/B/C restano chiuse.
+Ripresa: verifica hosted D dopo pubblicazione autorizzata; pianificazione E
+solo su nuova richiesta e dopo chiusura D. **D3-E/F non avviate.**
+
+Commit applicativo D **`a7a2ebb081f21a6b5e4330f2f200054fc480630d`**; 548 PASS/1 SKIP per macOS 3.11/3.12/3.13,
+Linux mirato 59 PASS senza skip, wheel/checker/pip check e QA verdi.

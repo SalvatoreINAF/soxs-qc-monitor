@@ -1,6 +1,8 @@
 # Verifica batch, scientifica e di installazione
 
-Suite corrente su `dev`: **490 casi**, D3-C formalmente chiusa con CI hosted verde.
+Suite corrente su `dev`: **549 casi**, D3-D consegnata localmente, CI hosted pendente.
+D3-A/B/C restano formalmente chiuse. Il caso su due filesystem può essere
+saltato quando il runner non dispone di un secondo dispositivo scrivibile.
 La consegna D1 storica aveva 216 casi (177 di baseline e 39 nuovi D1).
 I risultati storici H0/H1/H2 sotto riportati restano evidenze delle rispettive
 revisioni; non descrivono il conteggio corrente. La correzione DETLIN `8d44c9d`
@@ -532,3 +534,38 @@ L'utente ha pubblicato il candidato; questa registrazione modifica soltanto
 documenti, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
 Ripresa: pianificazione D3-D soltanto su nuova richiesta, dopo controllo del
 checkout e lettura di scheda/indice/handover. **D3-D…F non avviate.**
+
+
+## D3-D — Atomic publisher (1.6.0, schema 1)
+
+`test_d3d_publication.py` exercises generations/manifest/HTML, each sync boundary,
+real readable PNGs, absent/failed images, precommit faults, postcommit sync errors,
+owned cleanup, path/URL escaping, symlinks/hardlinks/FIFO, template contamination,
+collisions and invalid ownership. Real child processes verify operation contention,
+SIGKILL orphans and lease release. The ordinary CLI must keep direct publication
+and summary publication.state=skipped. No scientific tolerance changes.
+
+```sh
+python -m pytest tests/test_d3d_publication.py -ra --tb=short -W error
+python -m pytest -ra --tb=short -W error
+python -m build --wheel --no-isolation --outdir /tmp/qc-d3d-wheel
+/path/to/installed-env/bin/python scripts/check_installation.py
+/path/to/installed-env/bin/python -m pip check
+python scripts/render_d3d_qa.py /tmp/qc-d3d-visual
+```
+
+Run source suites sequentially for B's exclusive environment/source tests.
+The runner must allow ps for real timeout checks; environmental denial is a
+failed attempt to record, not grounds to skip or relax the existing tests.
+The real two-filesystem case uses a second writable device (e.g. /dev/shm on
+Linux); it explicitly skips if absent, alongside an always-run invariant check
+that both rename endpoints use the same device. Record this skip separately.
+The isolated wheel checker verifies the installed publisher with a real
+renderer and a failed callback preserving the previous publication.
+
+Visual QA uses real scientific rendering and a real save failure in synthetic
+staging. Inspect nominal, partial/current and archived reports; no pixel golden
+images. Results/versions/limits in [D3-D validation](results/d3-d-validation.md)
+and [environment manifest](../docs/qa/d3-d-environments.json). Hosted Linux
+3.11/3.12/3.13 and macOS 3.12 remains pending on the exact D candidate.
+**Stop at D3-D: D3-E/F are not started.**

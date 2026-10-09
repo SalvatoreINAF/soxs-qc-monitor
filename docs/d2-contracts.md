@@ -1,6 +1,6 @@
 # D2 — Configuration and storage contracts
 
-D2 package 1.2.0; current D3-C package 1.5.0; SQLite schema version 1. D2 is developed on `dev`. D1 remains
+D2 package 1.2.0; current D3-D package 1.6.0; SQLite schema version 1. D2 is developed on `dev`. D1 remains
 formally closed on its previously verified candidate. D2 delivery and current
 verification evidence are recorded in [handover](handover.md) and
 [test results](../tests/results/d2-validation.md).
@@ -350,3 +350,20 @@ L'utente ha pubblicato il candidato; questa registrazione modifica soltanto
 documenti, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
 Ripresa: pianificazione D3-D soltanto su nuova richiesta, dopo controllo del
 checkout e lettura di scheda/indice/handover. **D3-D…F non avviate.**
+
+
+## D3-D publication contract (1.6.0, SQLite schema 1 unchanged)
+
+The internal publisher owns only its reserved generation namespace and its
+exclusive live HTML temporary. It acquires B leases, accepts C outcomes and
+commits by replacing the configured HTML once, after image/manifest validation
+and sync. The [D3-D specification](d3/d3-d.md) fixes ownership, manifest v1,
+paths and pre/post-commit failures. No SQLite transaction/counter semantics,
+scientific formulas, input acquisition or configuration schema is changed.
+
+RunResult JSON format_version=1 adds publication metadata independently of
+`storage`, `plots` and `report`; ordinary CLI publication remains skipped.
+The HTML API adds optional keyword `image_urls` without changing its default
+legacy behaviour. PublicationError carries its PublicationResult, including
+published/unconfirmed after a final-directory sync error. Internal consumers
+must explicitly apply the result to RunResult to preserve error exit codes.
