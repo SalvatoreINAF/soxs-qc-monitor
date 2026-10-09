@@ -5,6 +5,7 @@ import math
 import yaml
 
 from qc_monitor.schema import TABLE_SCHEMA
+from qc_monitor._renderers import RENDERERS
 
 
 class ConfigurationError(RuntimeError, ValueError):
@@ -138,6 +139,8 @@ FIGURE_FIELDS = {
     'detector_linearity': LEGEND | {'selection', 'mode_order'},
 }
 
+
+assert set(FIGURE_FIELDS) == set(RENDERERS), "Renderer/configuration type contracts differ"
 
 def validate_detector_linearity_config(options):
     _keys(options, DETLIN_DEFAULTS, 'detector_linearity')

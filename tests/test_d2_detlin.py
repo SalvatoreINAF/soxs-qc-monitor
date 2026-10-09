@@ -127,12 +127,13 @@ def test_plot_all_keeps_sequence_curves_separate(lab, monkeypatch):
     second_sequence(lab)
     _, results = load_detector_linearity_data(lab.cfg)
     captured = []
-    original_save = plotting._save_figure
+    from qc_monitor import _plots_common
+    original_save = _plots_common._save_figure
     def save(path, fig=None):
         captured.extend((line.get_xdata().copy(), line.get_ydata().copy(), line.get_label())
                         for line in fig.axes[0].lines if line.get_label().endswith('Measured'))
         original_save(path, fig)
-    monkeypatch.setattr(plotting, '_save_figure', save)
+    monkeypatch.setattr(_plots_common, '_save_figure', save)
     plot_detector_linearity_from_config(results, {'name': 'vis_sequences', 'arm': 'VIS', 'filename': 'all.png',
         'selection': 'all', 'mode_order': ['SHG'], 'figsize': [9, 5]}, lab.output)
     assert len(captured) == 2

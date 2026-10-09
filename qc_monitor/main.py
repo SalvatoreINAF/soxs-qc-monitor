@@ -7,12 +7,9 @@ if __name__ == "__main__":
 import qc_monitor
 import logging
 import argparse
-import os
 import sys
-import sqlite3
-from contextlib import closing, ExitStack
+from contextlib import ExitStack
 from pathlib import Path
-import pandas as pd
 
 from qc_monitor.acquisition import (
     find_session_databases,
@@ -45,7 +42,11 @@ from qc_monitor.detector_linearity import (
 
 
 from qc_monitor.config import (
-    ConfigurationError, load_config, load_plot_includes, normalize_runtime_config, resolve_project_path,
+    ConfigurationError,
+    load_config,
+    load_plot_includes,
+    normalize_runtime_config,
+    resolve_project_path,
 )
 from qc_monitor.locking import locked_coordinator, _archive_lease
 from qc_monitor.coordination import leases, runtime_requests, project_requests, config_resources, configuration_requests, CoordinationBusyError
@@ -53,6 +54,34 @@ from qc_monitor.rebuild import acquisition_store
 from qc_monitor.storage import qc_identity
 from qc_monitor.storage import validate_schema, SchemaError
 from qc_monitor._sqlite_retry import SQLITE_TIMEOUT_SECONDS, retry_sqlite, collect_sqlite_events
+
+
+# Compatibility exports: existing pipeline and inspection imports remain valid.
+from ._preflight import (
+    _inspect_qc_schema,
+    _inspect_upstream_schema,
+    _is_writable_path,
+    _nearest_existing_parent,
+    _path_contains_suspicious_token,
+    run_preflight,
+    validate_path_collisions,
+)
+from ._consolidation import (
+    _commit_batch,
+    _consolidate_impl,
+    _consolidate_qc_sources,
+    _selected_product_files,
+    consolidate,
+    consolidate_detector_linearity,
+    consolidate_dispersion_solution,
+    consolidate_order_location_models,
+)
+from ._runtime import (
+    default_config_path,
+    prepare_runtime,
+    resolve_config_path,
+)
+from ._renderers import types_for_dataset
 
 
 def generate_plots_from_config(*args, **kwargs):
@@ -64,50 +93,6 @@ def generate_plots_from_config(*args, **kwargs):
 def generate_order_location_plots_from_config(*args, **kwargs):
     from qc_monitor.plotting import generate_order_location_plots_from_config as generate
     return generate(*args, **kwargs)
-
-
-
-def _inspect_upstream_schema(database, table):
-    with closing(sqlite3.connect(database.as_uri() + '?mode=ro', uri=True,
-                                timeout=SQLITE_TIMEOUT_SECONDS)) as conn:
-        table = table.replace('"', '""')
-        return {row[1] for row in conn.execute(f'PRAGMA table_info("{table}")')}
-
-
-def _inspect_qc_schema(database, rebuild):
-    with closing(sqlite3.connect(database.resolve().as_uri() + '?mode=ro', uri=True,
-                                timeout=SQLITE_TIMEOUT_SECONDS)) as conn:
-        if rebuild:
-            if conn.execute('PRAGMA user_version').fetchone()[0] not in (0, SCHEMA_VERSION):
-                raise SchemaError(f'{database}: unsupported schema for rebuild')
-        else:
-            validate_schema(conn)
-
-
-def validate_path_collisions(cfg, config_path, databases, *, no_plots=False):
-    """Protect selected input files while permitting QC below reduced_root."""
-    protected = {Path(config_path).resolve(), *[Path(path).resolve() for path in databases]}
-    protected.update(Path(path) for path in cfg.get('_origins', {}).get('includes', []))
-    roots = [Path(cfg['paths']['reduced_root'])]
-    roots.extend(Path(arm['root']) for arm in cfg['detector_linearity']['arms'].values())
-    for root in roots:
-        if root.is_dir():
-            protected.update(path.resolve() for path in root.rglob('*.fits'))
-    targets = [Path(cfg['paths']['qc_database']).resolve()]
-    protected.update(Path(str(targets[0]) + suffix) for suffix in ('.lock', '-wal', '-shm', '-journal'))
-    protected.update(targets[0].parent.glob(targets[0].name + '.backup-*.sqlite'))
-    if not no_plots:
-        output = Path(cfg['plots']['output_dir']).resolve()
-        targets.append(Path(cfg['plots']['html_output']).resolve())
-        for figure in cfg['plots']['figures']:
-            target = (output / figure['filename']).resolve()
-            if not target.is_relative_to(output):
-                raise ConfigurationError(f"Figure filename escapes output directory: {target}")
-            targets.append(target)
-        if output in targets or output in protected:
-            raise ConfigurationError(f'Output directory collides with a file: {output}')
-    if len(targets) != len(set(targets)) or protected & set(targets):
-        raise ConfigurationError('Output paths collide with each other or protected input/configuration files')
 
 
 def parse_args():
@@ -160,510 +145,6 @@ def parse_args():
     return args
 
 
-def default_config_path() -> Path:
-    """
-    Resolve the default config without using the installed package location.
-
-    After pip installation, __file__ points inside site-packages. That path is
-    intentionally never used as the project root.
-    """
-    env_root = os.environ.get("QC_MONITOR_ROOT")
-
-    if env_root:
-        config_path = Path(env_root).expanduser().resolve() / "configs" / "qc_monitor.yaml"
-        if config_path.is_file():
-            return config_path
-        raise ConfigurationError(
-            "QC_MONITOR_ROOT is set but configs/qc_monitor.yaml was not found: "
-            f"{config_path}"
-        )
-
-    cwd = Path.cwd().resolve()
-
-    for candidate_root in (cwd, *cwd.parents):
-        config_path = candidate_root / "configs" / "qc_monitor.yaml"
-        if (
-            config_path.is_file()
-            and (candidate_root / "pyproject.toml").is_file()
-            and (candidate_root / "qc_monitor").is_dir()
-        ):
-            return config_path
-
-    raise ConfigurationError(
-        "No default configuration file could be resolved safely. "
-        "Run qc-monitor from the cloned repository root, set QC_MONITOR_ROOT "
-        "to the clone path, or pass --config /path/to/configs/qc_monitor.yaml. "
-    )
-
-
-def resolve_config_path(config_arg: Path | None) -> Path:
-    if config_arg is not None:
-        return config_arg.expanduser().resolve()
-
-    return default_config_path()
-
-
-def _nearest_existing_parent(path: Path) -> Path | None:
-    for candidate in (Path(path), *Path(path).parents):
-        if candidate.exists():
-            return candidate
-
-    return None
-
-
-def _is_writable_path(path: Path) -> bool:
-    existing = _nearest_existing_parent(path)
-    return existing is not None and os.access(existing, os.W_OK)
-
-
-def _path_contains_suspicious_token(path: Path, tokens: list[str]) -> str | None:
-    lowered_parts = [part.lower() for part in path.parts]
-
-    for token in tokens:
-        token_l = str(token).lower()
-        if any(token_l in part for part in lowered_parts):
-            return token
-
-    return None
-
-
-def run_preflight(cfg: dict, project_root: Path, *, dry_run: bool = False, no_plots: bool = False,
-                  inspection: bool = False, config_validated: bool = False, rebuild: bool = False) -> bool:
-    log = logging.getLogger("qc-monitor")
-    if not config_validated:
-        try:
-            cfg = normalize_runtime_config(cfg, project_root)
-        except ConfigurationError as exc:
-            log.error('Preflight failed: %s', exc)
-            return False
-    errors = []
-    warnings = []
-
-    paths_cfg = cfg.get("paths", {})
-    acquisition_cfg = cfg.get("acquisition", {})
-    plots_cfg = cfg.get("plots", {})
-
-    upstream_root = Path(paths_cfg.get("upstream_root", "")).expanduser()
-    reduced_root = Path(paths_cfg.get("reduced_root", "")).expanduser()
-    qc_database_path = Path(paths_cfg.get("qc_database", "")).expanduser()
-    output_dir = Path(plots_cfg.get("output_dir", "")).expanduser()
-    html_output = Path(plots_cfg.get("html_output", "")).expanduser()
-    template_path = plots_cfg.get("template")
-    detlin_cfg = cfg.get("detector_linearity", {})
-
-    upstream_database_name = acquisition_cfg.get("upstream_database_name", "soxspipe.db")
-    upstream_search_mode = acquisition_cfg.get("upstream_database_search", "direct")
-    reduced_search_mode = acquisition_cfg.get("reduced_products_search", "observing_day_dirs")
-    allow_multiple_upstream = bool(acquisition_cfg.get("allow_multiple_upstream_databases", False))
-    allow_suspicious_paths = bool(acquisition_cfg.get("allow_suspicious_paths", False))
-    suspicious_tokens = acquisition_cfg.get(
-        "suspicious_path_tokens",
-        ["test", "tmp", "temporary", "sandbox"],
-    )
-
-    log.info("Preflight project root: %s", project_root)
-    log.info("Preflight upstream root: %s", upstream_root)
-    log.info("Preflight reduced root: %s", reduced_root)
-
-    for label, path in (
-        ("upstream_root", upstream_root),
-        ("reduced_root", reduced_root),
-    ):
-        if not path.is_dir():
-            errors.append(f"{label} is not an existing directory: {path}")
-        elif not os.access(path, os.R_OK | os.X_OK):
-            errors.append(f"{label} is not readable/searchable: {path}")
-
-    for label, path in (
-        ("qc_database", qc_database_path),
-        ("plots.output_dir", output_dir),
-        ("plots.html_output", html_output),
-    ):
-        if (dry_run or no_plots) and label != "qc_database":
-            continue
-
-        if label == "qc_database" and path.exists() and not path.is_file():
-            errors.append(f"{label} exists but is not a file: {path}")
-            continue
-
-        if label == "plots.output_dir" and path.exists() and not path.is_dir():
-            errors.append(f"{label} exists but is not a directory: {path}")
-            continue
-
-        if label == "plots.html_output" and path.exists() and path.is_dir():
-            errors.append(f"{label} exists but is a directory: {path}")
-            continue
-
-        if dry_run:
-            continue
-
-        target = path if label == "plots.output_dir" else path.parent
-        if not _is_writable_path(target):
-            errors.append(f"{label} parent is not writable or cannot be reached: {path}")
-
-    if template_path and not (dry_run or no_plots):
-        template_path = Path(template_path).expanduser()
-        if not template_path.is_file():
-            errors.append(f"plots.template is not an existing file: {template_path}")
-    if not (dry_run or no_plots) and plots_cfg.get('figures'):
-        try:
-            template = _load_template(Path(template_path) if template_path else None)
-            if '{{ sections }}' not in template:
-                errors.append('HTML template is missing {{ sections }}')
-        except OSError as exc:
-            errors.append(str(exc))
-
-    if bool(detlin_cfg.get("enabled", False)):
-        arms_cfg = detlin_cfg.get("arms", {})
-        if not arms_cfg:
-            errors.append("detector_linearity.enabled is true but no arms are configured")
-
-        detlin_figures = [
-            fig
-            for fig in plots_cfg.get("figures", [])
-            if fig.get("type") == "detector_linearity"
-        ]
-        if not detlin_figures and not (dry_run or no_plots):
-            warnings.append(
-                "detector_linearity enabled but no detector_linearity plots configured"
-            )
-
-        for arm, arm_cfg in arms_cfg.items():
-            if not arm_cfg or not arm_cfg.get("root"):
-                errors.append(f"detector_linearity.enabled is true but arms.{arm}.root is not configured")
-                continue
-
-            arm_root = Path(arm_cfg["root"]).expanduser()
-            if not arm_root.is_dir():
-                errors.append(f"detector_linearity.arms.{arm}.root is not an existing directory: {arm_root}")
-            elif not os.access(arm_root, os.R_OK | os.X_OK):
-                errors.append(f"detector_linearity.arms.{arm}.root is not readable/searchable: {arm_root}")
-
-    if upstream_search_mode not in {"direct", "recursive"}:
-        errors.append(
-            "acquisition.upstream_database_search must be 'direct' or 'recursive'"
-        )
-
-    if reduced_search_mode not in {"observing_day_dirs", "recursive"}:
-        errors.append(
-            "acquisition.reduced_products_search must be 'observing_day_dirs' or 'recursive'"
-        )
-
-    if upstream_root.is_dir():
-        databases = find_session_databases(upstream_root, upstream_database_name, upstream_search_mode)
-        if not databases:
-            errors.append(f'Upstream database not found: {upstream_root / upstream_database_name}')
-        elif len(databases) > 1 and not allow_multiple_upstream:
-            errors.append(f'Found {len(databases)} upstream databases; set allow_multiple_upstream_databases only if intentional')
-
-
-    if dry_run or inspection:
-        # Inspect every selected header before any acquisition opens SQLite.
-        databases = find_session_databases(
-            upstream_root, upstream_database_name, search_mode=upstream_search_mode
-        ) if upstream_root.is_dir() and upstream_search_mode in {"direct", "recursive"} else []
-        for database in [qc_database_path, *databases]:
-            try:
-                validate_readonly_sqlite_path(database)
-            except ReadOnlyStorageError as exc:
-                errors.append(str(exc))
-
-    if not errors:
-        databases = find_session_databases(upstream_root, upstream_database_name, upstream_search_mode)
-        for database in databases:
-            try:
-                table = acquisition_cfg['upstream_table']
-                columns = retry_sqlite(lambda: _inspect_upstream_schema(database, table),
-                                       operation="preflight_upstream", source=database)
-                missing = set(TABLE_SCHEMA) - columns
-                if missing:
-                    errors.append(f'{database}: upstream {table} missing required columns: {sorted(missing)}')
-            except sqlite3.Error as exc:
-                errors.append(f'{database}: cannot inspect upstream schema: {exc}')
-    if not errors and qc_database_path.is_file() and not dry_run:
-        retry_sqlite(lambda: _inspect_qc_schema(qc_database_path, rebuild),
-                     operation="preflight_archive", source=qc_database_path)
-
-    if reduced_root.is_dir():
-        day_dirs = find_observing_day_directories(reduced_root)
-
-        if reduced_search_mode == "observing_day_dirs" and not day_dirs:
-            errors.append(
-                f"No observing-day directories named YYYY-MM-DD found directly under {reduced_root}"
-            )
-
-        if not allow_suspicious_paths:
-            token = _path_contains_suspicious_token(reduced_root, suspicious_tokens)
-            if token is not None:
-                errors.append(
-                    f"reduced_root contains suspicious token '{token}': {reduced_root}"
-                )
-
-            for child in reduced_root.iterdir():
-                token = _path_contains_suspicious_token(child, suspicious_tokens)
-                if token is not None:
-                    errors.append(
-                        f"Suspicious directory/file under reduced_root contains "
-                        f"'{token}': {child}"
-                    )
-
-    for warning in warnings:
-        log.warning("Preflight warning: %s", warning)
-
-    if errors:
-        for error in errors:
-            log.error("Preflight failed: %s", error)
-        return False
-
-    log.info("Preflight completed successfully")
-    return True
-
-
-def _consolidate_impl(
-    upstream_db_path: Path,
-    config_path: Path = Path("configs/qc_monitor.yaml"),
-    force: bool = False,
-    dry_run: bool = False,
-) -> int:
-    """
-    Consolidate selected QC metrics into the independent historical database.
-    With multiple sources enabled, acquire the whole configured source set.
-
-    Can be called either from the main QC script or directly within the pipeline.
-
-    Parameters
-    ----------
-    upstream_db_path : Path
-        Path to an upstream SOXS pipeline SQLite database. With multiple
-        sources enabled, it must belong to the configured discovery set.
-    config_path : Path
-        Path to the qc_monitor YAML configuration file.
-    force : bool
-        If True, ingest all observing days contained in the upstream DB,
-        even if they were already marked as processed.
-    dry_run : bool
-        If True, load and filter data but do not write anything to the
-        historical QC database.
-
-    Returns
-    -------
-    int
-        Number of valid QC datapoints selected, including rows of units
-        that remain incomplete and are therefore not persisted.
-    """
-    log = logging.getLogger("qc-monitor")
-
-    # Load configuration
-
-    config_path = config_path.resolve()
-    cfg = load_config(config_path)
-
-    project_root = config_path.parent.parent
-    cfg = normalize_runtime_config(cfg, project_root, validated=True)
-
-    qc_database_path = resolve_project_path(
-        cfg["paths"]["qc_database"],
-        project_root,
-    )
-
-    paths = [upstream_db_path]
-    if cfg.get("acquisition", {}).get("allow_multiple_upstream_databases", False):
-        paths = find_session_databases(Path(cfg["paths"]["upstream_root"]),
-                                       cfg["acquisition"]["upstream_database_name"],
-                                       cfg["acquisition"].get("upstream_database_search", "direct"))
-        if upstream_db_path.resolve() not in {path.resolve() for path in paths}:
-            raise ConfigurationError(f"Upstream path is outside configured sources: {upstream_db_path}")
-    if dry_run:
-        for path in paths:
-            validate_readonly_sqlite_path(path)
-    validate_path_collisions(cfg, config_path, paths, no_plots=True)
-    with acquisition_store(qc_database_path, dry_run=dry_run) as qc_database:
-        return _consolidate_qc_sources(paths, cfg, qc_database, force, dry_run)
-
-
-def consolidate(upstream_db_path: Path, config_path: Path = Path("configs/qc_monitor.yaml"),
-                force: bool = False, dry_run: bool = False) -> int:
-    if dry_run:
-        return _consolidate_impl(upstream_db_path, config_path, force, dry_run)
-    path = Path(config_path).expanduser().resolve()
-    with leases(runtime_requests() + project_requests(path.parent.parent)):
-        return _consolidate_impl(upstream_db_path, path, force, dry_run)
-
-
-def _commit_batch(batch, family, qc_database, dry_run, already_closed, force, counts=None):
-    log = logging.getLogger("qc-monitor")
-    from qc_monitor.storage import _UNIT_TABLES
-    frames = list(batch.frames.values())
-    names = [table[0] for table in _UNIT_TABLES[family]]
-    day_column = "night start date" if family == "qc" else "obs_day"
-    units = set()
-    for frame in frames:
-        if not frame.empty:
-            columns = [day_column, "eso seq arm"] if family == "detlin" else [day_column]
-            units.update(tuple(str(value) for value in row) for row in frame[columns].itertuples(index=False, name=None))
-    units.update(outcome.unit for outcome in batch.outcomes if outcome.unit is not None)
-    report = counts if counts is not None else {}
-    report.update(state="no_data", tables={name: {"selected": 0, "persisted": 0,
-                  "discarded": batch.discarded_rows.get(key), "duplicates": 0,
-                  "not_persisted_incomplete": 0, "preserved": 0}
-                  for name, key in zip(names, batch.frames)},
-                  completed_units=[], open_units=[], skipped_units=[], validated_units=[],
-                  errors=[], input_states={}, latest_data_utc=None, selected=0, persisted=0,
-                  sqlite_operations=batch.sqlite_operations)
-    for outcome in batch.outcomes:
-        report["input_states"][outcome.state] = report["input_states"].get(outcome.state, 0) + 1
-        if outcome.state == "failed" and (force or outcome.unit is None or
-                (outcome.unit if family == "detlin" else outcome.unit[0]) not in already_closed):
-            report["errors"].append({"source": outcome.source, "unit": outcome.unit,
-                                     "reason": outcome.reason, **outcome.details})
-    selected, persisted = 0, 0
-    writers = {"qc": qc_database.replace_qc_day, "dsol": qc_database.replace_dispersion_day,
-               "oloc": qc_database.replace_order_location_day, "detlin": qc_database.replace_detector_linearity_day}
-    for unit in sorted(units):
-        closed_key = unit if family == "detlin" else unit[0]
-        if not force and closed_key in already_closed:
-            report["skipped_units"].append(unit)
-            preserved = qc_database.unit_row_counts(family, unit)
-            for name in names:
-                previous = report["tables"][name]["preserved"]
-                value = preserved[name]
-                report["tables"][name]["preserved"] = None if previous is None or value is None else previous + value
-            continue
-        subset = []
-        for name, frame in zip(names, frames):
-            mask = frame[day_column].astype(str).eq(unit[0])
-            if family == "detlin":
-                mask &= frame["eso seq arm"].astype(str).eq(unit[1])
-            subset.append(frame.loc[mask].copy())
-            report["tables"][name]["selected"] += len(subset[-1])
-        selected += sum(len(frame) for frame in subset)
-        report["selected"] = selected
-        failures = batch.failures(unit)
-        reason = None
-        if failures:
-            reason = "; ".join(failure.reason for failure in failures)
-        else:
-            try:
-                prepared = _prepare_unit_frames(family, subset)
-                for name, before, after in zip(names, subset, prepared):
-                    report["tables"][name]["duplicates"] += len(before) - len(after)
-                subset = prepared
-                if family == 'qc':
-                    subset[0].attrs['provenance'] = frames[0].attrs.get('provenance', {})
-            except ValueError as exc:
-                reason = str(exc)
-            if reason is None and not all(not frame.empty for frame in subset):
-                reason = "Missing required data"
-        if reason is not None:
-            log.error("%s unit %s remains open: %s", family, unit, reason)
-            report["open_units"].append(unit)
-            if not failures:
-                report["errors"].append({"source": family, "unit": unit, "reason": reason})
-            for name, frame in zip(names, subset):
-                report["tables"][name]["not_persisted_incomplete"] += len(frame)
-            continue
-        report["validated_units"].append(unit)
-        if dry_run:
-            for frame in subset:
-                print(frame)
-            log.info("Dry-run: %s unit %s is complete; no writes", family, unit)
-        else:
-            # Counters advance only after the whole transaction has committed.
-            writers[family](*unit, *subset)
-            report["completed_units"].append(unit)
-            for name, frame in zip(names, subset):
-                report["tables"][name]["persisted"] += len(frame)
-            persisted += sum(len(frame) for frame in subset)
-            report["persisted"] = persisted
-    report.update(selected=selected, persisted=persisted)
-    report["state"] = "partial" if report["errors"] or report["open_units"] else (
-        "completed" if units else "no_data")
-    if family == 'detlin':
-        metadata = frames[0][['sequence_id', 'tpl_start', 'tpl_id', 'obs_day', 'eso seq arm']].drop_duplicates()
-        report['sequences'] = metadata.to_dict(orient='records')
-    for error in report["errors"]:
-        log.error("%s acquisition: %s: %s", family, error["source"], error["reason"])
-    log.info("%s selected %d rows; persisted %d rows", family, selected, persisted)
-    return selected
-
-
-def _consolidate_qc_sources(paths, cfg, qc_database, force=False, dry_run=False, counts=None):
-    if dry_run:
-        for path in paths:
-            validate_readonly_sqlite_path(path)
-    batches = [_load_qc_batch(path, cfg) for path in paths]
-    frames = [batch.frames["metrics"] for batch in batches if not batch.frames["metrics"].empty]
-    metrics = pd.concat(frames, ignore_index=True) if frames else pd.DataFrame(columns=list(TABLE_SCHEMA))
-    batch = AcquisitionBatch({"metrics": metrics}, [outcome for item in batches for outcome in item.outcomes],
-                             {"metrics": sum(item.discarded_rows["metrics"] for item in batches)}
-                             if all("metrics" in item.discarded_rows for item in batches) else {},
-                             [event for item in batches for event in item.sqlite_operations])
-    provenance = {}
-    for path, item in zip(paths, batches):
-        for _, row in item.frames['metrics'].iterrows():
-            provenance.setdefault(qc_identity(row), set()).add(str(Path(path).resolve()))
-    metrics.attrs['provenance'] = provenance
-    has_units = not metrics.empty or any(outcome.unit is not None for outcome in batch.outcomes)
-    closed = qc_database.get_processed_obs_days() if has_units else set()
-    return _commit_batch(batch, "qc", qc_database, dry_run, closed, force, counts)
-
-
-def _selected_product_files(paths, parser, closed, force, skipped=None):
-    # Malformed selected filenames must become failures, not abort discovery.
-    selected = []
-    for path in paths:
-        try:
-            day = parser(path)
-        except (ValueError, KeyError):
-            selected.append(path)
-            continue
-        if force or day not in closed:
-            selected.append(path)
-        elif skipped is not None:
-            skipped.append(InputOutcome(str(path), "skipped", (str(day),)))
-    return selected
-
-
-@locked_coordinator
-def consolidate_dispersion_solution(reduced_root: Path, qc_database: SQLiteStore,
-                                    dry_run: bool = False, force: bool = False,
-                                    search_mode: str = "observing_day_dirs", *, _result=None) -> int:
-    discovered = find_dispersion_solution_fits_files(reduced_root, search_mode)
-    closed = qc_database.get_processed_dispersion_obs_days() if discovered else set()
-    skipped = []
-    paths = _selected_product_files(discovered,
-                                    lambda path: parse_dispersion_solution_filename(path)[0], closed, force, skipped)
-    batch = _load_dsol_batch(paths)
-    batch.outcomes.extend(skipped)
-    return _commit_batch(batch, "dsol", qc_database, dry_run, closed, force, _result)
-
-
-@locked_coordinator
-def consolidate_order_location_models(reduced_root: Path, qc_database: SQLiteStore,
-                                      dry_run: bool = False, force: bool = False,
-                                      search_mode: str = "observing_day_dirs", *, _result=None) -> int:
-    discovered = find_order_location_fits_files(reduced_root, search_mode)
-    closed = qc_database.get_processed_order_location_obs_days() if discovered else set()
-    skipped = []
-    paths = _selected_product_files(discovered,
-                                    lambda path: parse_order_location_filename(path)["obs_day"], closed, force, skipped)
-    batch = _load_oloc_batch(paths)
-    batch.outcomes.extend(skipped)
-    return _commit_batch(batch, "oloc", qc_database, dry_run, closed, force, _result)
-
-
-@locked_coordinator
-def consolidate_detector_linearity(cfg: dict, qc_database: SQLiteStore,
-                                   dry_run: bool = False, force: bool = False, *, _result=None) -> int:
-    if not detector_linearity_enabled(cfg):
-        if _result is not None:
-            _result.update(state="disabled", tables={}, latest_data_utc=None)
-        return 0
-    closed = qc_database.get_processed_detector_linearity_obs_days()
-    batch = _load_detector_linearity_batch(cfg, closed, force)
-    return _commit_batch(batch, "detlin", qc_database, dry_run, closed, force, _result)
-
-
 def _run_main(args, run):
 
     ####################################################
@@ -682,52 +163,7 @@ def _run_main(args, run):
     log = logging.getLogger("qc-monitor")
     log.info("qc-monitor version %s", qc_monitor.__version__)
 
-    try:
-        config_path = resolve_config_path(args.config)
-        if args.summary_json and not (args.dry_run or args.preflight):
-            target = args.summary_json.expanduser().resolve()
-            if target.is_relative_to(config_path.parent):
-                args.summary_json = None
-                raise ConfigurationError(f"Summary destination overlaps protected configuration: {target}")
-        cfg = load_config(config_path)
-    except Exception as exc:
-        raise ConfigurationError(str(exc)) from exc
-
-    config_dir = config_path.parent
-    project_root = config_dir.parent
-
-    cfg = normalize_runtime_config(cfg, project_root, validated=True)
-
-    if args.summary_json and not (args.dry_run or args.preflight):
-        target = args.summary_json.expanduser().resolve()
-        input_roots = [Path(cfg["paths"][key]).resolve() for key in ("upstream_root", "reduced_root")]
-        input_roots.append(config_dir.resolve())
-        input_roots.extend(Path(arm["root"]).resolve() for arm in cfg.get("detector_linearity", {}).get("arms", {}).values() if arm.get("root"))
-        publication_namespace = Path(cfg['plots']['output_dir']).resolve() / '.qc-publication'
-        lexical_target = Path(os.path.abspath(args.summary_json.expanduser()))
-        if (target == publication_namespace or target.is_relative_to(publication_namespace)
-                or lexical_target == publication_namespace
-                or lexical_target.is_relative_to(publication_namespace)):
-            args.summary_json = None
-            raise ConfigurationError(f'Summary destination overlaps managed publication: {target}')
-        protected = {Path(cfg["paths"]["qc_database"]).resolve(),
-                     Path(cfg["plots"]["html_output"]).resolve()}
-        database = Path(cfg['paths']['qc_database']).resolve()
-        protected.update(Path(str(database) + suffix) for suffix in ('.lock', '-wal', '-shm', '-journal'))
-        protected.update(database.parent.glob(database.name + '.backup-*.sqlite'))
-        protected.update((Path(cfg["plots"]["output_dir"]) / figure["filename"]).resolve()
-                         for figure in cfg["plots"].get("figures", []) if figure.get("filename"))
-        if target in protected or any(target.is_relative_to(root) for root in input_roots):
-            # Do not attempt this destination even while reporting the failure.
-            args.summary_json = None
-            raise ConfigurationError(f"Summary destination overlaps protected data/config/artifacts: {target}")
-
-    if not (args.dry_run or args.preflight):
-        args._operation_stack.enter_context(leases(config_resources(
-            cfg, no_plots=args.no_plots, summary=args.summary_json) + configuration_requests(config_path, cfg), run.coordination))
-        checked = normalize_runtime_config(load_config(config_path), project_root, validated=True)
-        if checked != cfg:
-            raise ConfigurationError("Configuration changed during operational coordination")
+    cfg, config_path, project_root = prepare_runtime(args, run)
 
     upstream_root = Path(cfg["paths"]["upstream_root"])
     reduced_root = Path(cfg["paths"]["reduced_root"])
@@ -845,15 +281,15 @@ def _run_main(args, run):
         plots_cfg = staging_plots_cfg
         figure_results = []
         groups = [
-            ('qc', {'time_series', 'xy_scatter', 'histogram', 'latest_by_order_bar'},
+            ('qc', types_for_dataset('qc'),
              lambda: (qc_database.load_all_metrics(),)),
-            ('dsol_lines', {'dispersion_resolution', 'dispersion_residual_xy', 'dispersion_residual_histogram'},
+            ('dsol_lines', types_for_dataset('dsol_lines'),
              lambda: (qc_database.load_dispersion_solution_lines(),)),
-            ('dsol_stats', {'dispersion_resolution_timeseries'},
+            ('dsol_stats', types_for_dataset('dsol_stats'),
              lambda: (qc_database.load_dispersion_resolution_stats(),)),
-            ('oloc', {'order_location_fit'},
+            ('oloc', types_for_dataset('oloc'),
              lambda: (qc_database.load_order_location_models(), qc_database.load_order_location_meta())),
-            ('detlin', {'detector_linearity'},
+            ('detlin', types_for_dataset('detlin'),
              lambda: (qc_database.load_detector_linearity_results(),)),
         ]
         for dataset, types, load in groups:
@@ -890,7 +326,6 @@ def _run_main(args, run):
             raise
         else:
             result.apply_to(run)
-
 
 
 def main():

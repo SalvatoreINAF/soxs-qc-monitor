@@ -69,34 +69,22 @@ def _empty_qc_dataframe() -> pd.DataFrame:
     return pd.DataFrame(columns=TABLE_COLUMNS)
 
 
-def parse_qc_value(raw_value: object) -> float | None:
+def _parse_finite_float(raw_value: object) -> float | None:
     if raw_value is None:
         return None
-
     try:
         value = float(raw_value)
     except (TypeError, ValueError):
         return None
+    return value if np.isfinite(value) else None
 
-    if not np.isfinite(value):
-        return None
 
-    return value
+def parse_qc_value(raw_value: object) -> float | None:
+    return _parse_finite_float(raw_value)
 
 
 def parse_optional_float(raw_value: object) -> float | None:
-    if raw_value is None:
-        return None
-
-    try:
-        value = float(raw_value)
-    except (TypeError, ValueError):
-        return None
-
-    if not np.isfinite(value):
-        return None
-
-    return value
+    return _parse_finite_float(raw_value)
 
 
 def normalize_arm(raw_arm: object) -> str | None:
@@ -251,6 +239,17 @@ def _load_qc_batch(
     return AcquisitionBatch({"metrics": df}, outcomes, {"metrics": int(invalid.sum())}, retries)
 
 
+def _reduced_product_candidates(reduced_root: Path, search_mode: str, pattern: str):
+    """Share traversal while domain finders retain their product filters."""
+    if search_mode == "observing_day_dirs":
+        roots = find_observing_day_directories(reduced_root)
+    elif search_mode == "recursive":
+        roots = [reduced_root]
+    else:
+        raise ValueError(f"Unsupported reduced products search mode: {search_mode}")
+    return (path for root in roots for path in root.rglob(pattern))
+
+
 def find_dispersion_solution_fits_files(
     reduced_root: Path,
     search_mode: str = "observing_day_dirs",
@@ -261,17 +260,7 @@ def find_dispersion_solution_fits_files(
     Only DSOL PINHOLE products are selected.
     SSOL / spatial-solution products are intentionally ignored.
     """
-    if search_mode == "observing_day_dirs":
-        roots = find_observing_day_directories(reduced_root)
-        candidates = (
-            path
-            for root in roots
-            for path in root.rglob("*DSOL_PINHOLE*SOXS_FITTED_LINES.fits")
-        )
-    elif search_mode == "recursive":
-        candidates = reduced_root.rglob("*DSOL_PINHOLE*SOXS_FITTED_LINES.fits")
-    else:
-        raise ValueError(f"Unsupported reduced products search mode: {search_mode}")
+    candidates = _reduced_product_candidates(reduced_root, search_mode, '*DSOL_PINHOLE*SOXS_FITTED_LINES.fits')
 
     files = []
     for path in candidates:
@@ -564,17 +553,7 @@ def find_order_location_fits_files(
 
     Selects OLOC products and ignores unrelated FITS files.
     """
-    if search_mode == "observing_day_dirs":
-        roots = find_observing_day_directories(reduced_root)
-        candidates = (
-            path
-            for root in roots
-            for path in root.rglob("*_OLOC_*_SOXS.fits")
-        )
-    elif search_mode == "recursive":
-        candidates = reduced_root.rglob("*_OLOC_*_SOXS.fits")
-    else:
-        raise ValueError(f"Unsupported reduced products search mode: {search_mode}")
+    candidates = _reduced_product_candidates(reduced_root, search_mode, '*_OLOC_*_SOXS.fits')
 
     files = []
     for path in candidates:

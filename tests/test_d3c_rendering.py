@@ -164,7 +164,8 @@ def test_exception_after_creation_closes_figures(stage, tmp_path, monkeypatch):
         raise RuntimeError(stage + ' failure')
     monkeypatch.setattr(plt, {'draw': 'hist', 'show': 'show'}.get(stage, 'savefig'), fail)
     if stage == 'save':
-        monkeypatch.setattr(plotting, '_save_figure', fail)
+        from qc_monitor import _plots_common
+        monkeypatch.setattr(_plots_common, '_save_figure', fail)
     with pytest.raises(RuntimeError, match=stage):
         generate_plots_from_config(df, cfg)
     assert plt.get_fignums() == []

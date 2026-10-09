@@ -166,7 +166,8 @@ conn.close()
 @pytest.fixture
 def short_sqlite_timeout(monkeypatch):
     # Keep broad integration coverage fast; a separate test exercises the real 5s policy.
-    for module in (storage, acquisition, cli, rebuild):
+    from qc_monitor import _preflight
+    for module in (storage, acquisition, cli, rebuild, _preflight):
         monkeypatch.setattr(module, 'SQLITE_TIMEOUT_SECONDS', 0.05)
 
 
@@ -401,7 +402,8 @@ def test_runtime_upstream_exhaustion_is_partial_and_other_family_proceeds(
     def contended(path, cfg):
         with database_lock(path):
             return original(path, cfg)
-    monkeypatch.setattr(cli, '_load_qc_batch', contended)
+    from qc_monitor import _consolidation
+    monkeypatch.setattr(_consolidation, '_load_qc_batch', contended)
     monkeypatch.setattr(retry, 'sleep', lambda _: None)
     code, value = in_process(lab, monkeypatch, caplog, '--no-plots')
     assert code == 1

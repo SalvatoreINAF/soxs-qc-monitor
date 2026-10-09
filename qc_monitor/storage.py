@@ -61,6 +61,26 @@ def _prepare_unit_frames(family: str, frames: list[pd.DataFrame]) -> list[pd.Dat
     return prepared
 
 
+def _sql_rows(frame, columns, label="dataframe"):
+    """Validate column order and adapt scalar values at the SQLite boundary."""
+    missing = set(columns) - set(frame.columns)
+    if missing:
+        raise ValueError(f"Missing required columns in {label}: {sorted(missing)}")
+    def scalar(value):
+        if pd.isna(value):
+            return None
+        return value.item() if hasattr(value, "item") else value
+    return [tuple(scalar(value) for value in row)
+            for row in frame[columns].itertuples(index=False, name=None)]
+
+
+def _insert_rows(conn, table, columns, rows):
+    """Mechanical INSERT only: the domain caller owns the transaction."""
+    fields = ", ".join(quote(column) for column in columns)
+    placeholders = ", ".join("?" for _ in columns)
+    conn.executemany(f"INSERT INTO {quote(table)} ({fields}) VALUES ({placeholders})", rows)
+
+
 class ReadOnlyStorageError(RuntimeError):
     """An archive cannot be safely inspected without filesystem writes."""
 
@@ -157,16 +177,27 @@ class SQLiteStore:
 
     # Registry API
 
+    def _processed_units(self, family):
+        columns = ["obs_day", "arm"] if family == "detlin" else ["obs_day"]
+        fields = ", ".join(columns)
+        return self._read_registry(
+            f"SELECT {fields} FROM {quote(_REGISTERS[family])} WHERE status = 'PROCESSED'")
+
+    def _register_unit(self, conn, family, unit, status="PROCESSED"):
+        """Update a registry on the caller's connection, without committing."""
+        columns = ["obs_day", "arm"] if family == "detlin" else ["obs_day"]
+        columns += ["processed_at", "status"]
+        fields = ", ".join(map(quote, columns))
+        placeholders = ", ".join("?" for _ in columns)
+        timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
+        conn.execute(
+            f"INSERT OR REPLACE INTO {quote(_REGISTERS[family])} ({fields}) VALUES ({placeholders})",
+            (*unit, timestamp, status))
+
+
     def get_processed_obs_days(self) -> set[str]:
-        query = """
-        SELECT obs_day
-        FROM processed_obs_days
-        WHERE status = 'PROCESSED'
-        """
-
-        rows = self._read_registry(query)
-
-        return {r[0] for r in rows}
+        rows = self._processed_units("qc")
+        return {row[0] for row in rows}
 
     @locked_store_method
     @retry_store_method
@@ -175,29 +206,13 @@ class SQLiteStore:
         obs_day: str,
         status: str = "PROCESSED",
     ):
-        processed_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
-
         with closing(self._connect()) as conn, conn:
-            conn.execute(
-                """
-                INSERT OR REPLACE INTO processed_obs_days
-                (obs_day, processed_at, status)
-                VALUES (?, ?, ?)
-                """,
-                (obs_day, processed_at, status),
-            )
+            self._register_unit(conn, 'qc', (obs_day,), status)
             conn.commit()
 
     def get_processed_dispersion_obs_days(self) -> set[str]:
-        query = """
-        SELECT obs_day
-        FROM processed_dispersion_obs_days
-        WHERE status = 'PROCESSED'
-        """
-
-        rows = self._read_registry(query)
-
-        return {r[0] for r in rows}
+        rows = self._processed_units("dsol")
+        return {row[0] for row in rows}
 
     @locked_store_method
     @retry_store_method
@@ -206,30 +221,14 @@ class SQLiteStore:
         obs_day: str,
         status: str = "PROCESSED",
     ):
-        processed_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
-
         with closing(self._connect()) as conn, conn:
-            conn.execute(
-                """
-                INSERT OR REPLACE INTO processed_dispersion_obs_days
-                (obs_day, processed_at, status)
-                VALUES (?, ?, ?)
-                """,
-                (obs_day, processed_at, status),
-            )
+            self._register_unit(conn, 'dsol', (obs_day,), status)
             conn.commit()
 
 
     def get_processed_order_location_obs_days(self) -> set[str]:
-        query = """
-        SELECT obs_day
-        FROM processed_order_location_obs_days
-        WHERE status = 'PROCESSED'
-        """
-
-        rows = self._read_registry(query)
-
-        return {r[0] for r in rows}
+        rows = self._processed_units("oloc")
+        return {row[0] for row in rows}
 
     @locked_store_method
     @retry_store_method
@@ -238,29 +237,13 @@ class SQLiteStore:
         obs_day: str,
         status: str = "PROCESSED",
     ):
-        processed_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
-
         with closing(self._connect()) as conn, conn:
-            conn.execute(
-                """
-                INSERT OR REPLACE INTO processed_order_location_obs_days
-                (obs_day, processed_at, status)
-                VALUES (?, ?, ?)
-                """,
-                (obs_day, processed_at, status),
-            )
+            self._register_unit(conn, 'oloc', (obs_day,), status)
             conn.commit()
 
     def get_processed_detector_linearity_obs_days(self) -> set[tuple[str, str]]:
-        query = """
-        SELECT obs_day, arm
-        FROM processed_detector_linearity_obs_days
-        WHERE status = 'PROCESSED'
-        """
-
-        rows = self._read_registry(query)
-
-        return {(r[0], r[1]) for r in rows}
+        rows = self._processed_units("detlin")
+        return {tuple(row) for row in rows}
 
     @locked_store_method
     @retry_store_method
@@ -270,17 +253,8 @@ class SQLiteStore:
         arm: str,
         status: str = "PROCESSED",
     ):
-        processed_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
-
         with closing(self._connect()) as conn, conn:
-            conn.execute(
-                """
-                INSERT OR REPLACE INTO processed_detector_linearity_obs_days
-                (obs_day, arm, processed_at, status)
-                VALUES (?, ?, ?, ?)
-                """,
-                (obs_day, arm, processed_at, status),
-            )
+            self._register_unit(conn, 'detlin', (obs_day, arm), status)
             conn.commit()
 
     @locked_store_method
@@ -310,21 +284,10 @@ class SQLiteStore:
                                      sequences.itertuples(index=False, name=None))
                 for (table, columns, _), frame in zip(_UNIT_TABLES[family], frames, strict=True):
                     conn.execute(f'DELETE FROM {self._quote(table)} WHERE {condition}', unit)
-                    columns_sql = ", ".join(self._quote(column) for column in columns)
-                    placeholders = ", ".join("?" for _ in columns)
-                    values = [tuple(value.item() if hasattr(value, "item") else value for value in row)
-                              for row in frame.itertuples(index=False, name=None)]
-                    conn.executemany(f'INSERT INTO {self._quote(table)} ({columns_sql}) VALUES ({placeholders})', values)
+                    _insert_rows(conn, table, columns, _sql_rows(frame, columns))
                 if family == "qc":
                     self._save_qc_provenance(conn, frames[0])
-                register = _REGISTERS[family]
-                timestamp = datetime.now(timezone.utc).isoformat(timespec="seconds")
-                if family == "detlin":
-                    conn.execute(f'INSERT OR REPLACE INTO {register} (obs_day, arm, processed_at, status) VALUES (?, ?, ?, ?)',
-                                 (*unit, timestamp, "PROCESSED"))
-                else:
-                    conn.execute(f'INSERT OR REPLACE INTO {register} (obs_day, processed_at, status) VALUES (?, ?, ?)',
-                                 (*unit, timestamp, "PROCESSED"))
+                self._register_unit(conn, family, unit)
 
     def replace_qc_day(self, day: str, metrics: pd.DataFrame):
         self._replace_complete_unit("qc", (day,), [metrics])
@@ -369,30 +332,9 @@ class SQLiteStore:
     def write_metrics(self, df: pd.DataFrame):
         if df.empty:
             return
-
-        missing_columns = set(TABLE_COLUMNS) - set(df.columns)
-        if missing_columns:
-            raise ValueError(
-                f"Missing required columns in QC dataframe: {sorted(missing_columns)}"
-            )
-
-        columns_sql = ", ".join(self._quote(c) for c in TABLE_COLUMNS)
-        placeholders = ", ".join("?" for _ in TABLE_COLUMNS)
-
-        query = f"""
-        INSERT INTO qc_metrics (
-            {columns_sql}
-        )
-        VALUES ({placeholders})
-        """
-
-        rows = [
-            tuple(row[col] for col in TABLE_COLUMNS)
-            for _, row in df.iterrows()
-        ]
-
+        rows = _sql_rows(df, TABLE_COLUMNS, 'QC dataframe')
         with closing(self._connect()) as conn, conn:
-            conn.executemany(query, rows)
+            _insert_rows(conn, 'qc_metrics', TABLE_COLUMNS, rows)
             self._save_qc_provenance(conn, df)
             conn.commit()
 
@@ -402,31 +344,9 @@ class SQLiteStore:
     def write_dispersion_solution_lines(self, df: pd.DataFrame):
         if df.empty:
             return
-
-        missing_columns = set(DISPERSION_SOLUTION_COLUMNS) - set(df.columns)
-        if missing_columns:
-            raise ValueError(
-                "Missing required columns in dispersion solution dataframe: "
-                f"{sorted(missing_columns)}"
-            )
-
-        columns_sql = ", ".join(self._quote(c) for c in DISPERSION_SOLUTION_COLUMNS)
-        placeholders = ", ".join("?" for _ in DISPERSION_SOLUTION_COLUMNS)
-
-        query = f"""
-        INSERT INTO dispersion_solution_lines (
-            {columns_sql}
-        )
-        VALUES ({placeholders})
-        """
-
-        rows = [
-            tuple(row[col] for col in DISPERSION_SOLUTION_COLUMNS)
-            for _, row in df.iterrows()
-        ]
-
+        rows = _sql_rows(df, DISPERSION_SOLUTION_COLUMNS, 'dispersion solution dataframe')
         with closing(self._connect()) as conn, conn:
-            conn.executemany(query, rows)
+            _insert_rows(conn, 'dispersion_solution_lines', DISPERSION_SOLUTION_COLUMNS, rows)
             conn.commit()
 
     @locked_store_method
@@ -434,33 +354,9 @@ class SQLiteStore:
     def write_dispersion_resolution_stats(self, df: pd.DataFrame):
         if df.empty:
             return
-
-        missing_columns = set(DISPERSION_RESOLUTION_STATS_COLUMNS) - set(df.columns)
-        if missing_columns:
-            raise ValueError(
-                "Missing required columns in dispersion resolution stats dataframe: "
-                f"{sorted(missing_columns)}"
-            )
-
-        columns_sql = ", ".join(
-            self._quote(c) for c in DISPERSION_RESOLUTION_STATS_COLUMNS
-        )
-        placeholders = ", ".join("?" for _ in DISPERSION_RESOLUTION_STATS_COLUMNS)
-
-        query = f"""
-        INSERT INTO dispersion_resolution_stats (
-            {columns_sql}
-        )
-        VALUES ({placeholders})
-        """
-
-        rows = [
-            tuple(row[col] for col in DISPERSION_RESOLUTION_STATS_COLUMNS)
-            for _, row in df.iterrows()
-        ]
-
+        rows = _sql_rows(df, DISPERSION_RESOLUTION_STATS_COLUMNS, 'dispersion resolution stats dataframe')
         with closing(self._connect()) as conn, conn:
-            conn.executemany(query, rows)
+            _insert_rows(conn, 'dispersion_resolution_stats', DISPERSION_RESOLUTION_STATS_COLUMNS, rows)
             conn.commit()
 
     @locked_store_method
@@ -468,31 +364,9 @@ class SQLiteStore:
     def write_order_location_models(self, df: pd.DataFrame):
         if df.empty:
             return
-
-        missing_columns = set(ORDER_LOCATION_MODEL_COLUMNS) - set(df.columns)
-        if missing_columns:
-            raise ValueError(
-                "Missing required columns in order-location dataframe: "
-                f"{sorted(missing_columns)}"
-            )
-
-        columns_sql = ", ".join(self._quote(c) for c in ORDER_LOCATION_MODEL_COLUMNS)
-        placeholders = ", ".join("?" for _ in ORDER_LOCATION_MODEL_COLUMNS)
-
-        query = f"""
-        INSERT INTO order_location_models (
-            {columns_sql}
-        )
-        VALUES ({placeholders})
-        """
-
-        rows = [
-            tuple(row[col] for col in ORDER_LOCATION_MODEL_COLUMNS)
-            for _, row in df.iterrows()
-        ]
-
+        rows = _sql_rows(df, ORDER_LOCATION_MODEL_COLUMNS, 'order-location dataframe')
         with closing(self._connect()) as conn, conn:
-            conn.executemany(query, rows)
+            _insert_rows(conn, 'order_location_models', ORDER_LOCATION_MODEL_COLUMNS, rows)
             conn.commit()
 
     @locked_store_method
@@ -500,31 +374,9 @@ class SQLiteStore:
     def write_order_location_meta(self, df: pd.DataFrame):
         if df.empty:
             return
-
-        missing_columns = set(ORDER_LOCATION_META_COLUMNS) - set(df.columns)
-        if missing_columns:
-            raise ValueError(
-                "Missing required columns in order-location meta dataframe: "
-                f"{sorted(missing_columns)}"
-            )
-
-        columns_sql = ", ".join(self._quote(c) for c in ORDER_LOCATION_META_COLUMNS)
-        placeholders = ", ".join("?" for _ in ORDER_LOCATION_META_COLUMNS)
-
-        query = f"""
-        INSERT INTO order_location_meta (
-            {columns_sql}
-        )
-        VALUES ({placeholders})
-        """
-
-        rows = [
-            tuple(row[col] for col in ORDER_LOCATION_META_COLUMNS)
-            for _, row in df.iterrows()
-        ]
-
+        rows = _sql_rows(df, ORDER_LOCATION_META_COLUMNS, 'order-location meta dataframe')
         with closing(self._connect()) as conn, conn:
-            conn.executemany(query, rows)
+            _insert_rows(conn, 'order_location_meta', ORDER_LOCATION_META_COLUMNS, rows)
             conn.commit()
 
     @locked_store_method
@@ -532,34 +384,10 @@ class SQLiteStore:
     def write_detector_linearity_measurements(self, df: pd.DataFrame):
         if df.empty:
             return
-
-        missing_columns = set(DETECTOR_LINEARITY_MEASUREMENT_COLUMNS) - set(df.columns)
-        if missing_columns:
-            raise ValueError(
-                "Missing required columns in detector-linearity measurements: "
-                f"{sorted(missing_columns)}"
-            )
-
-        columns_sql = ", ".join(
-            self._quote(c) for c in DETECTOR_LINEARITY_MEASUREMENT_COLUMNS
-        )
-        placeholders = ", ".join("?" for _ in DETECTOR_LINEARITY_MEASUREMENT_COLUMNS)
-
-        query = f"""
-        INSERT INTO detector_linearity_measurements (
-            {columns_sql}
-        )
-        VALUES ({placeholders})
-        """
-
-        rows = [
-            tuple(row[col] for col in DETECTOR_LINEARITY_MEASUREMENT_COLUMNS)
-            for _, row in df.iterrows()
-        ]
-
+        rows = _sql_rows(df, DETECTOR_LINEARITY_MEASUREMENT_COLUMNS, 'detector-linearity measurements')
         with closing(self._connect()) as conn, conn:
             self._insert_sequences(conn, df)
-            conn.executemany(query, rows)
+            _insert_rows(conn, 'detector_linearity_measurements', DETECTOR_LINEARITY_MEASUREMENT_COLUMNS, rows)
             conn.commit()
 
     @locked_store_method
@@ -567,34 +395,10 @@ class SQLiteStore:
     def write_detector_linearity_results(self, df: pd.DataFrame):
         if df.empty:
             return
-
-        missing_columns = set(DETECTOR_LINEARITY_RESULT_COLUMNS) - set(df.columns)
-        if missing_columns:
-            raise ValueError(
-                "Missing required columns in detector-linearity results: "
-                f"{sorted(missing_columns)}"
-            )
-
-        columns_sql = ", ".join(
-            self._quote(c) for c in DETECTOR_LINEARITY_RESULT_COLUMNS
-        )
-        placeholders = ", ".join("?" for _ in DETECTOR_LINEARITY_RESULT_COLUMNS)
-
-        query = f"""
-        INSERT INTO detector_linearity_results (
-            {columns_sql}
-        )
-        VALUES ({placeholders})
-        """
-
-        rows = [
-            tuple(row[col] for col in DETECTOR_LINEARITY_RESULT_COLUMNS)
-            for _, row in df.iterrows()
-        ]
-
+        rows = _sql_rows(df, DETECTOR_LINEARITY_RESULT_COLUMNS, 'detector-linearity results')
         with closing(self._connect()) as conn, conn:
             self._insert_sequences(conn, df)
-            conn.executemany(query, rows)
+            _insert_rows(conn, 'detector_linearity_results', DETECTOR_LINEARITY_RESULT_COLUMNS, rows)
             conn.commit()
 
     def unit_row_counts(self, family: str, unit: tuple) -> dict:

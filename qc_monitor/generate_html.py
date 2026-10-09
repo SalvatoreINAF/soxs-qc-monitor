@@ -194,12 +194,6 @@ def _render_html_report(
     # plots folder is expected to be relative to the output HTML file
     plots_relative_dir = Path("plots").as_posix()
 
-    section_names = []
-    for fig in figures:
-        section = _infer_section_name(fig)
-        if section not in section_names:
-            section_names.append(section)
-
     sections = _render_sections(
         figures=figures,
         plots_relative_dir=plots_relative_dir,

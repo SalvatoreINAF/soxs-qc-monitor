@@ -42,6 +42,27 @@ cfg = {"paths": {"upstream_root": str(root / "upstream"), "reduced_root": str(ro
 '''
         subprocess.run([sys.executable, "-I", "-c", "REPOSITORY=" + repr(str(repository)) + "\n" + setup],
                        cwd=root, env=env, check=True)
+        # D4: imported facades and every family implementation must be in the wheel.
+        signatures = json.loads((repository / 'tests/fixtures/d4-api-signatures.json').read_text())
+        verify_api = "EXPECTED=" + repr(signatures) + "\nREPOSITORY=" + repr(str(repository)) + "\n" + """
+import importlib, inspect, sys
+from pathlib import Path
+from qc_monitor._renderers import RENDERERS
+import qc_monitor.main
+assert 'matplotlib.pyplot' not in sys.modules
+assert len(RENDERERS) == 10
+for module, expected in EXPECTED.items():
+    target = (importlib.import_module('qc_monitor.storage').SQLiteStore if module == 'SQLiteStore'
+              else importlib.import_module('qc_monitor.' + module))
+    for name, signature in expected.items():
+        assert str(inspect.signature(getattr(target, name))).replace('pathlib._local.', 'pathlib.') == signature, (module, name)
+for name in ('processing', '_preflight', '_runtime', '_consolidation', '_plots_common',
+             '_plots_qc', '_plots_dsol', '_plots_oloc', '_plots_detlin'):
+    module = importlib.import_module('qc_monitor.' + name)
+    assert not Path(module.__file__).resolve().is_relative_to(Path(REPOSITORY))
+"""
+        subprocess.run([sys.executable, '-I', '-W', 'error', '-c', verify_api],
+                       cwd=root, env=env, check=True)
         entry = Path(sys.executable).parent / "qc-monitor"
         commands = ([str(entry), "--preflight"],
                     [sys.executable, "-I", "-m", "qc_monitor.main", "--config", str(root / "configs/qc_monitor.yaml"), "--no-plots"],
@@ -110,7 +131,7 @@ app.generate_plots_from_config = fail_save
                                  capture_output=True, text=True, timeout=60)
         assert partial.returncode == 2, partial.stderr
         diagnostic = json.loads(partial.stderr.split('RUN_SUMMARY ')[-1])
-        assert diagnostic['versions']['qc-monitor'] == '1.8.0'
+        assert diagnostic['versions']['qc-monitor'] == '1.9.0'
         assert diagnostic['plots']['counts'] == {'produced': 1, 'failed': 1, 'no_data': 0, 'reused': 0}
         assert diagnostic['report']['state'] == 'published'
         good_path = Path(diagnostic['plots']['figures'][0]['path'])
@@ -154,7 +175,7 @@ def publish(render):
 good = publish(lambda plots: generate_plots_from_config(frame, plots, continue_on_error=True))
 assert good.state == 'published' and good.durability == 'confirmed'
 manifest = json.loads(Path(good.manifest_path).read_text())
-assert manifest['package_version'] == '1.8.0'
+assert manifest['package_version'] == '1.9.0'
 assert (Path(good.manifest_path).parent / 'report.html').is_file()
 def failed_image(plots):
     (Path(plots['output_dir']) / plots['figures'][0]['filename']).mkdir(parents=True)
