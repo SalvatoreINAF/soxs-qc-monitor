@@ -1,8 +1,8 @@
-# D3-C — Consegna locale, 9 ottobre 2026
+# D3-C — Formalmente chiusa, 9 ottobre 2026
 
 **D3-C consegnata e verificata localmente su `dev` il 9 ottobre 2026.**
 Pacchetto **1.5.0**, SQLite **schema 1**. Commit applicativo **`45a7e3e5a2c8133120e185a42ded9e6f4256049f`**.
-D3-A/B restano formalmente chiuse; **CI hosted D3-C pendente, D3-D…F non avviate**.
+D3-A/B restano formalmente chiuse; **D3-C formalmente chiusa, D3-D…F non avviate**.
 
 La milestone è implementata secondo il piano concordato conservato sotto.
 [Evidenze](../../tests/results/d3-c-validation.md),
@@ -18,8 +18,7 @@ Il contesto di ciascun renderer registra l'esito di save riuscito e gli scarti;
 precedenti per decidere produced. I campi degli scarti sono per serie/fase di
 preparazione, non un conteggio di righe uniche fra query differenti.
 
-Ripresa: esclusivamente verifica/chiusura hosted C dopo pubblicazione richiesta;
-nessun D3-D. Limiti di pubblicazione diretta/percorsi/retention restano quelli
+Ripresa: pianificazione D3-D soltanto su nuova richiesta; D3-D non avviata. Limiti di pubblicazione diretta/percorsi/retention restano quelli
 previsti. Il piano storico sotto non descrive più lavoro da avviare.
 
 ---
@@ -234,3 +233,20 @@ test locali/hosted con evidenze, limiti, pendenze e punto di ripresa. Se la CI
 non è disponibile, dichiarare consegna locale con chiusura hosted pendente.
 Nessun push/merge/deploy/rebuild operativo implicito. Fermarsi a C; D richiede
 una nuova richiesta dopo la chiusura di C.
+
+## D3-C — Chiusura formale, 9 ottobre 2026
+
+**D3-C completata e formalmente chiusa.** [CI 37951987536](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37951987536), attempt 1,
+sul candidato **`45257ccc71d62ba6fa8174256bca15964da3ac9d`**. **490 PASS per ciascun job**, nessuno skip/XFAIL,
+warning come errori: Linux Python 3.11 (193,96 s), 3.12 (229,21 s),
+3.13 (233,03 s), macOS 3.12 (221,36 s). Build wheel e checker di installazione
+isolata PASS in tutti i quattro job. `pip check` verificato localmente;
+il workflow hosted non lo esegue separatamente.
+
+Pacchetto **1.5.0**, SQLite **schema 1**. Commit applicativo `45a7e3e`,
+candidato hosted `45257cc`, differenze solo documentali. Nessuna verifica C
+pendente. Questa nota supera le precedenti indicazioni di CI pendente.
+L'utente ha pubblicato il candidato; questa registrazione modifica soltanto
+documenti, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
+Ripresa: pianificazione D3-D soltanto su nuova richiesta, dopo controllo del
+checkout e lettura di scheda/indice/handover. **D3-D…F non avviate.**

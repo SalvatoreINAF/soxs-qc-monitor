@@ -317,7 +317,7 @@ restano operativi. [Audit](../tests/results/d3-c-planning.md),
 
 ## D3-C — Esiti di rendering e report (1.5.0)
 
-Implementato; chiusura hosted pendente. `RUN_SUMMARY` v1 aggiunge:
+Implementato e formalmente chiuso dopo CI hosted verde. `RUN_SUMMARY` v1 aggiunge:
 
 - `plots.state`: completed senza errori (anche tutto no_data), partial con
   failed e altri esiti, failed se tutte fallite, skipped senza rendering.
@@ -344,3 +344,20 @@ Le API HTML senza esiti restano legacy. Pubblicazione diretta e layout standard
 rimangono obbligatori; interruzioni possono ancora lasciare artefatti incoerenti.
 Atomicità, layout separati, retention e riuso restano D/E/F.
 [Evidenze C](../tests/results/d3-c-validation.md), [handover](handover.md).
+
+## D3-C — Chiusura formale, 9 ottobre 2026
+
+**D3-C completata e formalmente chiusa.** [CI 37951987536](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37951987536), attempt 1,
+sul candidato **`45257ccc71d62ba6fa8174256bca15964da3ac9d`**. **490 PASS per ciascun job**, nessuno skip/XFAIL,
+warning come errori: Linux Python 3.11 (193,96 s), 3.12 (229,21 s),
+3.13 (233,03 s), macOS 3.12 (221,36 s). Build wheel e checker di installazione
+isolata PASS in tutti i quattro job. `pip check` verificato localmente;
+il workflow hosted non lo esegue separatamente.
+
+Pacchetto **1.5.0**, SQLite **schema 1**. Commit applicativo `45a7e3e`,
+candidato hosted `45257cc`, differenze solo documentali. Nessuna verifica C
+pendente. Questa nota supera le precedenti indicazioni di CI pendente.
+L'utente ha pubblicato il candidato; questa registrazione modifica soltanto
+documenti, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
+Ripresa: pianificazione D3-D soltanto su nuova richiesta, dopo controllo del
+checkout e lettura di scheda/indice/handover. **D3-D…F non avviate.**

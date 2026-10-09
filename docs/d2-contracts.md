@@ -313,7 +313,7 @@ Sviluppo da avviare solo su nuova richiesta; D3-D non avviata.
 
 ## D3-C — Contratto additivo del rendering (1.5.0, schema 1)
 
-Implementato con chiusura hosted pendente. Acquisizione/storage/scienza D2 e
+Implementato e formalmente chiuso dopo CI hosted verde. Acquisizione/storage/scienza D2 e
 retry/lease A/B conservati. `figure_result.FigureResult` descrive identità,
 produced/no_data/failed, codice/motivo, path solo su produced, tipo dell'errore
 e scarti per context/count/reason. I renderer comunicano save esplicitamente,
@@ -333,3 +333,20 @@ mostra immagini solo per produced e schede/motivi per gli altri stati. Mantiene
 i placeholder page_title/sections e l'escaping. JSON resta v1 con plots/report
 additivi, secondo [operations](operations.md). Nessuna migrazione/opzione YAML
 aggiunta; schema 1. [Evidenze](../tests/results/d3-c-validation.md).
+
+## D3-C — Chiusura formale, 9 ottobre 2026
+
+**D3-C completata e formalmente chiusa.** [CI 37951987536](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37951987536), attempt 1,
+sul candidato **`45257ccc71d62ba6fa8174256bca15964da3ac9d`**. **490 PASS per ciascun job**, nessuno skip/XFAIL,
+warning come errori: Linux Python 3.11 (193,96 s), 3.12 (229,21 s),
+3.13 (233,03 s), macOS 3.12 (221,36 s). Build wheel e checker di installazione
+isolata PASS in tutti i quattro job. `pip check` verificato localmente;
+il workflow hosted non lo esegue separatamente.
+
+Pacchetto **1.5.0**, SQLite **schema 1**. Commit applicativo `45a7e3e`,
+candidato hosted `45257cc`, differenze solo documentali. Nessuna verifica C
+pendente. Questa nota supera le precedenti indicazioni di CI pendente.
+L'utente ha pubblicato il candidato; questa registrazione modifica soltanto
+documenti, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
+Ripresa: pianificazione D3-D soltanto su nuova richiesta, dopo controllo del
+checkout e lettura di scheda/indice/handover. **D3-D…F non avviate.**

@@ -1,6 +1,6 @@
 # SOXS QC Monitor
 
-**Current: 1.5.0/schema 1; D3-C delivered locally, hosted verification pending.**
+**Current: 1.5.0/schema 1; D3-C formally closed after hosted verification.**
 See [handover](docs/handover.md) for the current resume point.
 
 The SOXS QC Monitor is a lightweight monitoring tool that extracts Quality Control (QC) information from SOXS Pipeline products and generates a static HTML report with trend plots and diagnostic visualizations.
@@ -697,3 +697,20 @@ rimangono senza rendering/pubblicazione.
 490 PASS per Python 3.11/3.12/3.13 locale e wheel verificata nei tre venv;
 CI hosted pendente. Pubblicazione ancora diretta nel layout standard:
 nessuna atomicità, retention o immagine riusata in C. Fermarsi prima di D.
+
+## D3-C — Chiusura formale, 9 ottobre 2026
+
+**D3-C completata e formalmente chiusa.** [CI 37951987536](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37951987536), attempt 1,
+sul candidato **`45257ccc71d62ba6fa8174256bca15964da3ac9d`**. **490 PASS per ciascun job**, nessuno skip/XFAIL,
+warning come errori: Linux Python 3.11 (193,96 s), 3.12 (229,21 s),
+3.13 (233,03 s), macOS 3.12 (221,36 s). Build wheel e checker di installazione
+isolata PASS in tutti i quattro job. `pip check` verificato localmente;
+il workflow hosted non lo esegue separatamente.
+
+Pacchetto **1.5.0**, SQLite **schema 1**. Commit applicativo `45a7e3e`,
+candidato hosted `45257cc`, differenze solo documentali. Nessuna verifica C
+pendente. Questa nota supera le precedenti indicazioni di CI pendente.
+L'utente ha pubblicato il candidato; questa registrazione modifica soltanto
+documenti, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
+Ripresa: pianificazione D3-D soltanto su nuova richiesta, dopo controllo del
+checkout e lettura di scheda/indice/handover. **D3-D…F non avviate.**

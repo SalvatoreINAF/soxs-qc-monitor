@@ -1,3 +1,29 @@
+# Handover — D3-C formalmente chiusa, 9 ottobre 2026
+
+**D3-C completata e formalmente chiusa su `dev`.** Pacchetto **1.5.0**,
+SQLite **schema 1**. D3-A/B restano chiuse; **D3-D…F non avviate**.
+
+- Commit applicativo `45a7e3e5a2c8133120e185a42ded9e6f4256049f`.
+- Candidato hosted **`45257ccc71d62ba6fa8174256bca15964da3ac9d`**, successivo commit di consegna solo documentale.
+- [CI 37951987536](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37951987536), attempt 1: **490 PASS per job**, Linux Python
+  3.11/3.12/3.13 e macOS 3.12; nessuno skip/XFAIL, warning come errori.
+- Build wheel e checker isolato PASS nei quattro job. `pip check` verificato
+  localmente, non separatamente dal workflow hosted. Nessuna verifica C pendente.
+- [Evidenze](../tests/results/d3-c-validation.md),
+  [ambienti](qa/d3-c-environments.json), [scheda C](d3/d3-c.md).
+
+Punto di ripresa: **pianificazione D3-D soltanto su nuova richiesta**;
+verificare dev/HEAD/working tree, leggere indice e relativa scheda. Non iniziare
+lo sviluppo o altre milestone automaticamente. Restano i limiti C: pubblicazione
+diretta/layout standard, nessuna retention/generazione/immagine riusata.
+
+Questa chiusura modifica solo documenti; nessun nuovo push/merge/deploy,
+scheduler o archivio operativo modificato. Le sezioni successive sono storiche:
+questa apertura prevale sulle indicazioni di CI pendente. reference_docs
+aggiornata e intenzionalmente ignorata da Git.
+
+---
+
 # Handover — D3-C consegnata localmente, 9 ottobre 2026
 
 **D3-C consegnata e verificata localmente su `dev` il 9 ottobre 2026.**

@@ -1,6 +1,6 @@
 # Verifica batch, scientifica e di installazione
 
-Suite corrente su `dev`: **490 casi**, D3-C consegnata localmente e CI pendente.
+Suite corrente su `dev`: **490 casi**, D3-C formalmente chiusa con CI hosted verde.
 La consegna D1 storica aveva 216 casi (177 di baseline e 39 nuovi D1).
 I risultati storici H0/H1/H2 sotto riportati restano evidenze delle rispettive
 revisioni; non descrivono il conteggio corrente. La correzione DETLIN `8d44c9d`
@@ -515,3 +515,20 @@ installazioni nuove e isolate per i tre interpreti. QA ripetibile con i dati dei
 test, non con archivi operativi. [Tavola](../docs/qa/d3-c-reference.png) e
 [screenshot NIR](../docs/qa/d3-c-report-nir.png) ispezionati; nessuna golden image.
 Fermarsi a C: dopo pubblicazione autorizzata, verificare solo la chiusura hosted.
+
+## D3-C — Chiusura formale, 9 ottobre 2026
+
+**D3-C completata e formalmente chiusa.** [CI 37951987536](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37951987536), attempt 1,
+sul candidato **`45257ccc71d62ba6fa8174256bca15964da3ac9d`**. **490 PASS per ciascun job**, nessuno skip/XFAIL,
+warning come errori: Linux Python 3.11 (193,96 s), 3.12 (229,21 s),
+3.13 (233,03 s), macOS 3.12 (221,36 s). Build wheel e checker di installazione
+isolata PASS in tutti i quattro job. `pip check` verificato localmente;
+il workflow hosted non lo esegue separatamente.
+
+Pacchetto **1.5.0**, SQLite **schema 1**. Commit applicativo `45a7e3e`,
+candidato hosted `45257cc`, differenze solo documentali. Nessuna verifica C
+pendente. Questa nota supera le precedenti indicazioni di CI pendente.
+L'utente ha pubblicato il candidato; questa registrazione modifica soltanto
+documenti, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
+Ripresa: pianificazione D3-D soltanto su nuova richiesta, dopo controllo del
+checkout e lettura di scheda/indice/handover. **D3-D…F non avviate.**

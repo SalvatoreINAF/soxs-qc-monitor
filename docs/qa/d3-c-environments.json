@@ -5,8 +5,63 @@
   "package": "1.5.0",
   "schema": 1,
   "hosted": {
-    "state": "pending",
-    "candidate": null
+    "state": "PASS",
+    "candidate": "45257ccc71d62ba6fa8174256bca15964da3ac9d",
+    "run_id": 37951987536,
+    "attempt": 1,
+    "url": "https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37951987536",
+    "conclusion": "success",
+    "pip_check": "local only; no separate hosted step",
+    "jobs": [
+      {
+        "name": "tests (ubuntu-latest, 3.11)",
+        "conclusion": "success",
+        "started_at": "2026-10-09T15:28:27Z",
+        "completed_at": "2026-10-09T15:32:46Z",
+        "passed": 490,
+        "skipped": 0,
+        "xfail": 0,
+        "pytest_seconds": 193.96,
+        "build": "PASS",
+        "isolated_checker": "PASS"
+      },
+      {
+        "name": "tests (ubuntu-latest, 3.12)",
+        "conclusion": "success",
+        "started_at": "2026-10-09T15:28:27Z",
+        "completed_at": "2026-10-09T15:33:19Z",
+        "passed": 490,
+        "skipped": 0,
+        "xfail": 0,
+        "pytest_seconds": 229.21,
+        "build": "PASS",
+        "isolated_checker": "PASS"
+      },
+      {
+        "name": "tests (macos-latest, 3.12)",
+        "conclusion": "success",
+        "started_at": "2026-10-09T15:28:31Z",
+        "completed_at": "2026-10-09T15:33:12Z",
+        "passed": 490,
+        "skipped": 0,
+        "xfail": 0,
+        "pytest_seconds": 221.36,
+        "build": "PASS",
+        "isolated_checker": "PASS"
+      },
+      {
+        "name": "tests (ubuntu-latest, 3.13)",
+        "conclusion": "success",
+        "started_at": "2026-10-09T15:28:27Z",
+        "completed_at": "2026-10-09T15:34:42Z",
+        "passed": 490,
+        "skipped": 0,
+        "xfail": 0,
+        "pytest_seconds": 233.03,
+        "build": "PASS",
+        "isolated_checker": "PASS"
+      }
+    ]
   },
   "wheel": {
     "filename": "qc_monitor-1.5.0-py3-none-any.whl",
@@ -159,5 +214,6 @@
     "tests/test_d3c_rendering.py": "48aaf04b3ca934b62283fa3e0f41e32faf13094c56959be598d05afeabc79e9a",
     "tests/test_d3b_coordination.py": "b4f6d39a58a55eb1fbce9886c9c87b6527dd05009a30d60f815a02fbd4de5d5b"
   },
-  "application_commit": "45a7e3e5a2c8133120e185a42ded9e6f4256049f"
+  "application_commit": "45a7e3e5a2c8133120e185a42ded9e6f4256049f",
+  "milestone_state": "formally_closed"
 }

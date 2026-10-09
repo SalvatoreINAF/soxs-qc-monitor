@@ -1,8 +1,8 @@
-# D3-C — Validazione locale, 9 ottobre 2026
+# D3-C — Validazione locale e hosted, 9 ottobre 2026
 
 **D3-C consegnata e verificata localmente su `dev` il 9 ottobre 2026.**
 Pacchetto **1.5.0**, SQLite **schema 1**. Commit applicativo **`45a7e3e5a2c8133120e185a42ded9e6f4256049f`**.
-D3-A/B restano formalmente chiuse; **CI hosted D3-C pendente, D3-D…F non avviate**.
+D3-A/B restano formalmente chiuse; **D3-C formalmente chiusa, D3-D…F non avviate**.
 
 ## Baseline e decisioni
 
@@ -97,7 +97,7 @@ scarto effettivo e save fallito reale. Gli screenshot Chrome headless usano
 profili temporanei; per la schermata NIR è impostato solo il tab iniziale nella
 copia QA, senza modificare template/script del prodotto. Nessuna golden image.
 
-## Limiti e ripresa
+## Limiti e ripresa della consegna locale — pendenza CI superata dalla chiusura sotto
 
 Pubblicazione diretta e layout HTML/plots richiesto; niente generazioni,
 atomicità, retention o riuso C. Su interruzione o errore HTML il vecchio report
@@ -109,3 +109,20 @@ nuova CI attribuita a C, nessun push/merge/deploy/scheduler o rebuild operativo.
 I commit documentali successivi non cambiano i file verificati. Dopo pubblicazione
 richiesta dall'utente, verificare SHA/attempt/job/build/installazione e registrare
 solo la chiusura C. Fermarsi prima di D3-D.
+
+## D3-C — Chiusura formale, 9 ottobre 2026
+
+**D3-C completata e formalmente chiusa.** [CI 37951987536](https://github.com/SalvatoreINAF/soxs-qc-monitor/actions/runs/37951987536), attempt 1,
+sul candidato **`45257ccc71d62ba6fa8174256bca15964da3ac9d`**. **490 PASS per ciascun job**, nessuno skip/XFAIL,
+warning come errori: Linux Python 3.11 (193,96 s), 3.12 (229,21 s),
+3.13 (233,03 s), macOS 3.12 (221,36 s). Build wheel e checker di installazione
+isolata PASS in tutti i quattro job. `pip check` verificato localmente;
+il workflow hosted non lo esegue separatamente.
+
+Pacchetto **1.5.0**, SQLite **schema 1**. Commit applicativo `45a7e3e`,
+candidato hosted `45257cc`, differenze solo documentali. Nessuna verifica C
+pendente. Questa nota supera le precedenti indicazioni di CI pendente.
+L'utente ha pubblicato il candidato; questa registrazione modifica soltanto
+documenti, senza nuovo push/merge/deploy, scheduler o rebuild operativo.
+Ripresa: pianificazione D3-D soltanto su nuova richiesta, dopo controllo del
+checkout e lettura di scheda/indice/handover. **D3-D…F non avviate.**
