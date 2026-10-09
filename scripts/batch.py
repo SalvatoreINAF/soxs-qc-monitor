@@ -63,6 +63,24 @@ def freshness(directory, hours):
     return max(supervisor_code, int(latest[1]["exit_code"]))
 
 
+def wait_process_group(group, timeout=5):
+    """Wait for live descendants; zombies have already closed their descriptors."""
+    deadline = time.monotonic() + timeout
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError(f"Process group {group} did not terminate after SIGKILL")
+        snapshot = subprocess.run(["ps", "-A", "-o", "pgid=", "-o", "stat="],
+                                  capture_output=True, text=True, check=True,
+                                  timeout=remaining)
+        live = any(int(fields[0]) == group and fields[1][0] not in "ZX"
+                   for line in snapshot.stdout.splitlines()
+                   if (fields := line.split()))
+        if not live:
+            return
+        time.sleep(min(0.02, max(0, deadline - time.monotonic())))
+
+
 def execute(command, root, stream, deadline, *, pass_fds=()):
     remaining = deadline - time.monotonic()
     if remaining <= 0:
@@ -88,6 +106,7 @@ def execute(command, root, stream, deadline, *, pass_fds=()):
             except ProcessLookupError:
                 pass
             process.wait()
+            wait_process_group(process.pid)
             raise
 
 

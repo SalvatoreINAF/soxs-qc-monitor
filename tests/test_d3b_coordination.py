@@ -343,3 +343,58 @@ def test_parent_project_excludes_nested_operational_project(lab):
     with holder([('project', str(lab.root.parent), True)]):
         lab.cli('--no-plots', expected=2)
     assert tree_snapshot(lab.root) == before
+
+
+@pytest.mark.parametrize('state', ['Z', 'Z+', 'X'])
+def test_group_wait_ignores_dead_processes(monkeypatch, state):
+    import importlib.util
+    from types import SimpleNamespace
+    spec = importlib.util.spec_from_file_location('group_wait', Path(__file__).resolve().parents[1] / 'scripts/batch.py')
+    batch = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(batch)
+    monkeypatch.setattr(batch.subprocess, 'run', lambda *a, **kw: SimpleNamespace(stdout=f'123 {state}\n456 S\n'))
+    batch.wait_process_group(123)
+
+
+def test_group_wait_is_bounded(monkeypatch):
+    import importlib.util
+    from types import SimpleNamespace
+    spec = importlib.util.spec_from_file_location('group_bound', Path(__file__).resolve().parents[1] / 'scripts/batch.py')
+    batch = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(batch)
+    monkeypatch.setattr(batch.subprocess, 'run', lambda *a, **kw: SimpleNamespace(stdout='123 S\n'))
+    with pytest.raises(TimeoutError, match='did not terminate'):
+        batch.wait_process_group(123, timeout=.03)
+
+
+def test_timeout_waits_for_deferred_child_termination(tmp_path, monkeypatch):
+    import importlib.util
+    import signal
+    import threading
+    spec = importlib.util.spec_from_file_location('deferred_batch', Path(__file__).resolve().parents[1] / 'scripts/batch.py')
+    batch = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(batch)
+    resource = str(tmp_path / 'deferred-resource')
+    child = "import signal,time; signal.signal(signal.SIGTERM,signal.SIG_IGN); print('ready',flush=True); time.sleep(30)"
+    program = "from qc_monitor.coordination import leases; import subprocess,sys,time\nwith leases([('resource',sys.argv[1],True)]) as fds:\n subprocess.Popen([sys.executable,'-c',sys.argv[2]],pass_fds=fds)\n time.sleep(30)\n"
+    real_killpg = os.killpg
+    timers = []
+    def defer(group, sig):
+        if sig == signal.SIGKILL:
+            timer = threading.Timer(.15, real_killpg, args=(group, sig))
+            timers.append(timer)
+            timer.start()
+        else:
+            real_killpg(group, sig)
+    monkeypatch.setattr(os, 'killpg', defer)
+    try:
+        with (tmp_path / 'deferred.log').open('w') as stream:
+            with pytest.raises(subprocess.TimeoutExpired):
+                batch.execute([sys.executable, '-c', program, resource, child], tmp_path, stream, time.monotonic()+1)
+        assert timers and not timers[0].is_alive()
+        assert 'ready' in (tmp_path / 'deferred.log').read_text()
+        with leases([('resource', resource, True)]):
+            pass
+    finally:
+        for timer in timers:
+            timer.join(timeout=2)
